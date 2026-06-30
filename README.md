@@ -2,6 +2,8 @@
 
 BEAI Package for OpenClaw is a runtime judgment, reliability, and workflow package for OpenClaw.
 
+If OpenClaw is the workspace where AI agents can use tools, skills, memory, plugins, hooks, and cron jobs, BEAI Package adds the judgment boundaries around that workspace. It helps users understand what is ready, partial, unverified, blocked, needs approval, on hold, or unsafe before an agent mutates files, writes memory, sends messages, schedules automation, or claims completion.
+
 It helps OpenClaw users separate:
 
 - user intent
@@ -14,6 +16,14 @@ It helps OpenClaw users separate:
 - package verification and release boundaries
 
 This repository is an alpha public staging repository. It is not an OpenClaw core fork, and it does not claim production-ready public release status.
+
+In practical terms, this means BEAI Package is currently best read as:
+
+- a public reference implementation for BEAI runtime judgment on OpenClaw
+- a reviewable source package for BEAI Runtime and BEAI Capability Pack components
+- a manual-verification alpha for users who understand OpenClaw plugins, skills, hooks, and local runtime operations
+
+It should not yet be described as a stable one-command installer or a production support promise.
 
 ## Package Shape
 
@@ -139,6 +149,14 @@ openclaw plugins doctor
 openclaw hooks
 ```
 
+Expected:
+
+- the plugin installs dependencies without blocking install errors
+- the runtime builds without TypeScript errors
+- tests pass
+- `openclaw plugins doctor` recognizes `beai-runtime` without plugin load issues
+- `openclaw hooks` shows the expected hook surface as ready
+
 For the capability pack:
 
 ```bash
@@ -148,6 +166,12 @@ node --check tools/beai-doctor-package-check.mjs
 node tools/beai-doctor-package-check.mjs
 ```
 
+Expected:
+
+- tool files pass Node syntax checks
+- the package check completes without missing required files
+- BEAI Doctor reports the capability pack as package-ready for controlled alpha review
+
 ## Public Release Status
 
 Current status: `alpha / public staging`.
@@ -155,3 +179,5 @@ Current status: `alpha / public staging`.
 This repository is suitable for review, documentation, and controlled manual testing.
 
 It should not yet be presented as a one-command production install.
+
+Before a pre-release tag such as `v0.7.0-alpha.1`, this repository should also have clean-environment verification evidence, a rollback note, and release wording that keeps alpha review separate from stable distribution.
