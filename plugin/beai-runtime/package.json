@@ -1,0 +1,37 @@
+{
+  "name": "openclaw-plugin-beai-runtime",
+  "version": "0.6.17",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "plugin:build": "npm run build",
+    "test": "node --check dist/index.js && node --check dist/runtime-core.js"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/runtime-core.js",
+    "runtime/beai-runtime-lib.cjs",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "openclaw": "2026.6.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "runtimeExtensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.6.6"
+    }
+  }
+}

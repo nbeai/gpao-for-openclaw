@@ -1,0 +1,15 @@
+node_modules/
+dist/.cache/
+.DS_Store
+.env
+.env.*
+state/*
+!capability-pack/state/
+!capability-pack/state/beai/
+!capability-pack/state/beai/agent-trust-ledger.json
+memory/
+packages/*.zip
+packages/*.sha256
+docs/03-verification/generated/
+**/docs/03-verification/generated/
+*.log

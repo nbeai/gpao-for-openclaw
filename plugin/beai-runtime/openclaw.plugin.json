@@ -1,0 +1,27 @@
+{
+  "id": "beai-runtime",
+  "name": "BEAI Runtime",
+  "description": "BEAI Layer runtime for current-turn judgment, evidence-aware replies, memory candidates, session continuity, and workflow state ledgers.",
+  "version": "0.6.17",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "hardHandoffOverride": {
+        "type": "boolean",
+        "default": true
+      },
+      "toolRiskObserver": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "activation": {
+    "onStartup": true
+  }
+}

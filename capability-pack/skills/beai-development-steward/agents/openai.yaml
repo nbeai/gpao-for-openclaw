@@ -1,0 +1,8 @@
+interface:
+  display_name: "BEAI Development Steward"
+  short_description: "AI 개발을 계획, 승인, 검증, 배포 기준으로 이끕니다."
+  brand_color: "#2563EB"
+  default_prompt: "Use $beai-development-steward to turn this idea into a safe, verified AI-assisted development plan."
+
+policy:
+  allow_implicit_invocation: true

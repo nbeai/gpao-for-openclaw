@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "sources": [
+    {
+      "id": "openai-news",
+      "label": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml",
+      "category": "ai-market-signal"
+    },
+    {
+      "id": "anthropic-news",
+      "label": "Anthropic News",
+      "url": "https://www.anthropic.com/news",
+      "category": "ai-market-signal"
+    }
+  ]
+}

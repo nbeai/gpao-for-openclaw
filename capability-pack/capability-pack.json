@@ -1,0 +1,350 @@
+{
+  "id": "beai-capability-pack",
+  "version": "0.2.0",
+  "status": "internal-team-upgrade-candidate",
+  "createdFrom": "live-openclaw-workspace-20260621",
+  "upgradesFrom": [
+    "0.1.0",
+    "0.1.1"
+  ],
+  "corePolicy": {
+    "modifiesBeaiLayerCore": false,
+    "defaultMode": "skill-first",
+    "agentPromotionRule": "Promote only after repeated use proves independent state, separate responsibility, or permission separation.",
+    "automationPromotionRule": "Promote to Automation/Cron only after manual execution, failure boundaries, stop paths, and report channels are verified.",
+    "memoryPolicy": "Allow only bounded daily Knowledge Loop memory append with same-day deduplication; do not promote unconfirmed agreement assets.",
+    "doctorPolicy": "Use beai-doctor as the package runtime diagnosis surface for BEAI-owned OpenClaw reliability, package consistency, Trust Gate status, Knowledge Loop operations, and connector onboarding risk.",
+    "telegramDeliveryPolicy": "For Telegram direct conversations, internal final_answer/private final text is not delivery. reply_payload_sending is only a delivery candidate. Completion requires source-channel message_sent success and Telegram messageId evidence before user-visible closeout claims. Long-running Telegram-driven work also requires periodic visible progress or a recorded progress-gap issue.",
+    "trustGatePolicy": "Report ready, partial, unverified, blocked, needs_approval, hold, or unsafe before making completion or production-readiness claims."
+  },
+  "skills": [
+    {
+      "id": "beai-release-verifier",
+      "label": "Release Verifier Skill",
+      "source": "skills/release-verifier-skill.md",
+      "workshopProposalId": "beai-release-verifier-20260620-9ef9d7be37",
+      "latestUpdateProposalId": "beai-release-verifier-20260620-5c22a16da8",
+      "status": "live-applied"
+    },
+    {
+      "id": "beai-session-handoff",
+      "label": "Session Handoff Skill",
+      "source": "skills/session-handoff-skill.md",
+      "workshopProposalId": "beai-session-handoff-20260620-0e9f4f7d47",
+      "latestUpdateProposalId": "beai-session-handoff-20260620-25dc4b9845",
+      "status": "live-applied"
+    },
+    {
+      "id": "beai-memory-curator-review",
+      "label": "Memory Curator Review Skill",
+      "source": "skills/memory-curator-review-skill.md",
+      "workshopProposalId": "beai-memory-curator-review-20260620-0a4448ca30",
+      "latestUpdateProposalId": "beai-memory-curator-review-20260620-f36207e828",
+      "status": "live-applied"
+    },
+    {
+      "id": "beai-development-steward",
+      "label": "BEAI Development Steward Skill",
+      "source": "skills/beai-development-steward/SKILL.md",
+      "status": "new-in-v0.2.0",
+      "includes": [
+        "skills/beai-development-steward/references/*.md",
+        "skills/beai-development-steward/templates/*.md",
+        "skills/beai-development-steward/agents/openai.yaml"
+      ],
+      "purpose": "Guide AI-assisted development for non-developer and vibe-coding users with planning, approval gates, progress briefings, validation discipline, and release hygiene."
+    },
+    {
+      "id": "beai-knowledge-loop",
+      "label": "BEAI Knowledge Loop Skill",
+      "source": "skills/beai-knowledge-loop-skill.md",
+      "workshopProposalId": "beai-knowledge-loop-20260630-94e39992c7",
+      "status": "live-applied-daily-automation",
+      "purpose": "Turn work and session records into source-grounded BEAI package knowledge with daily review reporting, external signal fetch, bounded memory append, Telegram delivery, a persistent review lane, and a bounded Gateway watchdog.",
+      "manualOnly": false,
+      "registeredAutomations": [
+        {
+          "type": "cron",
+          "id": "ee0c67e8-53ba-435a-8df1-966f2e3d6d87",
+          "name": "beai-knowledge-loop-daily-applied-0910",
+          "schedule": "10 9 * * *",
+          "timezone": "Asia/Seoul",
+          "status": "enabled-force-run-ok"
+        },
+        {
+          "type": "persistent-session-cron",
+          "id": "64935f3e-7daf-48a6-b71c-5dc0483c8291",
+          "name": "beai-knowledge-loop-agent-review-0920",
+          "schedule": "20 9 * * *",
+          "timezone": "Asia/Seoul",
+          "status": "enabled-force-run-ok"
+        },
+        {
+          "type": "gateway-watchdog-cron",
+          "id": "c5546e55-d447-4f8b-84b7-b20504ce42bd",
+          "name": "beai-telegram-gateway-watchdog-30m",
+          "schedule": "every 30 minutes",
+          "status": "enabled-force-run-ok-no-restart-needed"
+        },
+        {
+          "type": "missed-run-recovery-cron",
+          "id": "14e01e74-9800-4947-9b34-8e1d21769dec",
+          "name": "beai-knowledge-loop-missed-run-recovery-2h",
+          "schedule": "10 11-23/2 * * *",
+          "timezone": "Asia/Seoul",
+          "status": "enabled-force-run-ok-no-action-when-marker-exists"
+        }
+      ],
+      "notActivated": [
+        "session-end hooks",
+        "Gateway hooks config",
+        "agents.list config promotion",
+        "public release publishing"
+      ]
+    },
+    {
+      "id": "beai-doctor",
+      "label": "BEAI Doctor",
+      "source": "skills/beai-doctor/SKILL.md",
+      "status": "packaged-runtime-diagnosis-upgrade",
+      "includes": [
+        "tools/beai-doctor.js",
+        "tools/install-wake-guard-launchagent.js"
+      ],
+      "purpose": "Diagnose BEAI-on-OpenClaw operating reliability, separate OpenClaw core issues from BEAI-owned runtime issues, classify repair boundaries, verify Telegram/Gateway/skill/plugin/package health, and read Knowledge Loop, Trust Gate, Agent Trust Ledger, and Connector Onboarding signals.",
+      "notActivated": [
+        "OpenClaw core changes",
+        "Gateway restart",
+        "Gateway hooks config changes",
+        "cron mutation",
+        "agent promotion",
+        "durable memory write",
+        "external message send",
+        "public release publishing"
+      ]
+    }
+  ],
+  "candidateModules": [
+    {
+      "id": "beai-knowledge-loop",
+      "label": "BEAI Knowledge Loop",
+      "status": "draft-candidate",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-KNOWLEDGE-LOOP-v0.1-ko.md",
+        "docs/BEAI-KNOWLEDGE-LOOP-CLI-v0.1-ko.md",
+        "docs/BEAI-KNOWLEDGE-LOOP-COMPANION-UX-v0.1-ko.md",
+        "docs/UPGRADE-BEAI-KNOWLEDGE-LOOP-v0.1-ko.md",
+        "docs/03-verification/generated/knowledge-loop-case3a.json",
+        "docs/03-verification/generated/knowledge-loop-external-signal.json",
+        "docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session.json",
+        "docs/03-verification/generated/knowledge-loop-scenario-reinforcement.json",
+        "docs/03-verification/generated/knowledge-loop-telegram-response-persistence.json",
+        "docs/03-verification/generated/knowledge-loop-retrieval-index.json",
+        "docs/03-verification/generated/knowledge-loop-case3a-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-external-signal-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-scenario-reinforcement-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-telegram-response-persistence-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-report-only-review.md",
+        "docs/03-verification/generated/knowledge-loop-external-connector-report.md",
+        "docs/03-verification/generated/knowledge-loop-external-connector-report.json",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-v0.1-FINAL-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-REAL-RECORD-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-SCENARIO-USEFULNESS-TEST-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-REPEAT-REAL-RECORD-TRIAL-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-PROMOTION-READINESS-PREFLIGHT-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-MANUAL-SKILL-APPLY-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-PROMOTION-GATES-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-MANUAL-RUN-LEDGER-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-CRON-HOOK-AGENT-READINESS-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-REPORT-ONLY-CRON-DRY-RUN-SPEC-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-REPORT-ONLY-CRON-REGISTRATION-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-LOCAL-RELEASE-PACKAGE-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-REMAINING-AUTOMATION-EXECUTION-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-DAILY-APPLIED-AUTOMATION-CHECK-20260630.md",
+        "docs/03-verification/BEAI-KNOWLEDGE-LOOP-FULL-REGISTRATION-CHECK-20260630.md"
+      ],
+      "scope": [
+        "manual source-record capture",
+        "knowledge asset boundary classification",
+        "external signal intake classification",
+        "first-pass session notes",
+        "time index",
+        "second-pass knowledge notes",
+        "review-first memory candidates",
+        "source-grounded retrieval preparation",
+        "local dry-run CLI prototype",
+        "companion brief review card prototype",
+        "daily applied cron",
+        "external signal source fetch",
+        "bounded durable memory append",
+        "persistent review lane",
+        "bounded Gateway/Telegram watchdog",
+        "missed-run recovery after laptop/offline window"
+      ],
+      "tools": [
+        "tools/beai-knowledge-loop.mjs",
+        "tools/beai-knowledge-loop-report-only.mjs",
+        "tools/beai-knowledge-loop-external-connector.mjs",
+        "tools/beai-knowledge-loop-memory-append.mjs"
+      ],
+      "configs": [
+        "config/beai-knowledge-loop-external-sources.json"
+      ],
+      "evidence": [
+        "local CLI syntax check",
+        "source record JSON parse",
+        "manual dry-run output JSON parse",
+        "retrieval index record_count equals 5 after repeat real-record validation",
+        "companion brief boundary flags remain false",
+        "final manual v0.1 verification report created",
+        "real development-session source record validation passed",
+        "scenario usefulness test scored 8.4 after Korean retrieval and companion brief reinforcement",
+        "repeat real-record trial passed 11 of 11 Korean scenario checks across five records",
+        "promotion readiness preflight blocks cron, hooks, agents, durable memory automation, external connectors, release packaging, and gateway restart automation",
+        "manual live skill apply passed post-apply verification",
+        "promotion gates documented for blocked automation and release lanes",
+        "post-live-skill-apply manual run ledger reached 3 successful runs",
+        "cron/hook/agent readiness routed to registered report-only cron; hooks and agents remain blocked",
+        "report-only cron registered with local file output",
+        "report-only cron force-run verified before delivery expansion",
+        "report-only cron Telegram delivery enabled for the user conversation",
+        "report-only cron Telegram failure alert enabled",
+        "local internal zip package created and checksum verified",
+        "one-shot isolated agent smoke run verified",
+        "daily applied cron configured for report generation, external source fetch, bounded memory append, and Telegram delivery",
+        "external connector local run fetched 2 of 2 configured sources",
+        "bounded durable memory append wrote one dated marker entry",
+        "persistent review lane registered as cron session target session:beai-knowledge-loop-agent and force-run verified",
+        "bounded Gateway/Telegram watchdog cron registered and force-run verified with no restart needed",
+        "missed-run recovery cron registered and force-run verified with no action when today's memory marker exists",
+        "Gateway hooks config registration attempted and blocked by protected config paths",
+        "persistent agent config apply attempted and blocked by Gateway protected config path",
+        "report-only local review helper created without external delivery or scope expansion",
+        "safety flags remain false"
+      ],
+      "artifacts": [
+        "packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip",
+        "packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256"
+      ],
+      "excluded": [
+        "hooks",
+        "external platform actions beyond configured source fetch",
+        "durable memory writes beyond one bounded daily marker entry",
+        "Gateway hooks config changes",
+        "Gateway agents.list promotion",
+        "public release publishing"
+      ]
+    },
+    {
+      "id": "beai-doctor-runtime-trust-upgrade",
+      "label": "BEAI Doctor Runtime Trust Upgrade",
+      "status": "packaged-candidate",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-DOCTOR-PACKAGE-INTEGRATION-v0.1-ko.md",
+        "docs/BEAI-TRUST-GATE-v0.1-ko.md",
+        "docs/BEAI-AGENT-TRUST-LEDGER-v0.1-ko.md",
+        "docs/BEAI-CONNECTOR-ONBOARDING-v0.1-ko.md",
+        "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
+        "docs/03-verification/generated/beai-doctor-package-check.md",
+        "docs/03-verification/generated/beai-doctor-package-check.json",
+        "docs/03-verification/BEAI-DOCTOR-PACKAGE-INTEGRATION-CHECK-20260630.md",
+        "docs/03-verification/BEAI-DOCTOR-LIVE-RUNTIME-CHECK-20260630.md"
+      ],
+      "scope": [
+        "beai-doctor package integration",
+        "Knowledge Loop operations diagnosis",
+        "Trust Gate status vocabulary",
+        "Agent Trust Ledger seed",
+        "Connector Onboarding risk checklist",
+        "manifest/live/zip consistency checks",
+        "user-facing Doctor report boundary",
+        "Telegram visible delivery contract",
+        "Telegram message_sent/messageId delivery closure",
+        "Long-running Telegram visible progress contract"
+      ],
+      "tools": [
+        "tools/beai-doctor-package-check.mjs"
+      ],
+      "configs": [
+        "config/beai-trust-gate-statuses.json",
+        "config/beai-connector-onboarding-checklist.json",
+        "config/beai-telegram-delivery-contract.json"
+      ],
+      "state": [
+        "state/beai/agent-trust-ledger.json"
+      ],
+      "evidence": [
+        "beai-doctor copied into package skills directory",
+        "manifest lists beai-doctor as a formal skill",
+        "Trust Gate statuses are package-readable",
+        "Agent Trust Ledger seed is package-readable",
+        "Connector Onboarding checklist is package-readable",
+        "package check helper generates markdown and JSON reports",
+        "live beai-doctor skill is ready and hash-aligned with packaged beai-doctor",
+        "Telegram direct completion requires message_sent success and messageId evidence",
+        "BEAI Doctor classifies internal final_answer without visible send as beai-visible-delivery-contract-missing",
+        "BEAI Doctor classifies reply_payload_sending without message_sent/messageId as beai-visible-delivery-candidate-not-verified",
+        "BEAI Doctor classifies message_sent without messageId as beai-visible-delivery-message-sent-unverified",
+        "BEAI Doctor classifies long-running Telegram-driven work without visible progress as beai-long-running-visible-progress-missing",
+        "OpenClaw status --deep reports Gateway reachable and Telegram OK",
+        "OpenClaw cron list reports Knowledge Loop operating jobs ok",
+        "new local internal zip package candidate and checksum are generated"
+      ],
+      "artifacts": [
+        "packages/beai-capability-pack-v0.2.0-doctor-trust-20260630.zip",
+        "packages/beai-capability-pack-v0.2.0-doctor-trust-20260630.zip.sha256"
+      ],
+      "excluded": [
+        "OpenClaw core changes",
+        "live Gateway config changes",
+        "live hook registration",
+        "live cron mutation by the package check helper",
+        "live agent promotion",
+        "durable memory writes by the package check helper",
+        "external sends by the package check helper",
+        "public release publishing"
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "id": "beai-starter-agent-alpha",
+      "label": "BEAI Starter Agent Alpha",
+      "source": "agents/beai-starter-agent-alpha.md",
+      "workshopProposalId": "beai-starter-agent-alpha-20260620-eb1cb9443c",
+      "latestUpdateProposalId": "beai-starter-agent-alpha-20260620-be1e4a4218",
+      "status": "alpha-live-applied"
+    }
+  ],
+  "routing": {
+    "source": "routing.md",
+    "status": "planning-ready",
+    "principle": "Use the narrowest capability first, and do not promote session continuity to durable memory or onboarding suggestions to immediate automation."
+  },
+  "notIncluded": [
+    "BEAI Layer core changes",
+    "installer changes",
+    "automatic knowledge-loop hooks",
+    "Gateway agents.list promotion",
+    "unbounded Gateway restart automation",
+    "unapproved beai-doctor repairs",
+    "public release publishing",
+    "Private user-specific skills",
+    "OpenClaw agent routing rule changes"
+  ],
+  "upgradePolicy": {
+    "existingInstallers": "If v0.1.1 is already installed, update the existing BEAI skills in place and add only beai-development-steward as the new skill.",
+    "doNotDuplicate": [
+      "beai-release-verifier",
+      "beai-session-handoff",
+      "beai-memory-curator-review",
+      "beai-knowledge-loop",
+      "beai-doctor",
+      "beai-starter-agent-alpha"
+    ],
+    "applyMode": "Use Skill Workshop or the local OpenClaw safe skill-apply procedure. Do not modify BEAI Layer core, gateway, broad automation, or durable memory settings."
+  }
+}

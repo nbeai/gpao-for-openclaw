@@ -1,0 +1,101 @@
+{
+  "id": "external-signal-openclaw-install-friction",
+  "title": "External Signal - OpenClaw Install Friction",
+  "project": "BEAI Package for OpenClaw",
+  "created_at": "2026-06-30T12:31:31+09:00",
+  "source_type": "external_signal_manual_fixture",
+  "source_reference": "Manual fixture based on BEAI install/onboarding discussion and user-facing platform signal category",
+  "privacy_level": "project-internal",
+  "user_language_aliases": [
+    "외부 정보 수급",
+    "외부 플랫폼 신호",
+    "현업 채널에서 계속 들어오는 정보",
+    "자동화 대상 정보",
+    "외부 시그널"
+  ],
+  "query_examples": [
+    "외부 플랫폼 신호는 어떻게 다뤄야 하지?",
+    "사용자가 계속 받는 외부 정보는 Knowledge Loop에 어떻게 넣지?",
+    "고객이나 플랫폼에서 들어오는 정보는 언제 알림이나 실행 후보가 되지?",
+    "외부 커넥터를 아직 만들면 안 되는 이유는?"
+  ],
+  "korean_terms": [
+    "외부 정보",
+    "외부 신호",
+    "플랫폼",
+    "채널",
+    "고객",
+    "시장",
+    "커넥터 보류",
+    "승인 후 실행"
+  ],
+  "summary": "Users may continuously receive external signals from platforms, channels, customers, market, development tools, and work systems. For BEAI Package, setup friction and platform-change signals should be classified before any automation or connector is proposed.",
+  "observed_facts": [
+    "External platform or channel information is a separate input family from internal AI work records.",
+    "External signals can become watch, brief, alert, review, or action-with-approval candidates."
+  ],
+  "user_decisions": [
+    "External information from the user's real work should be included in BEAI Knowledge Loop when it affects their reality."
+  ],
+  "assistant_judgments": [
+    "External signal intake should stay manual until source paths, output shape, and approval boundaries are stable."
+  ],
+  "external_signals": [
+    {
+      "text": "Repeated user friction around OpenClaw installation can affect BEAI Package adoption and onboarding design.",
+      "source_reference": "BEAI-EXTERNAL-SIGNAL-INTAKE-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "External signals should be routed as ignore, watch, brief, alert, review, or act_with_approval before becoming execution assets.",
+      "source_reference": "BEAI-EXTERNAL-SIGNAL-INTAKE-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "Before adding any external connector, create a manual external_signal_record fixture and verify routing, safety flags, and next safe action.",
+      "source_reference": "BEAI-EXTERNAL-SIGNAL-INTAKE-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "traps": [
+    "Treating external signals as durable memory by default.",
+    "Creating cron or connector automation before manual signal quality is proven.",
+    "Turning alerts into external actions without approval."
+  ],
+  "evidence": [
+    "BEAI-EXTERNAL-SIGNAL-INTAKE-20260630.md",
+    "Telegram direct message #4755"
+  ],
+  "next_actions": [
+    "Use this fixture to test external signal classification and retrieval indexing."
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "draft-candidate",
+  "release_state": "not-a-release-action",
+  "next_safe_action": "Review this external signal route before any connector, cron, agent, memory, or external action."
+}

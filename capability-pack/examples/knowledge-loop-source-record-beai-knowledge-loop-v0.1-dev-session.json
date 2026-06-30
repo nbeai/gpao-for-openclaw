@@ -1,0 +1,132 @@
+{
+  "id": "beai-knowledge-loop-v0-1-dev-session",
+  "title": "BEAI Knowledge Loop v0.1 Development Session",
+  "project": "BEAI Package for OpenClaw",
+  "created_at": "2026-06-30T13:21:29+09:00",
+  "source_type": "development_session",
+  "source_reference": "Telegram direct messages #4787-#4793 and BEAI Knowledge Loop v0.1 local candidate files",
+  "privacy_level": "project-internal",
+  "user_language_aliases": [
+    "비아이 널리지 루프",
+    "BEAI Knowledge Loop",
+    "엘엘엠 위키에서 출발한 비아이 패키지 업그레이드",
+    "사용자의 실행 자산",
+    "비아이 패키지를 상위 레벨로 끌어올리는 핵심 무기"
+  ],
+  "query_examples": [
+    "Knowledge Loop가 왜 중요한 거였지?",
+    "자동화하면 안 된다고 한 이유가 뭐였지?",
+    "사용자의 실행 자산 정의가 어디서 나왔지?",
+    "비아이 패키지 업그레이드에서 널리지 루프가 맡는 역할은?",
+    "릴리스나 크론을 아직 하지 말라고 한 근거는?"
+  ],
+  "korean_terms": [
+    "지식 루프",
+    "널리지 루프",
+    "실행 자산",
+    "사용자 실행 자산",
+    "비아이 패키지 업그레이드",
+    "자동화 보류",
+    "릴리스 보류",
+    "수동 검증"
+  ],
+  "summary": "The session developed BEAI Knowledge Loop v0.1 from product direction into a manual local candidate. The loop is defined as a BEAI Package upgrade that turns AI-assisted work records and relevant external signals into reviewable user execution assets, without enabling live skill apply, cron, hooks, durable memory writes, external connectors, or release packaging.",
+  "observed_facts": [
+    "BEAI Knowledge Loop v0.1 now has a local CLI prototype for distill, brief, and index flows.",
+    "The package includes source fixtures, generated dry-run outputs, companion briefs, retrieval index output, and a final check report.",
+    "The current verified state is manual v0.1 local candidate, not released."
+  ],
+  "user_decisions": [
+    "BEAI Knowledge Loop should upgrade BEAI Package itself, not be framed as an owner-only or business-owner-only feature.",
+    "The core definition is the user's execution asset, not the owner's execution asset.",
+    "Actual product development should proceed through careful planning, source records, dry-runs, review, and verification before automation."
+  ],
+  "assistant_judgments": [
+    "The loop is useful because it converts idea, direction correction, product judgment, boundary setting, implementation, verification, and next action into reusable knowledge.",
+    "The correct next validation step is to run one real BEAI development session through distill, brief, and index before considering automation.",
+    "Release, automation, and live memory claims must stay evidence-bound and explicitly blocked until separately approved."
+  ],
+  "inferred_patterns": [
+    "A valuable BEAI development record usually contains product intent, corrected definition, implementation evidence, safety boundary, and next safe action.",
+    "The Knowledge Loop becomes more valuable when it preserves corrected wording and rejected scope instead of silently smoothing it away."
+  ],
+  "traps": [
+    "Calling the candidate a released package before release packaging exists.",
+    "Turning a useful manual loop into cron, hooks, agents, or durable memory writes before repeated manual runs are proven.",
+    "Over-narrowing the product around a single user segment instead of any user developing their reality through accumulated execution assets."
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "BEAI Knowledge Loop is a package-level knowledge and execution asset layer, not merely a wiki clone.",
+      "source_reference": "BEAI-KNOWLEDGE-LOOP-v0.1-ko.md and final development report",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "A real development session is a strong Knowledge Loop test case when it includes idea, correction, product definition, implementation, verification, boundaries, and next action.",
+      "source_reference": "Telegram direct messages #4787-#4793",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "Use the BEAI Knowledge Loop v0.1 development session as the next real source record for distill, companion brief, and retrieval index validation.",
+      "source_reference": "Telegram direct message #4792",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "development_candidates": [
+    {
+      "text": "Add repeated manual-run evidence before promoting Knowledge Loop toward hook, cron, agent, connector, durable memory, or release packaging work.",
+      "source_reference": "BEAI-KNOWLEDGE-LOOP-v0.1-FINAL-CHECK-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "evidence": [
+    "tools/beai-knowledge-loop.mjs",
+    "docs/03-verification/BEAI-KNOWLEDGE-LOOP-v0.1-FINAL-CHECK-20260630.md",
+    "docs/03-verification/generated/knowledge-loop-retrieval-index.json",
+    "docs/BEAI-KNOWLEDGE-LOOP-COMPANION-UX-v0.1-ko.md",
+    "Telegram direct messages #4787-#4793"
+  ],
+  "next_actions": [
+    "Generate distill JSON and markdown for this development session source record.",
+    "Generate a companion brief from the new distill output.",
+    "Regenerate the retrieval index and confirm the new record is included."
+  ],
+  "rejected_scope": [
+    "Do not apply the pending live skill proposal in this step.",
+    "Do not create cron, hooks, agents, external connectors, durable memory writes, or release zip artifacts in this step."
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "manual-v0.1-local-candidate",
+  "release_state": "not-released",
+  "next_safe_action": "Review whether this real development-session brief is useful before promoting any automation, connector, durable memory, or release step."
+}

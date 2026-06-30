@@ -1,0 +1,61 @@
+{
+  "schema": "beai.trust_gate.statuses.v0.1",
+  "statuses": [
+    {
+      "id": "ready",
+      "userLabelKo": "완료됨",
+      "meaning": "Execution and verification are both closed.",
+      "canProceed": true
+    },
+    {
+      "id": "partial",
+      "userLabelKo": "일부만 완료됨",
+      "meaning": "Some required parts are complete, but one or more required parts remain.",
+      "canProceed": false
+    },
+    {
+      "id": "unverified",
+      "userLabelKo": "아직 확인 전",
+      "meaning": "The action exists or ran, but required output evidence is not closed.",
+      "canProceed": false
+    },
+    {
+      "id": "blocked",
+      "userLabelKo": "막혀 있음",
+      "meaning": "The work cannot continue without external state, permission, or user action.",
+      "canProceed": false
+    },
+    {
+      "id": "needs_approval",
+      "userLabelKo": "사람 확인 필요",
+      "meaning": "The next action touches a protected boundary.",
+      "canProceed": false
+    },
+    {
+      "id": "hold",
+      "userLabelKo": "지금은 보류가 맞음",
+      "meaning": "The request is not clear or safe enough to execute now.",
+      "canProceed": false
+    },
+    {
+      "id": "unsafe",
+      "userLabelKo": "자동 실행하면 위험함",
+      "meaning": "The current action should not be executed in this form.",
+      "canProceed": false
+    }
+  ],
+  "protectedOperations": [
+    "external_send",
+    "delete",
+    "payment",
+    "public_publish",
+    "durable_memory_write",
+    "cron_change",
+    "hook_change",
+    "gateway_restart",
+    "agent_promotion",
+    "plugin_install",
+    "config_change"
+  ]
+}
+

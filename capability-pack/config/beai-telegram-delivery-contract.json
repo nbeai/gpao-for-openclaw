@@ -1,0 +1,43 @@
+{
+  "schema": "beai.telegram_delivery_contract.v0.1",
+  "status": "required",
+  "scope": "BEAI Package for OpenClaw Telegram direct conversations",
+  "rules": {
+    "internal_final_answer_is_not_delivery": true,
+    "private_final_text_is_not_delivery": true,
+    "sessions_send_is_not_user_visible_delivery": true,
+    "handoff_notes_are_not_user_visible_delivery": true,
+    "telegram_direct_completion_requires_message_tool": true,
+    "telegram_direct_completion_requires_message_id": true,
+    "reply_payload_sending_is_candidate_only": true,
+    "message_sent_hook_closes_delivery_with_message_id": true,
+    "gateway_restart_recovery_requires_visible_closeout": true,
+    "quick_first_status_before_deep_check": true,
+    "phase_timing_telemetry_required": true,
+    "long_running_work_requires_visible_progress": true
+  },
+  "required_evidence": [
+    "reply_payload_sending observed as candidate only, not completion",
+    "message(action=send) called for the source conversation or normal source delivery reached message_sent",
+    "Telegram message_sent success true with messageId returned",
+    "Telegram-driven execution opens a quick first-status contract before deep checks or long tool work",
+    "runtime phase timing evidence separates planning, tool, finalize, and delivery segments",
+    "long-running Telegram-driven work has periodic visible progress or a recorded progress-gap issue",
+    "final report visible in the source conversation"
+  ],
+  "doctor_issue_codes": [
+    "beai-visible-delivery-contract-missing",
+    "beai-visible-delivery-candidate-not-verified",
+    "beai-visible-delivery-message-sent-unverified",
+    "beai-quick-first-status-missing",
+    "beai-phase-timing-telemetry-missing",
+    "beai-long-running-visible-progress-missing",
+    "telegram-direct-routing-confusion",
+    "telegram-channel-connected-but-not-roundtrip-verified"
+  ],
+  "ownership": {
+    "primary": "beai",
+    "secondary": "openclaw",
+    "rule": "If OpenClaw Telegram transport is healthy but completion was emitted only as internal final_answer/private final, classify primary ownership as BEAI package delivery contract."
+  }
+}

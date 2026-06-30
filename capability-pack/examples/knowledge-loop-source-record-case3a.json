@@ -1,0 +1,84 @@
+{
+  "id": "telegram-4752-knowledge-asset-boundary",
+  "title": "Knowledge Asset Boundary",
+  "project": "BEAI Package for OpenClaw",
+  "created_at": "2026-06-30T12:28:59+09:00",
+  "source_type": "chat",
+  "source_reference": "Telegram direct message #4752",
+  "privacy_level": "project-internal",
+  "user_language_aliases": [
+    "지식자산 범위와 경계",
+    "Knowledge Asset Boundary",
+    "자신의 현실을 발전시키는 지식 루프",
+    "너무 경색되지도 너무 열려 있지도 않은 기준"
+  ],
+  "query_examples": [
+    "지식자산 범위와 경계 기준은?",
+    "어떤 기록을 지식자산으로 올려야 하지?",
+    "사용자가 자신의 현실을 발전시킨다는 기준은 뭐였지?",
+    "source material과 execution asset은 어떻게 다르지?"
+  ],
+  "korean_terms": [
+    "지식자산",
+    "범위",
+    "경계",
+    "기준",
+    "현실 발전",
+    "자산 사다리",
+    "실행 자산"
+  ],
+  "summary": "The user asked to define the scope, boundary, and criteria of knowledge assets so the loop is neither too rigid nor too open and helps any user develop their reality.",
+  "observed_facts": [
+    "The user requested scope, boundary, and criteria for knowledge assets.",
+    "The user said the loop should help any user develop their reality."
+  ],
+  "user_decisions": [
+    "Knowledge asset promotion needs explicit boundaries before implementation."
+  ],
+  "assistant_judgments": [
+    "A Knowledge Asset Charter should be a precondition for skill hardening and CLI implementation."
+  ],
+  "traps": [
+    "Treating raw source material as knowledge assets.",
+    "Making criteria so strict that early-stage users cannot benefit."
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "Asset ladder: source material -> reality signal -> knowledge candidate -> knowledge asset -> execution asset.",
+      "source_reference": "BEAI-KNOWLEDGE-ASSET-CHARTER-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "Add the asset ladder to future Knowledge Loop outputs.",
+      "source_reference": "Manual dry-run Case 3A",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "evidence": [
+    "Telegram direct message #4752",
+    "BEAI-KNOWLEDGE-ASSET-CHARTER-20260630.md"
+  ],
+  "next_actions": [
+    "Use the asset ladder in the pending skill proposal and CLI output schema."
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "draft-candidate",
+  "release_state": "not-a-release-action",
+  "next_safe_action": "Review the classified candidates before any memory, automation, connector, or release action."
+}

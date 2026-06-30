@@ -1,0 +1,129 @@
+{
+  "id": "beai-knowledge-loop-scenario-reinforcement",
+  "title": "BEAI Knowledge Loop Scenario Reinforcement",
+  "project": "BEAI Package for OpenClaw",
+  "created_at": "2026-06-30T17:52:59+09:00",
+  "source_type": "development_validation_session",
+  "source_reference": "Telegram direct messages #4806-#4814 and BEAI Knowledge Loop scenario reinforcement files",
+  "privacy_level": "project-internal",
+  "user_language_aliases": [
+    "유용성 테스트 보강",
+    "시나리오 시뮬레이션",
+    "한국어 검색 보강",
+    "companion brief 강화",
+    "수동 제품 후보 루프"
+  ],
+  "query_examples": [
+    "유용성 테스트 보강은 어디까지 했지?",
+    "한국어 검색 시나리오는 통과했나?",
+    "companion brief에 어떤 섹션을 보강했지?",
+    "왜 아직 자동화나 릴리스로 가지 않았지?",
+    "수동 제품 후보 루프라는 판단 근거는?"
+  ],
+  "korean_terms": [
+    "유용성",
+    "시나리오",
+    "한국어 검색",
+    "브리프 강화",
+    "수동 후보",
+    "반복 검증",
+    "자동화 보류"
+  ],
+  "summary": "The user asked to reinforce BEAI Knowledge Loop through scenario simulation rather than stop at a partial usefulness test. The reinforcement added Korean user-language retrieval, stronger companion brief sections, non-record helper counting, regenerated artifacts, and a repeated scenario check that raised the manual usefulness judgment from 6.6 to 8.4.",
+  "observed_facts": [
+    "The original scenario usefulness test scored 6.6 out of 10 and exposed Korean retrieval, brief actionability, and skipped_count weaknesses.",
+    "The reinforcement added user-language aliases, query examples, Korean terms, companion brief sections, and non_record_count separation.",
+    "The repeated simulation passed 7 out of 7 Korean user-language retrieval scenarios."
+  ],
+  "user_decisions": [
+    "The assistant should proceed through reinforcement and scenario simulation directly instead of only explaining the test.",
+    "Progress reports should include the number of steps remaining until the current final checkpoint.",
+    "The loop should prove repeated usefulness before being considered for automation or release."
+  ],
+  "assistant_judgments": [
+    "The correct next move after a 6.6 usefulness score was to strengthen the manual usefulness layer, not to add live automation.",
+    "Korean user-language retrieval is a product requirement because the user will naturally ask in Korean, not only in internal English terms.",
+    "A manual usefulness score around 8.4 supports continued real-record trials but does not prove automation readiness."
+  ],
+  "inferred_patterns": [
+    "A Knowledge Loop record becomes more reusable when it preserves the user's natural-language retrieval hooks alongside structured output classes.",
+    "Companion briefs need user-facing decision, definition, risk, evidence, next action, and not-yet-scope sections to help the user make the next judgment."
+  ],
+  "traps": [
+    "Treating a passing simulation as release readiness.",
+    "Hiding important product boundaries inside internal JSON fields instead of surfacing them in the companion brief.",
+    "Counting generated helper files as skipped records and confusing the user about source-record quality."
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "User-language retrieval terms are part of the product surface, not a convenience field.",
+      "source_reference": "BEAI-KNOWLEDGE-LOOP-SCENARIO-USEFULNESS-TEST-20260630.md",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "Manual usefulness should be validated by scenario questions that resemble how the user will actually ask later.",
+      "source_reference": "Telegram direct messages #4806-#4814",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "Before automating BEAI Knowledge Loop, run at least two more real records through distill, companion brief, index, and Korean retrieval scenarios.",
+      "source_reference": "Scenario reinforcement follow-up judgment",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "development_candidates": [
+    {
+      "text": "Add a repeat-trial verification report that separates manual candidate usefulness from automation readiness.",
+      "source_reference": "Scenario reinforcement follow-up judgment",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "evidence": [
+    "docs/03-verification/BEAI-KNOWLEDGE-LOOP-SCENARIO-USEFULNESS-TEST-20260630.md",
+    "docs/03-verification/generated/knowledge-loop-retrieval-index.json",
+    "Telegram direct messages #4806-#4814"
+  ],
+  "next_actions": [
+    "Generate distill JSON and markdown for this reinforcement source record.",
+    "Generate a companion brief and confirm reinforced sections remain present.",
+    "Regenerate retrieval index and include the record in repeat-trial validation."
+  ],
+  "rejected_scope": [
+    "Do not turn the 8.4 usefulness score into release readiness.",
+    "Do not create cron, hooks, agents, external connectors, durable memory writes, or release packaging in this repeat-trial step."
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "manual-v0.1-repeat-trial-candidate",
+  "release_state": "not-released",
+  "next_safe_action": "Use this reinforcement record as a repeated real-record trial before considering any live automation or release step."
+}

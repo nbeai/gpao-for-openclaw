@@ -1,0 +1,129 @@
+{
+  "id": "telegram-response-persistence-runtime-issue",
+  "title": "Telegram Response Persistence Runtime Issue",
+  "project": "BEAI Package for OpenClaw",
+  "created_at": "2026-06-30T17:38:58+09:00",
+  "source_type": "runtime_reliability_session",
+  "source_reference": "Telegram direct messages #4806-#4812 and gateway restart checks",
+  "privacy_level": "project-internal",
+  "user_language_aliases": [
+    "텔레그램 끊김",
+    "응답 지속성 문제",
+    "OpenClaw 가장 큰 단점",
+    "입력했는데 반응이 없음",
+    "게이트웨이 재시작"
+  ],
+  "query_examples": [
+    "텔레그램이 끊겼을 때 뭘 확인했지?",
+    "OpenClaw 응답 지속성 문제는 왜 중요하지?",
+    "사용자가 입력했는데 반응이 없어 보이는 문제는 어떻게 다뤄야 하지?",
+    "게이트웨이 재시작 후 확인할 항목은?",
+    "이 문제를 자동화로 바로 고치면 안 되는 이유는?"
+  ],
+  "korean_terms": [
+    "텔레그램",
+    "게이트웨이",
+    "응답 지속성",
+    "연결 끊김",
+    "사용자 신뢰",
+    "상태 보고",
+    "재시작 점검"
+  ],
+  "summary": "During Knowledge Loop work, the user experienced repeated Telegram/OpenClaw response interruptions and identified the larger problem as lack of visible response to user input. The runtime issue should be treated as a trust and persistence signal for OpenClaw/BEAI operations, separate from Knowledge Loop automation.",
+  "observed_facts": [
+    "The user reported repeated Telegram disconnection during the Knowledge Loop development flow.",
+    "Gateway restart and session status checks indicated Telegram was enabled and the route was present after restart.",
+    "The user framed the core pain as input receiving no visible response, not merely slow execution."
+  ],
+  "user_decisions": [
+    "Gateway restart should be performed when Telegram disconnects and the user requests it.",
+    "The response persistence issue should be recognized as a major OpenClaw weakness.",
+    "Future progress updates should show current work, completed work, and remaining step count so the user does not feel ignored."
+  ],
+  "assistant_judgments": [
+    "This issue should be tracked separately from BEAI Knowledge Loop product automation.",
+    "The product lesson is that user-visible continuity is part of trust, not just a transport detail.",
+    "A safe next step is a diagnostic/reporting pattern, not an unsupervised restart loop or hidden automation."
+  ],
+  "inferred_patterns": [
+    "Messaging runtime failures interrupt product development because the user cannot tell whether work is still happening.",
+    "A user-facing agent needs visible progress checkpoints when long-running work and unstable messaging channels overlap."
+  ],
+  "traps": [
+    "Treating a successful test send as proof that repeated disconnects are solved.",
+    "Letting gateway restart work replace the user's original development request.",
+    "Creating automatic restart or watchdog behavior before failure boundaries and reporting paths are understood."
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "Response persistence is a trust feature: when a user sends input, the system must quickly show that the request is accepted, running, blocked, or completed.",
+      "source_reference": "Telegram direct messages #4806-#4812",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "Gateway restart verification should report session_status, Telegram channel configuration, and test-send result without claiming the recurring cause is fixed.",
+      "source_reference": "Gateway restart checks after Telegram disconnect",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "For long-running Telegram-driven work, send concise progress reports with current work, completed work, and remaining step count.",
+      "source_reference": "Telegram direct messages #4806-#4812",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "development_candidates": [
+    {
+      "text": "Design a separate OpenClaw response-persistence diagnostic before considering any restart automation.",
+      "source_reference": "Telegram runtime reliability session",
+      "review_status": "review-ready",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "evidence": [
+    "Telegram direct messages #4806-#4812",
+    "gateway restart check output summarized in chat",
+    "session_status current check summarized in chat"
+  ],
+  "next_actions": [
+    "Keep Telegram response persistence as a separate reliability issue from BEAI Knowledge Loop automation.",
+    "Use this record to test whether runtime reliability issues can become reusable execution assets.",
+    "Consider a diagnostic report pattern only after repeated manual checks show stable criteria."
+  ],
+  "rejected_scope": [
+    "Do not claim the repeated disconnect root cause is fixed based only on a successful test send.",
+    "Do not create a watchdog, cron restart, or hidden gateway automation in this Knowledge Loop repeat-trial step."
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "manual-v0.1-repeat-trial-candidate",
+  "release_state": "not-released",
+  "next_safe_action": "Review this runtime issue record as a trust and response-persistence asset before any automation or gateway-level change."
+}

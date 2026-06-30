@@ -1,0 +1,28 @@
+{
+  "schema": "beai.connector_onboarding.checklist.v0.1",
+  "requiredChecks": [
+    "already_available",
+    "task_frequency",
+    "data_sensitivity",
+    "read_only_possible",
+    "write_delete_send_payment_needed",
+    "existing_plugin_or_mcp",
+    "manual_export_possible",
+    "authentication_needed",
+    "rollback_possible",
+    "small_test_possible",
+    "approval_needed"
+  ],
+  "outcomes": [
+    "already_available",
+    "plugin_install_candidate",
+    "mcp_candidate",
+    "new_plugin_needed",
+    "manual_upload_recommended",
+    "read_only_test_first",
+    "blocked_or_not_recommended",
+    "needs_user_approval"
+  ],
+  "defaultRecommendation": "read_only_test_first"
+}
+
