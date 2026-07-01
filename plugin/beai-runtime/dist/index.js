@@ -859,6 +859,11 @@ function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
         return undefined;
     const carry = compactStringArray(pack.carry, 6);
     const doNotCarry = compactStringArray(pack.doNotCarry, 6);
+    const closureHandle = typeof continuity?.closureHandle === "string" && continuity.closureHandle.trim()
+        ? continuity.closureHandle.trim()
+        : typeof arc?.currentFlowContext === "string" && arc.currentFlowContext.trim()
+            ? arc.currentFlowContext.trim()
+            : "이전 세션의 마지막 판단 기준을 확인합니다.";
     const traceId = `beai-handoff-fallback:${sessionKey || "unknown"}:${Date.now()}`;
     const handoffState = {
         current_track: typeof continuity?.currentTrack === "string" && continuity.currentTrack.trim()
@@ -876,6 +881,7 @@ function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
         open_loops: compactStringArray(continuity?.openLoops, 8),
         decisions_made: compactStringArray(continuity?.lockedDecisions, 8),
         facts_locked: compactStringArray(continuity?.lockedDecisions, 8),
+        closure_handle: closureHandle,
         do_not_carry: compactStringArray(continuity?.doNotCarry, 8),
         topics: compactStringArray(continuity?.inProgress, 8),
         new_session_opening_message: opening,
@@ -885,6 +891,7 @@ function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
         }
     };
     const textParts = [opening, ...carry.slice(0, 4).map((item) => `이어갈 기준: ${item}`)];
+    textParts.push(`마지막 판단 기준: ${closureHandle}`);
     if (doNotCarry.length > 0)
         textParts.push(`넘기지 않을 것: ${doNotCarry.slice(0, 3).join(", ")}`);
     return {
@@ -981,6 +988,7 @@ function buildInstallResumeSeed(plan, installCandidate, reason) {
             current_track: plan.handoffState?.current_track || "BEAI overlay install resume",
             open_loops: Array.from(new Set([...(plan.handoffState?.open_loops || []), "gateway / daemon 재확인", "설치 결과 브리핑 전달"])),
             next_action: "gateway / daemon 복구와 beai-runtime 활성화 상태를 먼저 다시 확인합니다.",
+            closure_handle: plan.flowState.closureHandle,
             user_continuity_message: "재시작 직후에는 잠깐 응답이 없어 보여도 이상으로 단정하지 않고, 먼저 runtime 복구 여부와 plugin 활성화 상태부터 확인합니다.",
             new_session_opening_message: "아까 하던 설치 검증을 gateway restart 뒤에 이어서 진행하겠습니다."
         },

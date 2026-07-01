@@ -35,6 +35,35 @@ function statusFor(checks) {
   return checks.every((item) => item.exists) ? "ready" : "partial";
 }
 
+function flowStatus(ok, partial = false) {
+  if (ok) return "verified";
+  return partial ? "required" : "blocked";
+}
+
+function buildFlowSummary(report) {
+  const configuredOk = report.manifest_has_beai_doctor && report.manifest_has_doctor_trust_module;
+  const registeredOk = report.manifest_has_beai_doctor;
+  const callableOk = report.required_file_status === "ready";
+  const outputVerifiedOk = report.package_status === "ready";
+  const evidenceState = {
+    configured: flowStatus(configuredOk, true),
+    registered: flowStatus(registeredOk, true),
+    callable: flowStatus(callableOk, true),
+    outputVerified: outputVerifiedOk ? "verified" : "unverified",
+    doctor: report.telegram_delivery_contract_status === "ready" ? "verified" : "review",
+    release: "review"
+  };
+  return {
+    source: "beai-doctor-package-check",
+    status_language: "flow_state_evidence_v0_1",
+    evidenceState,
+    releaseBoundary: "release_verifier_required",
+    userMeaning: outputVerifiedOk
+      ? "Doctor package integration is ready as a package-level candidate; release wording still requires Release Verifier."
+      : "Doctor package integration is not fully output-verified; keep release wording in review state."
+  };
+}
+
 function checkTelegramDeliveryContract(root) {
   const configPath = path.join(root, "config/beai-telegram-delivery-contract.json");
   if (!fileExists(configPath)) {
@@ -88,6 +117,8 @@ function renderMarkdown(report) {
   lines.push(`- trust_gate_status_count: ${report.trust_gate_status_count}`);
   lines.push(`- ledger_entry_count: ${report.ledger_entry_count}`);
   lines.push(`- package_status: ${report.package_status}`);
+  lines.push(`- flow_output_verified: ${report.flow_summary?.evidenceState?.outputVerified || "unknown"}`);
+  lines.push(`- flow_release: ${report.flow_summary?.evidenceState?.release || "unknown"}`);
   lines.push("");
   lines.push("## Required Files");
   lines.push("");
@@ -171,6 +202,8 @@ function main() {
       "public release publishing"
     ]
   };
+  report.flow_summary = buildFlowSummary(report);
+  report.flow_state_evidence = report.flow_summary.evidenceState;
 
   ensureDir(jsonOutput);
   fs.writeFileSync(jsonOutput, `${JSON.stringify(report, null, 2)}\n`, "utf8");

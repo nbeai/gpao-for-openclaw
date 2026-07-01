@@ -81,6 +81,9 @@ function renderReport(index, indexPath) {
       lines.push(`  - memory_status: ${reviewStatus.memory_status || "unknown"}`);
       lines.push(`  - package_status: ${reviewStatus.package_status || "unknown"}`);
       lines.push(`  - terms: ${asArray(record.terms).slice(0, 8).map((item) => item.term).join(", ") || "none"}`);
+      if (record.current_judgment_impact) {
+        lines.push(`  - current_judgment_impact: high ${record.current_judgment_impact.high || 0}, medium ${record.current_judgment_impact.medium || 0}, low ${record.current_judgment_impact.low || 0}`);
+      }
     }
   }
   lines.push("");

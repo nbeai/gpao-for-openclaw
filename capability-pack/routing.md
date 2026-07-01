@@ -13,6 +13,9 @@ The goal is to avoid accidental role overlap and to keep each capability narrow.
 - Do not escalate from manual skill to automation unless manual proof exists.
 - Do not turn session continuity into durable memory.
 - Do not turn onboarding suggestions into immediate automation.
+- For BEAI Package work, keep `docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md` as the top-level product principle reference.
+- For BEAI 5 implementation work, keep `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md` as the development plan. Do not create a separate runtime; implement Flow State first inside the existing OpenClaw BEAI Runtime Layer, then align adapter, doctor, knowledge, response gates, and later Codex Harness language.
+- Safety and security must not become avoidable user friction. Approval, verification, and recovery should make the user more comfortable delegating work, not make OpenClaw feel slow or obstructive.
 
 ## Primary Routes
 
@@ -228,6 +231,26 @@ Do not carry:
 - debug residue
 - unsupported completion claims
 - automatic memory promotion
+
+### Development Steward Skill -> BEAI Package Development Principles
+
+Use when:
+
+- BEAI Package development goals, scope, user experience, security boundary, runtime behavior, automation, memory, release wording, or package identity are being decided.
+- a change risks becoming safe-but-slow, secure-but-frustrating, or feature-rich-but-heavy.
+- the user gives a product principle or package-level goal that should shape future BEAI Package development.
+
+Carry:
+
+- the current package goal
+- the user-facing friction being reduced
+- the trust boundary being preserved
+- the expected user comfort or speed improvement
+- evidence needed before completion or release wording
+
+Rule:
+
+The principle document is not a release proof. It is the product judgment source. Release Verifier still decides package readiness wording, and BEAI Doctor still owns runtime diagnosis language.
 
 ### Development Steward Skill -> BEAI Doctor
 

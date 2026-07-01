@@ -17,6 +17,7 @@ BEAI Capability Pack defines callable professional behaviors that can sit beside
 
 This package contains planning-ready definitions for:
 
+- BEAI Package development principles and goals
 - Release Verifier Skill
 - Session Handoff Skill
 - Memory Curator Review Skill
@@ -165,6 +166,26 @@ Promote to agent only when repeated use proves that the role needs independent s
 
 Promote to automation only after manual execution, failure boundaries, stop paths, and report channels are verified.
 
+## Development Principles
+
+All BEAI Package development should reference:
+
+- `docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md`
+- `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md`
+
+Core operating sentence:
+
+```text
+BEAI Package는 "AI가 무엇을 할 수 있는가"보다
+"어디까지 맡길 수 있고, 어디서 멈추며, 누가 확인하고,
+어떻게 되돌릴 수 있는가"를 먼저 보장하는
+OpenClaw의 신뢰 운영층이다.
+```
+
+The package must be safe and pleasant to use. Security, approval, verification, and recovery should behave as rails that help users move with confidence, not as repeated friction, slow confirmations, or procedural theater.
+
+BEAI 5 Flow Engine is the current implementation direction. It should not become a separate runtime. Its first implementation target is the OpenClaw BEAI Runtime Layer and Package. After that stabilizes, BEAI Harness for Codex can be aligned to the same Flow State language as a secondary ecosystem target.
+
 ## Not Included
 
 This package does not create OpenClaw core changes, installer files, Gateway-level hooks, Gateway `agents.list` promotion, or public release publishing. The local workspace currently has one registered daily cron for review-file generation, external signal fetch, bounded daily memory append, Telegram run-summary delivery, Telegram failure alerts, one missed-run recovery cron, one persistent review lane, one bounded Gateway/Telegram watchdog, and one local internal zip package candidate.
@@ -183,6 +204,8 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `skills/beai-development-steward/templates/*.md`
 - `skills/beai-knowledge-loop-skill.md`
 - `skills/beai-doctor/SKILL.md`
+- `docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md`
+- `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md`
 - `tools/beai-doctor.js`
 - `tools/install-wake-guard-launchagent.js`
 - `agents/beai-starter-agent-alpha.md`

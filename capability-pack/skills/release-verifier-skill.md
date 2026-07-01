@@ -63,8 +63,13 @@ Also use it when a package, manifest, release note, or team-sharing decision app
 4. Check manifest consistency: plugin manifest version, package manifest version, OpenClaw compatibility, dist entry path, and mismatched scripts.
 5. Check documentation consistency: package status, audience, install style, included/not-included scope, known limitations, and rollback path.
 6. Check evidence: build proof, test proof, local integration proof, live proof, and team proof.
-7. Classify readiness: pass, pass with warnings, internal candidate only, or blocked.
-8. Leave a short fix list using P0/P1/P2 severity.
+7. Translate evidence into Flow State language before release wording:
+   - `configured`: package, manifest, docs, and declared target are present and consistent enough to inspect.
+   - `registered`: OpenClaw or the package manifest can see the plugin/skill/capability being claimed.
+   - `callable`: the relevant command, skill, wrapper, or dry-run can be invoked.
+   - `output_verified`: the produced output or install/runtime result was checked against the intended behavior.
+8. Classify readiness: pass, pass with warnings, internal candidate only, or blocked.
+9. Leave a short fix list using P0/P1/P2 severity.
 
 ## Output Format
 ```text
@@ -83,6 +88,12 @@ Also use it when a package, manifest, release note, or team-sharing decision app
 
 공유 가능 범위:
 - ...
+
+Flow State Evidence:
+- configured: ...
+- registered: ...
+- callable: ...
+- output_verified: ...
 
 다음 조치:
 - ...

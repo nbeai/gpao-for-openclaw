@@ -15,7 +15,9 @@
     "memoryPolicy": "Allow only bounded daily Knowledge Loop memory append with same-day deduplication; do not promote unconfirmed agreement assets.",
     "doctorPolicy": "Use beai-doctor as the package runtime diagnosis surface for BEAI-owned OpenClaw reliability, package consistency, Trust Gate status, Knowledge Loop operations, and connector onboarding risk.",
     "telegramDeliveryPolicy": "For Telegram direct conversations, internal final_answer/private final text is not delivery. reply_payload_sending is only a delivery candidate. Completion requires source-channel message_sent success and Telegram messageId evidence before user-visible closeout claims. Long-running Telegram-driven work also requires periodic visible progress or a recorded progress-gap issue.",
-    "trustGatePolicy": "Report ready, partial, unverified, blocked, needs_approval, hold, or unsafe before making completion or production-readiness claims."
+    "trustGatePolicy": "Report ready, partial, unverified, blocked, needs_approval, hold, or unsafe before making completion or production-readiness claims.",
+    "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the top-level BEAI Package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
+    "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target."
   },
   "skills": [
     {
@@ -125,6 +127,43 @@
     }
   ],
   "candidateModules": [
+    {
+      "id": "beai-package-development-principles",
+      "label": "BEAI Package Development Principles",
+      "status": "canonical-package-principle",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md"
+      ],
+      "scope": [
+        "development goals",
+        "safe-but-pleasant user experience",
+        "trust boundaries",
+        "verification and recovery wording",
+        "skill reference standard"
+      ]
+    },
+    {
+      "id": "beai-5-flow-engine-development-plan",
+      "label": "BEAI 5 Flow Engine Development Plan",
+      "status": "phase-7-package-regression-gates-implemented",
+      "target": "BEAI Package for OpenClaw and BEAI Runtime Layer",
+      "docs": [
+        "docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md"
+      ],
+      "scope": [
+        "Flow State spine",
+        "OpenClaw runtime alignment",
+        "response quality gates",
+        "memory and tool influence boundaries",
+        "OpenClaw adapter state translation",
+        "later Codex Harness language alignment",
+        "package-wide regression gates"
+      ],
+      "tools": [
+        "tools/beai-flow-regression-gate.mjs"
+      ]
+    },
     {
       "id": "beai-knowledge-loop",
       "label": "BEAI Knowledge Loop",

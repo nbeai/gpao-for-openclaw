@@ -52,6 +52,9 @@ export type MemoryRelevanceDecision = {
   reasons: string[];
 };
 
+export type MemoryCurrentJudgmentImpact = "none" | "low" | "medium" | "high";
+export type FlowMemoryInfluenceType = "session_continuity" | "project_state" | "package_knowledge" | "long_term_memory_candidate" | "discard";
+
 export type BeaiMemoryRelevanceReport = {
   currentInput: string;
   generatedAt: string;
@@ -66,7 +69,24 @@ export type BeaiMemoryRelevanceReport = {
     source: BeaiMemoryCandidate["source"];
     policy?: MemoryCandidatePolicy;
     relevance: MemoryRelevanceDecision;
+    currentJudgmentImpact: MemoryCurrentJudgmentImpact;
+    affectsCurrentJudgment: boolean;
+    flowStateType: FlowMemoryInfluenceType;
   }>;
+  flowStateInfluence: {
+    high: number;
+    medium: number;
+    low: number;
+    none: number;
+    affectingCurrentJudgment: number;
+    items: Array<{
+      type: FlowMemoryInfluenceType;
+      currentJudgmentImpact: MemoryCurrentJudgmentImpact;
+      affectsCurrentJudgment: boolean;
+      summary: string;
+      source: string;
+    }>;
+  };
 };
 
 export type BeaiAgreementAsset = {
@@ -107,6 +127,7 @@ export type SessionContinuityState = {
   openLoops: string[];
   lockedDecisions: string[];
   nextAction: string;
+  closureHandle: string;
   doNotCarry: string[];
   nextSessionOpening: string;
 };
@@ -803,6 +824,7 @@ type SharedTurnPlan = {
     decisions_made?: string[];
     open_loops?: string[];
     next_action?: string;
+    closure_handle?: string;
     do_not_carry?: string[];
     working_stance?: string;
     carry_priority?: {
@@ -898,6 +920,7 @@ export type BeaiTurnPlan = {
   handoffState?: SharedTurnPlan["handoffState"];
   currentTurn: CurrentTurnPacket;
   judgmentFrame: JudgmentFrame;
+  flowState: FlowStateSpine;
   responseResolution: ResponseResolution;
   realitySignalMap: RealitySignalMap;
   evidenceLedger: EvidenceLedger;
@@ -910,6 +933,7 @@ export type BeaiTurnPlan = {
   decisionHandleSurface: DecisionHandleSurfaceProfile;
   conversationalRhythm: ConversationalRhythmProfile;
   conversationQualityGuard: ConversationQualityGuardProfile;
+  runtimeResponseGate: RuntimeResponseGateProfile;
   classificationFailSoft: ClassificationFailSoftProfile;
   operatingJudgment: BeaiOperatingJudgmentReport;
   workflowStateLedger: WorkflowStateLedger;
@@ -997,6 +1021,23 @@ export type ConversationQualityGuardProfile = {
   regressionChecks: string[];
 };
 
+export type RuntimeResponseGateCheckState = "required" | "not_applicable" | "pass_when_output_matches";
+
+export type RuntimeResponseGateProfile = {
+  version: "0.1";
+  mode: "guide_only";
+  firstSentence: RuntimeResponseGateCheckState;
+  artifactFirst: RuntimeResponseGateCheckState;
+  followUpDeltaOnly: RuntimeResponseGateCheckState;
+  stateBoundary: RuntimeResponseGateCheckState;
+  visibleDelivery: RuntimeResponseGateCheckState;
+  closureHandle: string;
+  blockIf: string[];
+  mustPreserve: string[];
+  mustAvoid: string[];
+  guidance: string[];
+};
+
 export type ClassificationFailSoftProfile = {
   version: "0.5.1";
   mode: "guide_only";
@@ -1056,6 +1097,48 @@ export type JudgmentFrame = {
   askOneQuestion?: string;
   deferCondition?: string;
   lastHandle: string;
+};
+
+export type FlowStateEvidenceState = {
+  configured: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked";
+  registered: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked";
+  callable: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked";
+  outputVerified: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked" | "unverified";
+  doctor: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked" | "review";
+  release: "unknown" | "not_applicable" | "pending" | "required" | "verified" | "blocked" | "review";
+};
+
+type FlowEvidenceStatus = FlowStateEvidenceState["configured"];
+
+export type FlowStateSpine = {
+  version: "0.1";
+  currentTarget?: string;
+  requestedShape?: string;
+  responseRole: ResponseRole;
+  confirmed: string[];
+  unknowns: string[];
+  assumptions: string[];
+  userBurden: "low" | "medium" | "high";
+  toolNeed: "none" | "local_tools" | "local_tools_with_boundary" | "external_tools";
+  approvalBoundary: {
+    required: boolean;
+    scope: string[];
+    recovery: string;
+  };
+  evidenceState: FlowStateEvidenceState;
+  closureHandle: string;
+  deliverySurface: {
+    surface: "local" | "telegram_direct" | "openclaw" | "unknown";
+    visibleDelivery: "not_applicable" | "required" | "unverified" | "verified";
+    requiredCloseout: string;
+  };
+  memoryInfluence: Array<{
+    type: "session_continuity" | "project_state" | "package_knowledge" | "long_term_memory_candidate" | "discard";
+    currentJudgmentImpact: "none" | "low" | "medium" | "high";
+    affectsCurrentJudgment: boolean;
+    summary: string;
+    source: string;
+  }>;
 };
 
 export type SurfaceLanguageCheck = {
@@ -1375,6 +1458,207 @@ export function buildUserConfidenceState(plan: {
     responseState,
     userMeaning: meanings[responseState],
     nextVisibleAction: nextActions[responseState]
+  };
+}
+
+export function buildFlowStateSpine(input: {
+  currentTurn: CurrentTurnPacket;
+  judgmentFrame: JudgmentFrame;
+  constraints: string[];
+  evidenceLedger: EvidenceLedger;
+  operatingJudgment: BeaiOperatingJudgmentReport;
+  decisionHandleSurface?: DecisionHandleSurfaceProfile;
+  deliverySurface?: FlowStateSpine["deliverySurface"]["surface"];
+}): FlowStateSpine {
+  const approvalScope = input.operatingJudgment.risk.families.map((item) => item.replace(/_/g, " "));
+  const telegramDirect = input.deliverySurface === "telegram_direct";
+  const evidenceState = buildFlowStateEvidenceState({
+    currentTurn: input.currentTurn,
+    evidenceLedger: input.evidenceLedger
+  });
+  const currentJudgmentImpact = input.evidenceLedger.runtimeInferred
+    .filter((item) => /memory|기억|handoff|session|project state/i.test(item))
+    .slice(0, 3)
+    .map((summary) => ({
+      type: /handoff|session/i.test(summary) ? "session_continuity" as const : /project/i.test(summary) ? "project_state" as const : "package_knowledge" as const,
+      currentJudgmentImpact: "medium" as const,
+      affectsCurrentJudgment: true,
+      summary,
+      source: "runtime_evidence_ledger"
+    }));
+
+  return {
+    version: "0.1",
+    currentTarget: input.currentTurn.currentTarget,
+    requestedShape: input.currentTurn.requestedOutputShape,
+    responseRole: input.judgmentFrame.responseRole,
+    confirmed: input.judgmentFrame.confirmed,
+    unknowns: input.judgmentFrame.unknown,
+    assumptions: input.judgmentFrame.assumptionCandidates,
+    userBurden: input.currentTurn.missingCriticalInputs.length > 0 ? "high" : input.constraints.length > 2 ? "medium" : "low",
+    toolNeed: input.operatingJudgment.risk.approvalRequired ? "local_tools_with_boundary" : input.evidenceLedger.needsVerification.length > 0 ? "local_tools" : "none",
+    approvalBoundary: {
+      required: input.operatingJudgment.risk.approvalRequired,
+      scope: approvalScope,
+      recovery: input.operatingJudgment.approvalErgonomics.approvalSummary.recovery
+    },
+    evidenceState,
+    closureHandle: input.decisionHandleSurface?.primaryHandle || input.judgmentFrame.lastHandle,
+    deliverySurface: {
+      surface: input.deliverySurface || "local",
+      visibleDelivery: telegramDirect ? "unverified" : "not_applicable",
+      requiredCloseout: telegramDirect ? "message(action=send) with messageId" : "local final response"
+    },
+    memoryInfluence: currentJudgmentImpact
+  };
+}
+
+function detectFlowDeliverySurface(input: string): FlowStateSpine["deliverySurface"]["surface"] {
+  const text = String(input || "");
+  if (/(telegram|텔레그램|source conversation|source-channel|messageId|visible delivery|실제\s*전달|전송\s*완료)/i.test(text)) {
+    return "telegram_direct";
+  }
+  if (/(openclaw|오픈클로)/i.test(text)) {
+    return "openclaw";
+  }
+  return "local";
+}
+
+function flowEvidenceFromText(text: string, positive: RegExp, blocked: RegExp, required: RegExp): FlowEvidenceStatus {
+  if (blocked.test(text)) return "blocked";
+  if (positive.test(text)) return "verified";
+  if (required.test(text)) return "required";
+  return "unknown";
+}
+
+export function buildFlowStateEvidenceState(input: {
+  currentTurn: CurrentTurnPacket;
+  evidenceLedger: EvidenceLedger;
+}): FlowStateEvidenceState {
+  const evidenceText = [
+    input.currentTurn.cleanInput,
+    ...input.evidenceLedger.toolVerified,
+    ...input.evidenceLedger.needsVerification,
+    ...input.evidenceLedger.runtimeInferred,
+    ...input.evidenceLedger.assumptions
+  ].join("\n");
+
+  const configured = flowEvidenceFromText(
+    evidenceText,
+    /\bconfigured\b|설정\s*(?:확인|완료)|config(?:ured)?\s*[:=]\s*(?:true|ok|verified)|BEAI load paths?:\s*[1-9]/i,
+    /not\s*configured|설정\s*(?:없|누락|실패)|No BEAI load path/i,
+    /설정\s*(?:필요|확인\s*필요)|configuration\s*required|config.*needs?\s*verification/i
+  );
+  const registered = flowEvidenceFromText(
+    evidenceText,
+    /\bregistered\b|등록\s*(?:확인|완료)|plugins?\s+list.*(?:BEAI|beai-runtime)|BEAI Runtime appears in OpenClaw plugins list/i,
+    /not\s*registered|등록\s*(?:없|누락|실패)|BEAI Runtime not visible/i,
+    /등록\s*(?:필요|확인\s*필요)|registration\s*required/i
+  );
+  const callable = flowEvidenceFromText(
+    evidenceText,
+    /\bcallable\b|호출\s*(?:가능|확인)|plugins doctor.*(?:pass|ok|통과)|hooks?.*(?:ready|ok|통과)|gateway.*(?:health|status).*(?:ok|통과)/i,
+    /not\s*callable|호출\s*(?:불가|실패)|plugins doctor.*(?:fail|failed|실패)|hooks?.*(?:not ready|fail|실패)/i,
+    /호출\s*(?:필요|확인\s*필요)|callable\s*required|doctor\/hooks\/tasks\/gateway\/Telegram 검증 신호/i
+  );
+  const outputVerified = flowEvidenceFromText(
+    evidenceText,
+    /output[_\s-]?verified|출력\s*검증\s*(?:완료|통과)|messageId["':=\s]+[^"',}\s]+|visible[_\s-]?delivery[_\s-]?verified/i,
+    /output\s*(?:unverified|failed)|출력\s*(?:미검증|실패)|messageId\s*(?:없|missing)|visible[_\s-]?delivery.*unverified/i,
+    /output\s*verification\s*required|출력\s*검증\s*필요|visible[_\s-]?delivery\s*required|messageId.*required/i
+  );
+  const doctor = flowEvidenceFromText(
+    evidenceText,
+    /doctor.*(?:pass|ok|healthy|통과|문제 없음)|BEAI Doctor.*(?:ready|verified)/i,
+    /doctor.*(?:fail|failed|blocked|실패|blocked)|plugins-doctor-failed/i,
+    /doctor.*(?:required|필요|확인)|닥터.*(?:필요|확인)/i
+  );
+  const release = flowEvidenceFromText(
+    evidenceText,
+    /release verifier.*(?:pass|ok|ready|verified)|release.*(?:verified|ready)|릴리스.*(?:검증 완료|준비 완료)/i,
+    /release.*(?:blocked|failed|not ready)|릴리스.*(?:차단|실패|미준비)/i,
+    /release verifier.*required|release.*(?:review|required)|릴리스.*(?:검증 필요|확인 필요)|배포.*(?:검증 필요|확인 필요)/i
+  );
+
+  return {
+    configured,
+    registered,
+    callable,
+    outputVerified: outputVerified === "blocked" ? "blocked" : outputVerified === "verified" ? "verified" : outputVerified === "required" ? "required" : input.evidenceLedger.toolVerified.length > 0 ? "verified" : input.evidenceLedger.needsVerification.length > 0 ? "required" : "unknown",
+    doctor: doctor === "unknown" && /doctor|닥터/i.test(evidenceText) ? "review" : doctor,
+    release: release === "unknown" && /release|릴리스|배포|zip|package/i.test(evidenceText) ? "review" : release
+  };
+}
+
+export function buildRuntimeResponseGateProfile(input: {
+  currentTurn: CurrentTurnPacket;
+  flowState: FlowStateSpine;
+  responseResolution: ResponseResolution;
+  responseInertia: ResponseInertiaProfile;
+  conversationQualityGuard: ConversationQualityGuardProfile;
+}): RuntimeResponseGateProfile {
+  const blockIf = new Set<string>();
+  const mustPreserve = new Set<string>();
+  const mustAvoid = new Set<string>();
+  const guidance = new Set<string>();
+
+  const artifactFirst =
+    input.flowState.responseRole === "artifact" || input.responseResolution.level === "artifact_first"
+      ? "required"
+      : "not_applicable";
+  const followUpDeltaOnly =
+    input.currentTurn.followUpScope !== "full" || input.responseInertia.requiredShift === "shorter_delta_only"
+      ? "required"
+      : "not_applicable";
+  const visibleDelivery =
+    input.flowState.deliverySurface.visibleDelivery === "unverified" || input.flowState.deliverySurface.visibleDelivery === "required"
+      ? "required"
+      : "not_applicable";
+
+  mustPreserve.add("현재 요청의 대상과 형식");
+  mustPreserve.add("확인된 것과 아직 확인되지 않은 것의 경계");
+  mustPreserve.add(`마지막에 남길 것: ${input.flowState.closureHandle}`);
+
+  mustAvoid.add("내부 상태명이나 디버그 요약을 사용자 답변에 그대로 노출");
+  mustAvoid.add("완료, 적용, 검증, 전송, 배포 상태를 섞어 말하기");
+  mustAvoid.add("후속 턴에서 이전 답변 구조를 습관적으로 반복");
+
+  guidance.add("첫 문장은 현재 요청으로 바로 들어갑니다.");
+  guidance.add("상태 판단은 Flow State의 evidenceState와 deliverySurface보다 강하게 말하지 않습니다.");
+  guidance.add("마지막은 새 질문보다 기준, 행동, 확인 신호, 보류 조건 중 하나로 닫습니다.");
+
+  if (artifactFirst === "required") {
+    blockIf.add("산출물 요청에서 설명이나 작성 의도가 결과물보다 앞서는 경우");
+    guidance.add("산출물 요청은 결과물을 먼저 두고 설명은 필요한 만큼만 뒤에 둡니다.");
+  }
+
+  if (followUpDeltaOnly === "required") {
+    blockIf.add("좁은 후속 요청에서 전체 맥락이나 이전 구조를 다시 여는 경우");
+    guidance.add("후속 턴은 바뀐 지점만 짧게 보정합니다.");
+  }
+
+  if (visibleDelivery === "required") {
+    blockIf.add("Telegram direct에서 messageId 확인 전 visible delivery를 완료로 말하는 경우");
+    guidance.add("Telegram direct에서는 작성/내부 final과 실제 전달 검증을 분리합니다.");
+  }
+
+  for (const item of input.conversationQualityGuard.mustPreserve) mustPreserve.add(item);
+  for (const item of input.conversationQualityGuard.mustAvoid) mustAvoid.add(item);
+  for (const item of input.conversationQualityGuard.regressionChecks.slice(0, 4)) blockIf.add(item);
+
+  return {
+    version: "0.1",
+    mode: "guide_only",
+    firstSentence: "required",
+    artifactFirst,
+    followUpDeltaOnly,
+    stateBoundary: "required",
+    visibleDelivery,
+    closureHandle: input.flowState.closureHandle,
+    blockIf: Array.from(blockIf),
+    mustPreserve: Array.from(mustPreserve),
+    mustAvoid: Array.from(mustAvoid),
+    guidance: Array.from(guidance)
   };
 }
 
@@ -4359,6 +4643,15 @@ export function buildTurnPlan(
     surfaceFlow,
     operatingJudgment
   });
+  const flowState = buildFlowStateSpine({
+    currentTurn,
+    judgmentFrame,
+    constraints,
+    evidenceLedger,
+    operatingJudgment,
+    decisionHandleSurface,
+    deliverySurface: detectFlowDeliverySurface(planningPrompt)
+  });
   const conversationalRhythm = buildConversationalRhythmProfile({
     currentTurn,
     judgmentFrame,
@@ -4375,6 +4668,13 @@ export function buildTurnPlan(
     judgmentFlow,
     decisionHandleSurface,
     conversationalRhythm
+  });
+  const runtimeResponseGate = buildRuntimeResponseGateProfile({
+    currentTurn,
+    flowState,
+    responseResolution,
+    responseInertia,
+    conversationQualityGuard
   });
   const classificationFailSoft = buildClassificationFailSoftProfile({
     currentTurn,
@@ -4405,6 +4705,7 @@ export function buildTurnPlan(
     handoffState: sharedPlan.handoffState,
     currentTurn,
     judgmentFrame,
+    flowState,
     responseResolution,
     realitySignalMap,
     evidenceLedger,
@@ -4417,6 +4718,7 @@ export function buildTurnPlan(
     decisionHandleSurface,
     conversationalRhythm,
     conversationQualityGuard,
+    runtimeResponseGate,
     classificationFailSoft,
     operatingJudgment,
     workflowStateLedger,
@@ -4448,6 +4750,38 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
     if (plan.currentTurn.followUpScope) lines.push(`- follow_up_scope: ${plan.currentTurn.followUpScope}`);
     if (plan.currentTurn.currentTarget) lines.push(`- current_target: ${plan.currentTurn.currentTarget}`);
   }
+  lines.push("flow_state:");
+  lines.push(`- requested_shape: ${plan.flowState.requestedShape || "unknown"}`);
+  lines.push(`- response_role: ${plan.flowState.responseRole}`);
+  lines.push(`- user_burden: ${plan.flowState.userBurden}`);
+  lines.push(`- tool_need: ${plan.flowState.toolNeed}`);
+  lines.push(`- approval_required: ${plan.flowState.approvalBoundary.required ? "true" : "false"}`);
+  lines.push(`- approval_scope: ${plan.flowState.approvalBoundary.scope.slice(0, 4).join(" | ") || "none"}`);
+  lines.push(`- evidence_configured: ${plan.flowState.evidenceState.configured}`);
+  lines.push(`- evidence_registered: ${plan.flowState.evidenceState.registered}`);
+  lines.push(`- evidence_callable: ${plan.flowState.evidenceState.callable}`);
+  lines.push(`- evidence_output: ${plan.flowState.evidenceState.outputVerified}`);
+  lines.push(`- evidence_doctor: ${plan.flowState.evidenceState.doctor}`);
+  lines.push(`- evidence_release: ${plan.flowState.evidenceState.release}`);
+  lines.push(`- closure_handle: ${plan.flowState.closureHandle}`);
+  lines.push(`- delivery_surface: ${plan.flowState.deliverySurface.surface}`);
+  lines.push(`- visible_delivery: ${plan.flowState.deliverySurface.visibleDelivery}`);
+  if (plan.flowState.memoryInfluence.length > 0) {
+    lines.push(`- memory_influence: ${plan.flowState.memoryInfluence.map((item) => `${item.type}:${item.currentJudgmentImpact}`).join(" | ")}`);
+  }
+  lines.push("runtime_response_gate:");
+  lines.push("- mode: guide_only");
+  lines.push(`- first_sentence: ${plan.runtimeResponseGate.firstSentence}`);
+  lines.push(`- artifact_first: ${plan.runtimeResponseGate.artifactFirst}`);
+  lines.push(`- follow_up_delta_only: ${plan.runtimeResponseGate.followUpDeltaOnly}`);
+  lines.push(`- state_boundary: ${plan.runtimeResponseGate.stateBoundary}`);
+  lines.push(`- visible_delivery: ${plan.runtimeResponseGate.visibleDelivery}`);
+  lines.push(`- closure_handle: ${plan.runtimeResponseGate.closureHandle}`);
+  if (plan.runtimeResponseGate.blockIf.length > 0) {
+    lines.push(`- block_if: ${plan.runtimeResponseGate.blockIf.slice(0, 5).join(" | ")}`);
+  }
+  lines.push(`- must_preserve: ${plan.runtimeResponseGate.mustPreserve.slice(0, 4).join(" | ")}`);
+  lines.push(`- must_avoid: ${plan.runtimeResponseGate.mustAvoid.slice(0, 5).join(" | ")}`);
   lines.push("input_level_companion:");
   lines.push("- mode: guide_only");
   lines.push(`- input_maturity: ${plan.inputLevelCompanion.inputMaturity}`);
@@ -4747,6 +5081,8 @@ export function renderSessionSplitApprovalReply(plan: BeaiTurnPlan): string | nu
     if (topics.length > 0 || mustCarry.length > 0) {
       lines.push(`우선 이어갈 기준은 ${compactBullets(topics, 3).join(", ") || compactBullets(mustCarry, 3).join(", ")}입니다.`);
     }
+    const closureHandle = handoffState.closure_handle || plan.flowState.closureHandle;
+    if (closureHandle) lines.push(`마지막에 붙잡을 기준은 ${closureHandle}입니다.`);
     if (handoffState.new_session_opening_message) lines.push(`다음 대화는 "${handoffState.new_session_opening_message}"로 바로 시작하면 됩니다.`);
   }
   lines.push("");
@@ -4787,6 +5123,11 @@ export function buildSessionContinuityState(plan: BeaiTurnPlan): SessionContinui
   const nextAction =
     compactText(handoffState?.next_action || handoffState?.next_work || inferProjectNextStep(plan), 180) ||
     "다음 작업 기준을 확인합니다.";
+  const flowState = (plan as Partial<BeaiTurnPlan>).flowState;
+  const decisionHandleSurface = (plan as Partial<BeaiTurnPlan>).decisionHandleSurface;
+  const closureHandle =
+    compactText(handoffState?.closure_handle || flowState?.closureHandle || decisionHandleSurface?.primaryHandle || nextAction, 220) ||
+    "다음 판단 기준을 확인합니다.";
   const nextSessionOpening =
     compactText(
       handoffState?.new_session_opening_message ||
@@ -4803,6 +5144,7 @@ export function buildSessionContinuityState(plan: BeaiTurnPlan): SessionContinui
     openLoops,
     lockedDecisions,
     nextAction,
+    closureHandle,
     doNotCarry,
     nextSessionOpening
   };
@@ -4885,7 +5227,7 @@ export function buildConversationArcCapsule(plan: BeaiTurnPlan, continuity = bui
     userConcerns: inferUserConcerns(plan),
     currentFlowContext:
       compactText(
-        `현재 흐름은 ${continuity.currentTrack}이고, 다음 판단은 ${normalizedNextIntent}에 맞춰 이어집니다.`,
+        `현재 흐름은 ${continuity.currentTrack}이고, 다음 판단은 ${normalizedNextIntent}에 맞춰 이어집니다. 마지막 기준은 ${continuity.closureHandle}입니다.`,
         220
       ) || "현재 흐름과 다음 행동을 짧게 이어받습니다.",
     nextIntent,
@@ -5148,6 +5490,7 @@ export function buildNewSessionContextPack(plan: BeaiTurnPlan): NewSessionContex
       conversationArc.origin,
       ...conversationArc.turningPoints.slice(0, 3),
       ...continuity.lockedDecisions.slice(0, 3),
+      continuity.closureHandle,
       continuity.nextAction
     ],
     8
@@ -5190,6 +5533,9 @@ export function renderNextSessionSeed(plan: BeaiTurnPlan): string | null {
   }
   if (state.lockedDecisions.length > 0) {
     lines.push("", `이미 정한 기준은 ${state.lockedDecisions.slice(0, 3).join(", ")}입니다.`);
+  }
+  if (state.closureHandle) {
+    lines.push("", `마지막에 붙잡을 기준은 ${state.closureHandle}입니다.`);
   }
   if (state.openLoops.length > 0) {
     lines.push("", `이번에는 ${state.openLoops.slice(0, 2).join(", ")}부터 확인하겠습니다.`);
@@ -6589,6 +6935,43 @@ export function evaluateMemoryRelevance(
   };
 }
 
+export function classifyMemoryCurrentJudgmentImpact(
+  relevance: MemoryRelevanceDecision,
+  policy?: MemoryCandidatePolicy
+): MemoryCurrentJudgmentImpact {
+  if (relevance.action === "discard" || relevance.relation === "unrelated") return "none";
+  if (policy?.decision === "discard" || policy?.consentLevel === "do_not_store") return "none";
+
+  const highImpactScope = ["project_principle", "approval_boundary", "execution_state", "conversation_flow"];
+  if (
+    relevance.action === "inject_candidate" &&
+    relevance.score >= 80 &&
+    policy?.scope &&
+    highImpactScope.includes(policy.scope)
+  ) {
+    return "high";
+  }
+  if (relevance.action === "inject_candidate" && relevance.score >= 60) return "medium";
+  if (relevance.action === "review_only" && relevance.score >= 40) return "low";
+  return "none";
+}
+
+export function classifyFlowMemoryInfluenceType(
+  policy?: MemoryCandidatePolicy
+): FlowMemoryInfluenceType {
+  if (!policy || policy.decision === "discard") return "discard";
+  if (policy.decision === "route_session_continuity" || policy.scope === "conversation_flow") return "session_continuity";
+  if (
+    policy.decision === "route_project_state" ||
+    ["project_principle", "approval_boundary", "execution_state"].includes(policy.scope)
+  ) {
+    return "project_state";
+  }
+  if (policy.decision === "store_candidate" && policy.durability === "long_term") return "long_term_memory_candidate";
+  if (policy.decision === "store_candidate") return "package_knowledge";
+  return "discard";
+}
+
 export function evaluateMemoryCandidatePolicy(text: string, source: BeaiMemoryCandidate["source"] = "current_turn"): MemoryCandidatePolicy {
   const normalized = text.trim();
   if (!normalized || isTransientMemoryLine(normalized)) {
@@ -6712,12 +7095,30 @@ export function buildMemoryRelevanceReport(
     plan.continuityPatch.current_artifact,
     finalText
   ].filter(Boolean).join("\n");
-  const items = candidates.map((candidate) => ({
-    text: candidate.text,
-    source: candidate.source,
-    policy: candidate.policy,
-    relevance: evaluateMemoryRelevance(candidate, currentContext, now)
-  }));
+  const items = candidates.map((candidate) => {
+    const relevance = evaluateMemoryRelevance(candidate, currentContext, now);
+    const currentJudgmentImpact = classifyMemoryCurrentJudgmentImpact(relevance, candidate.policy);
+    const affectsCurrentJudgment = currentJudgmentImpact === "medium" || currentJudgmentImpact === "high";
+    return {
+      text: candidate.text,
+      source: candidate.source,
+      policy: candidate.policy,
+      relevance,
+      currentJudgmentImpact,
+      affectsCurrentJudgment,
+      flowStateType: classifyFlowMemoryInfluenceType(candidate.policy)
+    };
+  });
+  const flowStateItems = items
+    .filter((item) => item.affectsCurrentJudgment)
+    .slice(0, 8)
+    .map((item) => ({
+      type: item.flowStateType,
+      currentJudgmentImpact: item.currentJudgmentImpact,
+      affectsCurrentJudgment: item.affectsCurrentJudgment,
+      summary: compactText(item.text, 180) || item.text,
+      source: `memory_relevance:${item.source}`
+    }));
   return {
     currentInput,
     generatedAt: now.toISOString(),
@@ -6727,8 +7128,28 @@ export function buildMemoryRelevanceReport(
       deferred: items.filter((item) => item.relevance.action === "defer").length,
       discarded: items.filter((item) => item.relevance.action === "discard").length
     },
-    items
+    items,
+    flowStateInfluence: {
+      high: items.filter((item) => item.currentJudgmentImpact === "high").length,
+      medium: items.filter((item) => item.currentJudgmentImpact === "medium").length,
+      low: items.filter((item) => item.currentJudgmentImpact === "low").length,
+      none: items.filter((item) => item.currentJudgmentImpact === "none").length,
+      affectingCurrentJudgment: flowStateItems.length,
+      items: flowStateItems
+    }
   };
+}
+
+export function buildFlowMemoryInfluenceFromRelevanceReport(
+  report: Pick<BeaiMemoryRelevanceReport, "flowStateInfluence">
+): FlowStateSpine["memoryInfluence"] {
+  return report.flowStateInfluence.items.map((item) => ({
+    type: item.type,
+    currentJudgmentImpact: item.currentJudgmentImpact,
+    affectsCurrentJudgment: item.affectsCurrentJudgment,
+    summary: item.summary,
+    source: item.source
+  }));
 }
 
 function buildBeaiAgreementAssets(plan: BeaiTurnPlan, finalText?: string): BeaiAgreementAsset[] {

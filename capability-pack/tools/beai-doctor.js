@@ -1711,6 +1711,43 @@ function buildOperationalReliability(issues, checks, helpers, openclawConfig) {
   };
 }
 
+function mapDoctorStageToFlowStateEvidence(stageChecks, verificationStatus) {
+  const stageByName = new Map((stageChecks || []).map((stage) => [stage.stage, stage]));
+  const toState = (stageName) => {
+    const stage = stageByName.get(stageName);
+    if (!stage) return "unknown";
+    if (stage.status === "not_checked") return "unknown";
+    return stage.ok ? "verified" : "blocked";
+  };
+  const outputStage = stageByName.get("output_verified");
+  return {
+    configured: toState("configured"),
+    registered: toState("registered"),
+    callable: toState("callable"),
+    outputVerified: outputStage?.ok ? "verified" : outputStage ? "unverified" : "unknown",
+    doctor: verificationStatus === "blocked" ? "blocked" : verificationStatus === "output_verified" ? "verified" : "review",
+    release: "review"
+  };
+}
+
+function buildDoctorFlowSummary(operationalReliability) {
+  const evidenceState = mapDoctorStageToFlowStateEvidence(
+    operationalReliability.stageChecks,
+    operationalReliability.verificationStatus
+  );
+  return {
+    source: "beai-doctor",
+    status_language: "flow_state_evidence_v0_1",
+    evidenceState,
+    firstFailedStage: operationalReliability.firstFailedStage,
+    verificationStatus: operationalReliability.verificationStatus,
+    releaseBoundary: operationalReliability.documentCodeConfigManifest?.status || "release_verifier_required",
+    userMeaning: operationalReliability.firstFailedStage
+      ? `BEAI Doctor has not verified ${operationalReliability.firstFailedStage}; do not claim full output verification.`
+      : "BEAI Doctor evidence reaches output_verified; release readiness still requires Release Verifier."
+  };
+}
+
 function buildSpeedReliability(checks) {
   const liveEvidenceText = checks.beaiLiveEvidence.output || "";
   const quickFirstStatus = detectQuickFirstStatusGap(liveEvidenceText);
@@ -1797,6 +1834,8 @@ async function buildReport(apply = false) {
     openclaw: issues.filter((issue) => issue.owner === "openclaw").map((issue) => issue.code),
     mixed: issues.filter((issue) => issue.owner === "mixed").map((issue) => issue.code)
   };
+  const operationalReliability = buildOperationalReliability(issues, checks, helpers, openclawConfig);
+  const flowSummary = buildDoctorFlowSummary(operationalReliability);
   return {
     tool: "beai-doctor",
     mode,
@@ -1840,7 +1879,9 @@ async function buildReport(apply = false) {
       sessionsActive: checks.sessionsActive.skipped ? "skipped" : checks.sessionsActive.ok,
       recentLogs: checks.recentLogs.skipped ? "skipped" : checks.recentLogs.ok
     },
-    operationalReliability: buildOperationalReliability(issues, checks, helpers, openclawConfig),
+    operationalReliability,
+    flowStateEvidence: flowSummary.evidenceState,
+    flowSummary,
     speedReliability: buildSpeedReliability(checks),
     incidentAnalysis: buildIncidentAnalysis(issues, symptomTags, checks, supplementalText, openclawConfig),
     openclawConfigSummary: {

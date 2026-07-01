@@ -157,6 +157,59 @@ function scoreCandidate(item) {
   };
 }
 
+function classifyCurrentJudgmentImpact(item, candidateScore) {
+  const score = candidateScore || scoreCandidate(item);
+  const text = item.text || "";
+  const strongBoundary = score.scores.boundary_safety === 2 && /approval|승인|boundary|경계|금지|release|배포|telegram|텔레그램|memory|기억|handoff|인계|runtime|런타임|openclaw|오픈클로/i.test(text);
+  const strongEvidence = score.scores.evidence === 2 && score.scores.relevance >= 2;
+
+  let level = "none";
+  let reason = "does not alter the current judgment";
+  if (score.total >= 9 && (strongBoundary || strongEvidence || item.class === "execution_asset")) {
+    level = "high";
+    reason = "directly changes the current execution, boundary, or evidence judgment";
+  } else if (score.total >= 8) {
+    level = "medium";
+    reason = "likely affects the current package or runtime judgment";
+  } else if (score.total >= 7 && score.scores.evidence > 0 && score.scores.boundary_safety > 0) {
+    level = "low";
+    reason = "useful as review context but should not drive the answer by itself";
+  }
+
+  return {
+    level,
+    affects_current_judgment: level === "medium" || level === "high",
+    reason
+  };
+}
+
+function summarizeCurrentJudgmentImpact(scoredCandidates) {
+  const summary = {
+    high: 0,
+    medium: 0,
+    low: 0,
+    none: 0,
+    affecting_current_judgment: 0,
+    items: []
+  };
+  for (const candidate of scoredCandidates || []) {
+    const impact = candidate.current_judgment_impact || { level: "none", affects_current_judgment: false };
+    summary[impact.level] = (summary[impact.level] || 0) + 1;
+    if (impact.affects_current_judgment) {
+      summary.affecting_current_judgment += 1;
+      summary.items.push({
+        class: candidate.class,
+        text: candidate.text,
+        source_reference: candidate.source_reference || null,
+        level: impact.level,
+        reason: impact.reason
+      });
+    }
+  }
+  summary.items = summary.items.slice(0, 8);
+  return summary;
+}
+
 function inferInputFamily(record) {
   const sourceType = record.source_type || "";
   if (/external|platform|customer|market|channel|signal/i.test(sourceType)) return "external_source_item";
@@ -175,10 +228,14 @@ function buildOutput(record, sourcePath) {
     ...classes.external_signal
   ];
 
-  const scoredCandidates = candidatePool.map((item) => ({
-    ...item,
-    candidate_score: scoreCandidate(item)
-  }));
+  const scoredCandidates = candidatePool.map((item) => {
+    const candidateScore = scoreCandidate(item);
+    return {
+      ...item,
+      candidate_score: candidateScore,
+      current_judgment_impact: classifyCurrentJudgmentImpact(item, candidateScore)
+    };
+  });
 
   const sourceReference = record.source_reference || record.source_ref || record.message_id || sourcePath;
   const title = record.title || "Untitled Knowledge Loop Source Record";
@@ -220,6 +277,7 @@ function buildOutput(record, sourcePath) {
     },
     output_classes: classes,
     scored_candidates: scoredCandidates,
+    current_judgment_impact: summarizeCurrentJudgmentImpact(scoredCandidates),
     review_status: {
       memory_status: record.memory_status || "review-required-no-durable-write",
       package_status: record.package_status || "draft-candidate-or-not-applicable",
@@ -273,6 +331,7 @@ function renderMarkdown(output) {
       lines.push(`- ${candidate.class}: ${candidate.text}`);
       lines.push(`  - total: ${candidate.candidate_score.total}`);
       lines.push(`  - promotion: ${candidate.candidate_score.promotion}`);
+      lines.push(`  - current_judgment_impact: ${candidate.current_judgment_impact?.level || "none"}`);
     }
   }
   lines.push("");
@@ -372,6 +431,7 @@ function buildRetrievalIndex(inputDir) {
         query_examples: [],
         korean_terms: []
       },
+      current_judgment_impact: output.current_judgment_impact || summarizeCurrentJudgmentImpact(output.scored_candidates || []),
       review_status: output.review_status || {},
       safety: output.safety || {}
     });
@@ -423,6 +483,9 @@ function renderIndexMarkdown(index) {
     if (aliases.length > 0) lines.push(`- aliases: ${aliases.join(", ")}`);
     if (queries.length > 0) lines.push(`- query_examples: ${queries.join(" / ")}`);
     if (koreanTerms.length > 0) lines.push(`- korean_terms: ${koreanTerms.join(", ")}`);
+    if (record.current_judgment_impact) {
+      lines.push(`- current_judgment_impact: high ${record.current_judgment_impact.high || 0}, medium ${record.current_judgment_impact.medium || 0}, low ${record.current_judgment_impact.low || 0}`);
+    }
     lines.push("");
   }
   lines.push("## Safety");
@@ -441,7 +504,8 @@ function topItems(items, limit = 3) {
     .map((item) => ({
       text: item.text,
       source_reference: item.source_reference || null,
-      review_status: item.review_status || "needs-review"
+      review_status: item.review_status || "needs-review",
+      current_judgment_impact: item.current_judgment_impact || null
     }));
 }
 
@@ -485,6 +549,7 @@ function buildCompanionBrief(output) {
     evidence: topItems(classes.evidence, 5),
     knowledge_candidates: topItems(candidateItems),
     review_needed: topItems(reviewItems),
+    current_judgment_impact: output.current_judgment_impact || summarizeCurrentJudgmentImpact(output.scored_candidates || []),
     next_action_candidates: topItems(classes.next_action, 5),
     not_yet_scope: topItems(classes.rejected_scope, 5),
     next_action: output.next_safe_action || "Review before any memory, automation, connector, or release action.",
@@ -543,6 +608,20 @@ function renderCompanionBriefMarkdown(brief) {
   lines.push("## Review Needed");
   lines.push("");
   lines.push(renderList(brief.review_needed));
+  lines.push("");
+  lines.push("## Current Judgment Impact");
+  lines.push("");
+  if (!brief.current_judgment_impact || brief.current_judgment_impact.affecting_current_judgment === 0) {
+    lines.push("- none");
+  } else {
+    lines.push(`- affecting_current_judgment: ${brief.current_judgment_impact.affecting_current_judgment}`);
+    lines.push(`- high: ${brief.current_judgment_impact.high || 0}`);
+    lines.push(`- medium: ${brief.current_judgment_impact.medium || 0}`);
+    lines.push(`- low: ${brief.current_judgment_impact.low || 0}`);
+    for (const item of asArray(brief.current_judgment_impact.items).slice(0, 5)) {
+      lines.push(`- ${item.level}: ${item.text}${item.source_reference ? ` (source: ${item.source_reference})` : ""}`);
+    }
+  }
   lines.push("");
   lines.push("## Next Action Candidates");
   lines.push("");
