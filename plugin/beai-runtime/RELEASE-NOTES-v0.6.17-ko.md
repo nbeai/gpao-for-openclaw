@@ -2,8 +2,11 @@
 
 Status: clean internal team candidate
 
+ClawHub package: `@nbeai/beai-runtime`
+
 ## 변경 요약
 
+- ClawHub 게시를 위해 패키지 이름을 `@nbeai/beai-runtime`으로 고정하고, 외부 코드 플러그인에 필요한 OpenClaw build/install metadata를 추가합니다.
 - Telegram direct 응답에서 "내부 답변 생성"과 "사용자에게 실제 전송 완료"를 분리합니다.
 - `state/beai/telegram-delivery-ledger.jsonl`에 generated, send_attempted, delivered, failed 상태를 기록합니다.
 - Telegram messageId가 확인되기 전에는 delivered나 visible closeout 완료로 보지 않습니다.

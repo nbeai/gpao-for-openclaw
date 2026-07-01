@@ -1,8 +1,7 @@
 {
-  "name": "openclaw-plugin-beai-runtime",
+  "name": "@nbeai/beai-runtime",
   "version": "0.6.17",
   "type": "module",
-  "private": true,
   "description": "BEAI Layer v0.6.17 runtime plugin for OpenClaw. Dist-only clean internal team candidate package.",
   "files": [
     "dist/index.js",
@@ -21,6 +20,15 @@
     ],
     "compat": {
       "pluginApi": ">=2026.6.6"
+    },
+    "build": {
+      "openclawVersion": "2026.6.10",
+      "pluginSdkVersion": "2026.6.10"
+    },
+    "install": {
+      "clawhubSpec": "@nbeai/beai-runtime",
+      "minHostVersion": ">=2026.6.10",
+      "defaultChoice": "clawhub"
     }
   }
 }

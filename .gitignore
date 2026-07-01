@@ -12,4 +12,5 @@ packages/*.zip
 packages/*.sha256
 docs/03-verification/generated/
 **/docs/03-verification/generated/
+**/reports/
 *.log

@@ -25,6 +25,17 @@ openclaw plugins install --link /absolute/path/to/beai-layer/plugin/beai-runtime
 openclaw plugins enable beai-runtime
 ```
 
+## Install From ClawHub
+
+When the ClawHub release is visible for installation:
+
+```bash
+openclaw plugins install clawhub:@nbeai/beai-runtime
+openclaw plugins enable beai-runtime
+```
+
+The package name is `@nbeai/beai-runtime`. This is the BEAI Runtime plugin install surface, not the full capability-pack ZIP distribution.
+
 The live OpenClaw config must allow BEAI Runtime to use conversation-access hooks:
 
 ```json
