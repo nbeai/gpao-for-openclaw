@@ -1,6 +1,6 @@
-# BEAI Runtime v0.6.13
+# BEAI Runtime v0.6.17
 
-Dist-only runtime package for the BEAI Layer v0.6.13 clean internal team candidate.
+Dist-only runtime package for the BEAI Layer v0.6.17 clean internal team candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
@@ -33,15 +33,15 @@ openclaw.plugin.json
 ## Included Guide
 
 ```text
-RELEASE-NOTES-v0.6.13-ko.md
+RELEASE-NOTES-v0.6.17-ko.md
 ```
 
-This local candidate does not include a team distribution guide or manifest. Those belong to a later clean internal team candidate package.
+This local candidate includes only the runtime files needed by OpenClaw and the v0.6.17 release note.
 
 The final verification ledger remains in the development workspace:
 
 ```text
-docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md
+capability-pack/docs/03-verification/generated/beai-doctor-package-check.md
 ```
 
 ## Required OpenClaw Hook Permission
@@ -98,6 +98,7 @@ openclaw hooks
 - Adds v0.6.11 Workflow Routing Hardening so scheduled work defaults to `cron_candidate` / `not_cron_ready`, external writes force approval boundaries, skill/agent lifecycle requests route as candidates, vague app requests become product/development translation rather than automation, and rollback/memory/issue-ledger writes preserve persistent-state boundaries.
 - Adds v0.6.12 Operating Contract Closure so read-only status/list checks do not become mutation work, explicit "do not create skill/agent/automation" wording suppresses candidate routing, retry/watchdog/destructive/core/memory requests get approval boundaries, and Notion/Telegram read-write behavior is separated.
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
+- Adds v0.6.17 Telegram Delivery Ledger so generated Telegram replies, send attempts, delivery confirmations, messageId absence, restart pending-scan requirements, and resend idempotency are tracked separately from internal final-answer generation.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Separates memory candidates, agreement assets, project state, and discarded context.
 - Carries session continuity through BEAI-owned state files.
@@ -125,6 +126,7 @@ Examples:
 
 ```text
 live-evidence.jsonl
+telegram-delivery-ledger.jsonl
 session-continuity.json
 conversation-arc.json
 new-session-context-pack.json
@@ -148,7 +150,7 @@ Memory candidates are not accepted memories. Agreement assets are not promoted a
 ## Package Status
 
 ```text
-BEAI Layer v0.6.13
+BEAI Layer v0.6.17
 Clean Internal Team Candidate
 ```
 
@@ -162,18 +164,19 @@ The source workspace was checked before packaging:
 
 ```text
 npm run build: pass
-npm test: 197 passed
+npm test: pass
 node --check dist/index.js: pass
 node --check dist/runtime-core.js: pass
 node --check runtime/beai-runtime-lib.cjs: pass
 npm audit --omit=dev: 0 vulnerabilities
 openclaw plugins doctor: pass
 openclaw hooks: 6/6 ready
-OpenClaw live plugin: not verified in this ledger
-Gateway evidence: gateway reachable
-Telegram evidence: configured / gateway-channel reachable
-Telegram live roundtrip: not verified in this ledger
-Task pressure: 0 queued / 0 running / 3 historical issues
+beai-flow-regression-gate: 20/20 pass
+beai-doctor-package-check: package_status ready
+OpenClaw live plugin: verify after live sync
+Gateway evidence: verify after live sync
+Telegram evidence: verify after live sync
+Telegram live roundtrip: verify after live sync
 ```
 
 ## Package Integrity Evidence

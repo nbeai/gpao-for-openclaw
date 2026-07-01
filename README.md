@@ -164,6 +164,7 @@ cd capability-pack
 node --check tools/beai-doctor.js
 node --check tools/beai-doctor-package-check.mjs
 node tools/beai-doctor-package-check.mjs
+node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
 ```
 
 Expected:
@@ -171,6 +172,7 @@ Expected:
 - tool files pass Node syntax checks
 - the package check completes without missing required files
 - BEAI Doctor reports the capability pack as package-ready for controlled alpha review
+- BEAI 5 Flow regression checks pass before making user-experience or release-readiness claims
 
 ## Public Release Status
 

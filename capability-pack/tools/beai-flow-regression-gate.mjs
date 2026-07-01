@@ -158,6 +158,56 @@ const CHECKS = [
     failEvidence: "visible delivery boundary is missing."
   },
   {
+    id: "field-readiness-generated-response-ledger-required",
+    lane: "field-readiness",
+    regression: "completion_overclaim",
+    file: "config/beai-telegram-delivery-contract.json",
+    pattern: /"generated_response_requires_delivery_ledger":\s*true/,
+    description: "Generated Telegram responses require a delivery ledger before completion claims.",
+    passEvidence: "Delivery contract requires a generated response ledger.",
+    failEvidence: "Delivery contract does not require a generated response ledger."
+  },
+  {
+    id: "field-readiness-runtime-delivery-ledger-present",
+    lane: "field-readiness",
+    regression: "completion_overclaim",
+    file: "../plugin/beai-runtime/src/index.ts",
+    pattern: /telegram-delivery-ledger\.jsonl/,
+    description: "Runtime records Telegram generated/send result states in a delivery ledger.",
+    passEvidence: "Runtime delivery ledger path is present.",
+    failEvidence: "Runtime delivery ledger path is missing."
+  },
+  {
+    id: "field-readiness-generated-without-message-id-unverified",
+    lane: "field-readiness",
+    regression: "completion_overclaim",
+    file: "config/beai-telegram-delivery-contract.json",
+    pattern: /"generated_without_message_id_remains_unverified":\s*true/,
+    description: "Generated or attempted Telegram output without messageId remains unverified.",
+    passEvidence: "Delivery contract keeps generated output without messageId unverified.",
+    failEvidence: "Delivery contract may allow generated output without messageId to close as delivered."
+  },
+  {
+    id: "field-readiness-restart-pending-delivery-scan",
+    lane: "field-readiness",
+    regression: "restart_recovery_drop",
+    file: "config/beai-telegram-delivery-contract.json",
+    pattern: /"gateway_restart_recovery_requires_pending_delivery_scan":\s*true/,
+    description: "Gateway restart recovery must scan generated/send_attempted responses without messageId.",
+    passEvidence: "Delivery contract requires restart pending-delivery scan.",
+    failEvidence: "Delivery contract does not require restart pending-delivery scan."
+  },
+  {
+    id: "field-readiness-recovery-resend-idempotency",
+    lane: "field-readiness",
+    regression: "restart_recovery_drop",
+    file: "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
+    pattern: /chat_id \+ source_message_id \+ content_hash/,
+    description: "Recovery resend uses a stable idempotency key to avoid duplicate Telegram sends.",
+    passEvidence: "Delivery contract documents the recovery resend idempotency key.",
+    failEvidence: "Delivery contract does not document a recovery resend idempotency key."
+  },
+  {
     id: "perceived-quality-artifact-first-gate",
     lane: "perceived-quality",
     regression: "artifact_delay",

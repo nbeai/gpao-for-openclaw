@@ -10,7 +10,7 @@ It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
 
 This section applies to the source development workspace only.
 
-The v0.6.13 clean internal team candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
+The v0.6.17 clean internal team candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
 
 ```bash
 npm install
@@ -117,6 +117,7 @@ state/beai/judgment-sharpness-profile.json
 state/beai/conversation-scene-continuity.json
 state/beai/input-level-companion-profile.json
 state/beai/companion-profile.json
+state/beai/telegram-delivery-ledger.jsonl
 ```
 
 Memory candidates are not accepted memories. Agreement assets are not promoted automatically.
@@ -146,9 +147,9 @@ Current pre-package baseline:
 - Telegram live roundtrip: verified after gateway restart
 - Task pressure: 0 queued / 0 running / 3 historical issues
 
-For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.13 clean internal team candidate package is generated separately under `packages/`.
+For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.17 clean internal team candidate package is generated separately under `packages/`.
 
-Final local-live verification ledger:
+Final local-live verification ledger for the previous v0.6.13 candidate:
 
 ```text
 docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md

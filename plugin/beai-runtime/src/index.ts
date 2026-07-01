@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
@@ -195,6 +196,21 @@ type LiveEvidenceEvent = {
   note?: string | null;
 };
 
+type TelegramDeliveryLedgerEvent = {
+  timestamp: string;
+  status: "generated" | "send_attempted" | "delivered" | "failed" | "unknown";
+  runId?: string | null;
+  sessionKey?: string | null;
+  chatId?: string | null;
+  sourceMessageId?: string | null;
+  contentHash?: string | null;
+  messageId?: string | null;
+  deliverySuccess?: boolean | null;
+  idempotencyKey?: string | null;
+  preview?: string | null;
+  note?: string | null;
+};
+
 type VisibleProgressContract = {
   key: string;
   startedAt: number;
@@ -282,6 +298,51 @@ function appendContinuityTrace(workspaceDir: string | undefined, event: Continui
 
 function liveEvidencePath(workspaceDir: string): string {
   return path.join(workspaceDir, "state", "beai", "live-evidence.jsonl");
+}
+
+function telegramDeliveryLedgerPath(workspaceDir: string): string {
+  return path.join(workspaceDir, "state", "beai", "telegram-delivery-ledger.jsonl");
+}
+
+function hashContent(text: string | undefined): string | null {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  return crypto.createHash("sha256").update(normalized).digest("hex");
+}
+
+function extractTelegramChatId(sessionKey?: string | null): string | null {
+  const match = String(sessionKey || "").match(/:telegram(?::[^:]+)?:direct:([^:]+)/i);
+  return match?.[1] || null;
+}
+
+function buildDeliveryIdempotencyKey(input: {
+  chatId?: string | null;
+  sourceMessageId?: string | null;
+  runId?: string | null;
+  contentHash?: string | null;
+}): string | null {
+  const source = input.sourceMessageId || input.runId;
+  if (!input.chatId || !source || !input.contentHash) return null;
+  return `${input.chatId}:${source}:${input.contentHash}`;
+}
+
+function appendTelegramDeliveryLedger(workspaceDir: string | undefined, event: Omit<TelegramDeliveryLedgerEvent, "timestamp">): void {
+  try {
+    const stateWorkspaceDir = resolveStateWorkspaceDir(workspaceDir);
+    if (!stateWorkspaceDir) return;
+    const filePath = telegramDeliveryLedgerPath(stateWorkspaceDir);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.appendFileSync(
+      filePath,
+      `${JSON.stringify({
+        timestamp: new Date().toISOString(),
+        ...event
+      })}\n`,
+      "utf8"
+    );
+  } catch {
+    // Delivery ledger persistence must never block the source reply path.
+  }
 }
 
 function summarizeEvidence(plan: BeaiTurnPlan | undefined): Pick<LiveEvidenceEvent, "mode" | "primaryClass" | "riskLevel" | "responseRole" | "confirmed" | "unknown" | "assumptions" | "needsVerification"> {
@@ -2234,6 +2295,37 @@ export default definePluginEntry({
         clearVisibleProgressContract(event.runId ?? ctx.runId, event.sessionKey ?? ctx.sessionKey);
         clearQuickFirstStatusContract(event.runId ?? ctx.runId, event.sessionKey ?? ctx.sessionKey);
       }
+      const sessionKey = event.sessionKey ?? ctx.sessionKey ?? null;
+      const contentHash = hashContent(event.content);
+      const chatId = extractTelegramChatId(sessionKey || delivery.deliverySessionKey);
+      const sourceMessageId =
+        findNestedString(event, ["sourceMessageId"]) ||
+        findNestedString(event, ["source_message_id"]) ||
+        findNestedString(ctx, ["sourceMessageId"]) ||
+        findNestedString(ctx, ["source_message_id"]) ||
+        null;
+      const deliveryLedgerStatus: TelegramDeliveryLedgerEvent["status"] =
+        success && messageId ? "delivered" : success ? "send_attempted" : "failed";
+      appendTelegramDeliveryLedger(resolveStateWorkspaceDir(ctx.workspaceDir), {
+        status: deliveryLedgerStatus,
+        runId: event.runId ?? ctx.runId ?? null,
+        sessionKey,
+        chatId,
+        sourceMessageId,
+        contentHash,
+        messageId,
+        deliverySuccess: success,
+        idempotencyKey: buildDeliveryIdempotencyKey({
+          chatId,
+          sourceMessageId,
+          runId: event.runId ?? ctx.runId ?? null,
+          contentHash
+        }),
+        preview: compactPreview(event.content),
+        note: success && messageId
+          ? "Telegram delivery closed with messageId evidence."
+          : "Telegram delivery remains unverified or failed; generated response must not be counted as delivered."
+      });
       trackPhaseTimingContract(
         resolveStateWorkspaceDir(ctx.workspaceDir),
         resolvePlanForTurn({ runId: event.runId ?? ctx.runId, sessionKey: event.sessionKey ?? ctx.sessionKey }),
@@ -2347,6 +2439,54 @@ export default definePluginEntry({
         };
       }
       const finalText = normalizedExecutionReview || rawFinalText;
+      if (finalText && (isTelegramDirectSession(ctx) || shouldTrackVisibleProgress(plan, ctx.sessionKey))) {
+        const contentHash = hashContent(finalText);
+        const chatId = extractTelegramChatId(ctx.sessionKey);
+        const sourceMessageId =
+          findNestedString(event, ["sourceMessageId"]) ||
+          findNestedString(event, ["source_message_id"]) ||
+          findNestedString(ctx, ["sourceMessageId"]) ||
+          findNestedString(ctx, ["source_message_id"]) ||
+          null;
+        const idempotencyKey = buildDeliveryIdempotencyKey({
+          chatId,
+          sourceMessageId,
+          runId: event.runId ?? null,
+          contentHash
+        });
+        appendTelegramDeliveryLedger(stateWorkspaceDir, {
+          status: "generated",
+          runId: event.runId ?? null,
+          sessionKey: ctx.sessionKey ?? null,
+          chatId,
+          sourceMessageId,
+          contentHash,
+          messageId: null,
+          deliverySuccess: null,
+          idempotencyKey,
+          preview: compactPreview(finalText),
+          note: "Generated response is not Telegram delivery. It remains unverified until message_sent success with messageId evidence."
+        });
+        appendLiveEvidence(stateWorkspaceDir, {
+          hook: "before_agent_finalize",
+          action: "telegram generated response recorded without delivery closure",
+          evidenceLevel: "delivery_contract_observed",
+          runId: event.runId ?? null,
+          sessionKey: ctx.sessionKey ?? null,
+          outboundChannel: "telegram",
+          userVisible: false,
+          ...summarizeEvidence(plan),
+          confirmed: [
+            "assistant response generated",
+            "Telegram messageId not yet observed at finalize"
+          ],
+          unknown: [
+            "Telegram visible delivery is not verified until message_sent returns messageId"
+          ],
+          preview: compactPreview(finalText),
+          note: "BEAI delivery ledger: generated response remains unverified until source-channel delivery closes with messageId."
+        });
+      }
       const memoryPatch = compactWorkingMemoryPatch({
         ...plan?.continuityPatch,
         last_assistant_answer: summarizeReply(finalText),

@@ -186,6 +186,18 @@ The package must be safe and pleasant to use. Security, approval, verification, 
 
 BEAI 5 Flow Engine is the current implementation direction. It should not become a separate runtime. Its first implementation target is the OpenClaw BEAI Runtime Layer and Package. After that stabilizes, BEAI Harness for Codex can be aligned to the same Flow State language as a secondary ecosystem target.
 
+Current Flow verification command:
+
+```bash
+node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
+```
+
+Expected:
+
+- `status: pass`
+- self-check, engineering-quality, field-readiness, perceived-quality, and release-checklist lanes all pass
+- no live OpenClaw config, Gateway, cron, hook, durable memory, external send, or release publishing mutation occurs during the check
+
 ## Not Included
 
 This package does not create OpenClaw core changes, installer files, Gateway-level hooks, Gateway `agents.list` promotion, or public release publishing. The local workspace currently has one registered daily cron for review-file generation, external signal fetch, bounded daily memory append, Telegram run-summary delivery, Telegram failure alerts, one missed-run recovery cron, one persistent review lane, one bounded Gateway/Telegram watchdog, and one local internal zip package candidate.
