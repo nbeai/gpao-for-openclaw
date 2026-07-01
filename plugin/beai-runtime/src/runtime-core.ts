@@ -5326,7 +5326,7 @@ function evidenceMatchesCheck(check: string, evidenceText: string, domain: Judgm
       return /(doctor|No plugin issues|hooks|6\/6 ready|tasks|gateway|telegram|live plugin|BEAI Runtime|enabled|version|zip|manifest|package)/i.test(evidenceText);
     }
     if (/live plugin version|실제 live plugin version|live 적용/i.test(check)) {
-      return /(live plugin|BEAI Runtime|beai-runtime|plugins list|enabled|version|0\.4\.\d+)/i.test(evidenceText);
+      return /(live plugin|BEAI Runtime|beai-runtime|plugins list|enabled|version|\b\d+\.\d+\.\d+\b)/i.test(evidenceText);
     }
     if (/doctor|hooks|tasks|gateway|Telegram|검증 신호/i.test(check)) {
       return /(doctor|No plugin issues|hooks|6\/6 ready|tasks|gateway|telegram|reachable|configured|channel)/i.test(evidenceText);
@@ -6784,7 +6784,7 @@ function isTransientMemoryLine(text: string): boolean {
 function classifyMemoryScope(text: string): MemoryScope {
   if (/(말투|호칭|이름|존댓말|반말|가깝|거리|비서|동반자|tone|style)/i.test(text)) return "personal_preference";
   if (/(승인|허락|금지|하지\s*마|절대|without approval|approval)/i.test(text)) return "approval_boundary";
-  if (/(철학|원칙|기준|목표|방향|구조|OpenClaw\s*코어|오픈클로\s*코어|배포\s*전|명시\s*지시)/i.test(text)) return "project_principle";
+  if (/(철학|원칙|기준|목표|방향|구조|1차\s*대상|우선\s*대상|먼저\s*(?:닫|처리|구현)|first\s*(?:implementation\s*)?target|primary\s*(?:implementation\s*)?target|runtime\/package|OpenClaw\s*Runtime|OpenClaw\s*Package|BEAI\s*Runtime|BEAI\s*Package|Codex\s*Harness.*later|OpenClaw\s*코어|오픈클로\s*코어|배포\s*전|명시\s*지시)/i.test(text)) return "project_principle";
   if (/(완료|진행|작업|테스트|빌드|status|상태|다음\s*단계|구현|수정)/i.test(text)) return "execution_state";
   if (/(세션|흐름|맥락|context|handoff|압축|이어)/i.test(text)) return "conversation_flow";
   return "unknown";
