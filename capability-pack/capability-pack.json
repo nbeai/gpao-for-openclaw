@@ -173,6 +173,7 @@
         "docs/BEAI-KNOWLEDGE-LOOP-v0.1-ko.md",
         "docs/BEAI-KNOWLEDGE-LOOP-CLI-v0.1-ko.md",
         "docs/BEAI-KNOWLEDGE-LOOP-COMPANION-UX-v0.1-ko.md",
+        "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
         "docs/UPGRADE-BEAI-KNOWLEDGE-LOOP-v0.1-ko.md",
         "docs/03-verification/generated/knowledge-loop-case3a.json",
         "docs/03-verification/generated/knowledge-loop-external-signal.json",
@@ -216,6 +217,7 @@
         "local dry-run CLI prototype",
         "companion brief review card prototype",
         "daily applied cron",
+        "auto-capture-not-auto-approve automation boundary",
         "external signal source fetch",
         "bounded durable memory append",
         "persistent review lane",
@@ -258,6 +260,7 @@
         "persistent review lane registered as cron session target session:beai-knowledge-loop-agent and force-run verified",
         "bounded Gateway/Telegram watchdog cron registered and force-run verified with no restart needed",
         "missed-run recovery cron registered and force-run verified with no action when today's memory marker exists",
+        "auto-capture-not-auto-approve principle documented for Knowledge Loop automation",
         "Gateway hooks config registration attempted and blocked by protected config paths",
         "persistent agent config apply attempted and blocked by Gateway protected config path",
         "report-only local review helper created without external delivery or scope expansion",
@@ -265,7 +268,9 @@
       ],
       "artifacts": [
         "packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip",
-        "packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256"
+        "packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256",
+        "packages/beai-package-for-openclaw-v0.2.0-runtime-v0.6.17-20260701-2244.zip",
+        "packages/beai-package-for-openclaw-v0.2.0-runtime-v0.6.17-20260701-2244.zip.sha256"
       ],
       "excluded": [
         "hooks",

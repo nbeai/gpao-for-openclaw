@@ -268,6 +268,36 @@ const CHECKS = [
     failEvidence: "current_judgment_impact is missing."
   },
   {
+    id: "knowledge-loop-auto-capture-not-auto-approve-doc",
+    lane: "field-readiness",
+    regression: "memory_overexposure",
+    file: "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
+    pattern: /Auto-capture, not auto-approve\./,
+    description: "Knowledge Loop automation is anchored on auto-capture, not auto-approve.",
+    passEvidence: "Auto-capture principle document is present.",
+    failEvidence: "Auto-capture principle document is missing or weakened."
+  },
+  {
+    id: "knowledge-loop-approved-requires-user-approval",
+    lane: "field-readiness",
+    regression: "memory_overexposure",
+    file: "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
+    pattern: /`approved`: 사용자 명시 승인 필요/,
+    description: "Approved state remains user-approved, not automatically promoted.",
+    passEvidence: "Approved state requires explicit user approval.",
+    failEvidence: "Approved state approval boundary is missing."
+  },
+  {
+    id: "knowledge-loop-manifest-lists-auto-capture-boundary",
+    lane: "release-checklist",
+    regression: "completion_overclaim",
+    file: "capability-pack.json",
+    pattern: /auto-capture-not-auto-approve automation boundary/,
+    description: "Manifest lists the Knowledge Loop auto-capture boundary.",
+    passEvidence: "Manifest includes the auto-capture boundary scope.",
+    failEvidence: "Manifest does not list the auto-capture boundary scope."
+  },
+  {
     id: "tool-log-overexposure-stripper",
     lane: "perceived-quality",
     regression: "tool_log_overexposure",

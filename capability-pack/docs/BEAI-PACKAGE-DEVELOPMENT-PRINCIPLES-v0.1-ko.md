@@ -107,6 +107,7 @@ BEAI Package 관련 개발, skill, doctor, knowledge loop, release, automation, 
 - package, zip, release, install candidate의 완료 표현을 정할 때
 - Telegram, Gateway, runtime, skill 상태를 사용자에게 설명할 때
 - Knowledge Loop가 work record를 package knowledge로 승격할지 판단할 때
+- Knowledge Loop 자동 기록과 자동 승인의 경계를 판단할 때
 
 ## 좋은 구현의 기준
 
@@ -130,6 +131,7 @@ BEAI Package 관련 개발, skill, doctor, knowledge loop, release, automation, 
 - 보안을 이유로 모든 흐름을 느리게 만드는 설계
 - 검증되지 않은 완료, 적용, 배포, production-ready 주장
 - memory 후보를 근거 없이 장기 기억으로 승격하는 흐름
+- Knowledge Loop draft capture를 approved 지식이나 durable memory로 자동 승격하는 흐름
 - cron, agent, hook, gateway restart, external send를 편의상 자동화하는 흐름
 - OpenClaw core와 BEAI-owned layer 책임을 섞는 설명
 - 기능 추가가 사용자 이해와 쾌적함을 해치는 구조

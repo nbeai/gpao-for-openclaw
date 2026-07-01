@@ -168,6 +168,7 @@ function main() {
     "docs/BEAI-AGENT-TRUST-LEDGER-v0.1-ko.md",
     "docs/BEAI-CONNECTOR-ONBOARDING-v0.1-ko.md",
     "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
+    "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
     "config/beai-trust-gate-statuses.json",
     "config/beai-connector-onboarding-checklist.json",
     "config/beai-telegram-delivery-contract.json",

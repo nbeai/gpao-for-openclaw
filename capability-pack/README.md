@@ -45,6 +45,8 @@ work/session records
 
 The first version started manual-first at the skill level. The local OpenClaw workspace now has one daily applied cron for local review file generation, configured external signal fetch, one bounded daily memory append, Telegram run delivery, a two-hour missed-run recovery cron after the main morning window, one persistent review lane, and one bounded Gateway/Telegram watchdog. Gateway-level session-end hooks, Gateway `agents.list` promotion, and public release publishing are still not enabled.
 
+Knowledge Loop automation follows the package principle `Auto-capture, not auto-approve`: local search, draft capture, indexing, review queue creation, and evaluation can run with strong automation when they remain review-only, but approved state, durable memory promotion, external execution, release wording, customer contact, account changes, money, tax, legal, or public posting require explicit approval. See `docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md`.
+
 ## BEAI Doctor Runtime Trust Upgrade
 
 BEAI Doctor already existed as a live workspace skill. This package now includes it as a formal package component instead of treating it as an external assumption.
@@ -227,6 +229,7 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `docs/BEAI-KNOWLEDGE-LOOP-v0.1-ko.md`
 - `docs/BEAI-KNOWLEDGE-LOOP-CLI-v0.1-ko.md`
 - `docs/BEAI-KNOWLEDGE-LOOP-COMPANION-UX-v0.1-ko.md`
+- `docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md`
 - `docs/UPGRADE-BEAI-KNOWLEDGE-LOOP-v0.1-ko.md`
 - `docs/BEAI-DOCTOR-PACKAGE-INTEGRATION-v0.1-ko.md`
 - `docs/BEAI-TRUST-GATE-v0.1-ko.md`
@@ -278,5 +281,7 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `state/beai/agent-trust-ledger.json`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256`
+- `packages/beai-package-for-openclaw-v0.2.0-runtime-v0.6.17-20260701-2244.zip`
+- `packages/beai-package-for-openclaw-v0.2.0-runtime-v0.6.17-20260701-2244.zip.sha256`
 - `packages/beai-capability-pack-v0.2.0-doctor-trust-20260630.zip`
 - `packages/beai-capability-pack-v0.2.0-doctor-trust-20260630.zip.sha256`
