@@ -10,7 +10,7 @@ It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
 
 This section applies to the source development workspace only.
 
-The v0.6.17 clean internal team candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
+The v0.6.17 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
 
 ```bash
 npm install
@@ -165,10 +165,11 @@ Current package audit baseline from 2026-07-02:
 - production dependency audit: 0 vulnerabilities
 - flow regression gate: 27/27 pass
 - doctor package check: `package_status=ready`
-- user scenario audit: 17 total / 14 pass / 1 partial / 2 fail before hardening fixes
-- Harness verify/scenario/closeout: blocked before representative package verify command and developer-owned fixtures were added
+- user scenario audit: pass after package hardening
+- organic flow audit: pass
+- package verify: pass after representative package verify command and developer-owned fixtures were added
 
-For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.17 clean internal team candidate package is generated separately under `packages/`.
+For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.17 public staging runtime candidate package is generated separately under `packages/`.
 
 Final local-live verification ledger for the previous v0.6.13 candidate:
 

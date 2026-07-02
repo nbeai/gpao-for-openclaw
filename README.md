@@ -2,6 +2,12 @@
 
 BEAI Package for OpenClaw is a runtime judgment, reliability, and workflow package for OpenClaw.
 
+If you received the ZIP and want to install or review it, start here:
+
+- `README-FIRST.md`: fastest user path, manual ZIP path, verification, rollback, and status boundary
+- `INSTALL.md`: install-focused command reference
+- `plugin/beai-runtime/README.dist.md`: runtime-only package notes
+
 If OpenClaw is the workspace where AI agents can use tools, skills, memory, plugins, hooks, and cron jobs, BEAI Package adds the judgment boundaries around that workspace. It helps users understand what is ready, partial, unverified, blocked, needs approval, on hold, or unsafe before an agent mutates files, writes memory, sends messages, schedules automation, or claims completion.
 
 It helps OpenClaw users separate:
@@ -16,15 +22,15 @@ It helps OpenClaw users separate:
 - runtime operations health
 - package verification and release boundaries
 
-This repository is an alpha public staging repository. It is not an OpenClaw core fork, and it does not claim production-ready public release status.
+This repository is a public staging release-candidate repository. It is not an OpenClaw core fork, and it does not claim stable production support status until the public ClawHub/release path is completed and clean-environment evidence is attached.
 
 In practical terms, this means BEAI Package is currently best read as:
 
 - a public reference implementation for BEAI runtime judgment on OpenClaw
 - a reviewable source package for BEAI Runtime and BEAI Capability Pack components
-- a manual-verification alpha for users who understand OpenClaw plugins, skills, hooks, and local runtime operations
+- a manual-verification release candidate for users who understand OpenClaw plugins, skills, hooks, and local runtime operations
 
-It should not yet be described as a stable one-command installer or a production support promise.
+It should not yet be described as a stable one-command support promise.
 
 ## Package Shape
 
@@ -229,10 +235,10 @@ Expected:
 
 ## Public Release Status
 
-Current status: `alpha / public staging`.
+Current status: `public staging release candidate`.
 
 This repository is suitable for review, documentation, and controlled manual testing.
 
-It should not yet be presented as a one-command production install.
+It should not yet be presented as a stable one-command production support promise.
 
 Before a pre-release tag such as `v0.7.0-alpha.1`, this repository should also have clean-environment verification evidence, a rollback note, and release wording that keeps alpha review separate from stable distribution.

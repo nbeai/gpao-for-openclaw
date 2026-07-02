@@ -1,6 +1,6 @@
 # BEAI Runtime v0.6.17
 
-Dist-only runtime package for the BEAI Layer v0.6.17 clean internal team candidate.
+Dist-only runtime package for the BEAI Package for OpenClaw v0.2.0 public staging release candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
@@ -36,7 +36,7 @@ openclaw.plugin.json
 RELEASE-NOTES-v0.6.17-ko.md
 ```
 
-This local candidate includes only the runtime files needed by OpenClaw and the v0.6.17 release note.
+This candidate includes only the runtime files needed by OpenClaw and the v0.6.17 release note.
 
 The final verification ledger remains in the development workspace:
 
@@ -150,13 +150,13 @@ Memory candidates are not accepted memories. Agreement assets are not promoted a
 ## Package Status
 
 ```text
-BEAI Layer v0.6.17
-Clean Internal Team Candidate
+BEAI Runtime v0.6.17
+Public Staging Release Candidate
 ```
 
-This is a clean internal team candidate for BEAI Layer users who already understand OpenClaw plugin installation and rollback.
+This is a runtime release candidate for OpenClaw users who understand plugin installation, verification, and rollback.
 
-It is not a public release, production-ready installer, or fully deterministic one-click installer.
+It is not a stable production support promise or a fully deterministic one-click installer until the ClawHub/public release path and clean-environment verification are complete.
 
 ## Development Workspace Evidence
 
@@ -173,7 +173,8 @@ openclaw plugins doctor: pass
 openclaw hooks: 6/6 ready
 beai-flow-regression-gate: 27/27 pass
 beai-doctor-package-check: package_status ready
-beai-user-scenario-audit: 17 total / 14 pass / 1 partial / 2 fail before hardening fixes
+beai-user-scenario-audit: pass after package hardening
+beai-organic-flow-audit: pass
 OpenClaw live plugin: verify after live sync
 Gateway evidence: verify after live sync
 Telegram evidence: verify after live sync
