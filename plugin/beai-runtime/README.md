@@ -149,14 +149,24 @@ openclaw status --deep
 Current pre-package baseline:
 
 - Build: pass
-- Tests: 197 passed
+- Runtime syntax test: pass
 - Audit: 0 vulnerabilities with `npm audit --omit=dev`
 - OpenClaw plugin doctor: pass
 - OpenClaw hooks: 6/6 ready
 - Gateway evidence: gateway reachable
 - Telegram evidence: configured / gateway-channel reachable
-- Telegram live roundtrip: verified after gateway restart
+- Telegram live roundtrip: not verified in the 2026-07-02 package audits
 - Task pressure: 0 queued / 0 running / 3 historical issues
+
+Current package audit baseline from 2026-07-02:
+
+- runtime build: pass
+- runtime syntax test: pass
+- production dependency audit: 0 vulnerabilities
+- flow regression gate: 27/27 pass
+- doctor package check: `package_status=ready`
+- user scenario audit: 17 total / 14 pass / 1 partial / 2 fail before hardening fixes
+- Harness verify/scenario/closeout: blocked before representative package verify command and developer-owned fixtures were added
 
 For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.17 clean internal team candidate package is generated separately under `packages/`.
 

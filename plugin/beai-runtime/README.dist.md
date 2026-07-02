@@ -171,8 +171,9 @@ node --check runtime/beai-runtime-lib.cjs: pass
 npm audit --omit=dev: 0 vulnerabilities
 openclaw plugins doctor: pass
 openclaw hooks: 6/6 ready
-beai-flow-regression-gate: 20/20 pass
+beai-flow-regression-gate: 27/27 pass
 beai-doctor-package-check: package_status ready
+beai-user-scenario-audit: 17 total / 14 pass / 1 partial / 2 fail before hardening fixes
 OpenClaw live plugin: verify after live sync
 Gateway evidence: verify after live sync
 Telegram evidence: verify after live sync
@@ -211,6 +212,6 @@ Those were not queued or running tasks, and should not be interpreted as current
 Dependency audit note:
 
 ```text
-npm audit --omit=dev: 0 vulnerabilities after the development workspace moved to openclaw@2026.6.9.
+npm audit --omit=dev: 0 vulnerabilities after the development workspace moved to openclaw@2026.6.10.
 The remaining npm audit finding is dev-only esbuild via Vitest/Vite and is not included in this dist-only package.
 ```

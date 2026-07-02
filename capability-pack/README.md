@@ -26,7 +26,48 @@ This package contains planning-ready definitions for:
 - BEAI Knowledge Loop Skill (live-applied daily automation)
 - BEAI Knowledge Loop Skill is now applied with daily review report generation, external signal fetch, bounded memory append, Telegram run delivery, missed-run recovery, a persistent review lane, and a bounded Gateway/Telegram watchdog.
 - BEAI Doctor Skill (packaged runtime diagnosis and trust boundary upgrade)
+- BEAI Korean Natural Writing Skill (v1.0 Korean response, docs, release, app-copy, presentation, and public-copy standard)
+- BEAI Operational Notification Contract (watchdog, heartbeat, cron dry-run, and Knowledge Loop candidate user-action framing)
 - Capability routing rules
+
+## BEAI Korean Natural Writing Direction
+
+BEAI Korean output should not try to "sound human" as a trick.
+
+It should help the user understand the current state, evidence, uncertainty, and next action in natural Korean.
+
+The package now includes a v1.0 Korean language standard and a narrow execution skill:
+
+- `docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md`
+- `skills/beai-korean-natural-writing-skill.md`
+
+Use this skill when writing or reviewing Korean:
+
+- Telegram/OpenClaw replies
+- development progress reports
+- README/release/verification documents
+- ClawHub card and launch copy
+- Knowledge Loop review cards
+- Doctor/Trust Gate explanations
+- customer notices, apologies, emails, SNS posts, app copy, error messages, and presentation scripts
+
+Core rule:
+
+```text
+Natural Korean is not decoration.
+It is status clarity, evidence clarity, and action clarity in Korean.
+```
+
+The runtime-facing minimum rule is:
+
+```text
+한국어 응답은 결론과 현재 상태로 시작한다.
+의미, 숫자, 날짜, 고유명사, 검증 결과를 자연화 과정에서 바꾸지 않는다.
+확인/추정/미확인을 분리한다.
+완료, 적용, 검증, 전송, 배포를 섞지 않는다.
+자동 칭찬, 번역투, 추상 명사, 과장된 완료 표현을 피한다.
+매체에 맞게 채팅, 문서, 발표, SNS, 앱 화면, 오류 메시지의 호흡을 바꾼다.
+```
 
 ## BEAI Knowledge Loop Direction
 
@@ -43,9 +84,28 @@ work/session records
 -> retrieval with source grounding
 ```
 
-The first version started manual-first at the skill level. The local OpenClaw workspace now has one daily applied cron for local review file generation, configured external signal fetch, one bounded daily memory append, Telegram run delivery, a two-hour missed-run recovery cron after the main morning window, one persistent review lane, and one bounded Gateway/Telegram watchdog. Gateway-level session-end hooks, Gateway `agents.list` promotion, and public release publishing are still not enabled.
+The first version started manual-first at the skill level. Local evidence is not default package behavior: 윤's OpenClaw workspace has separate proof for daily review automation, Telegram delivery, recovery, a persistent review lane, and a bounded Gateway/Telegram watchdog, but those live registrations are tracked separately in `docs/03-verification/local/BEAI-KNOWLEDGE-LOOP-LOCAL-LIVE-EVIDENCE-20260702.md` and are not installed by default.
 
 Knowledge Loop automation follows the package principle `Auto-capture, not auto-approve`: local search, draft capture, indexing, review queue creation, and evaluation can run with strong automation when they remain review-only, but approved state, durable memory promotion, external execution, release wording, customer contact, account changes, money, tax, legal, or public posting require explicit approval. See `docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md`.
+
+## ClawHub Influence Direction
+
+The ClawHub launch should build influence before monetization.
+
+BEAI Package should be positioned as the trust operating layer for serious OpenClaw work:
+
+- review-first Knowledge Loop memory capture
+- current-request and evidence-aware runtime judgment
+- Telegram visible-delivery trust
+- Doctor, regression, and release-readiness gates
+
+Public copy should lead with user pain and visible value, not internal architecture. The account-level goal is to make OpenClaw users recognize BEAI / Jongyoon Park as the builder pushing AI work memory, reliability, and delivery trust forward in the OpenClaw ecosystem.
+
+Launch and card-copy assets:
+
+- `docs/BEAI-CLAWHUB-INFLUENCE-OPERATING-PLAN-v0.1-ko.md`
+- `docs/BEAI-CLAWHUB-CARD-COPY-v0.1.md`
+- `docs/BEAI-CLAWHUB-PRELAUNCH-CONTENT-BACKLOG-v0.1-ko.md`
 
 ## BEAI Doctor Runtime Trust Upgrade
 
@@ -93,6 +153,22 @@ Trust Gate states are package-level status vocabulary:
 
 BEAI Doctor uses these states to avoid saying "complete" when only "configured" or "registered" has been proven.
 
+## Operational Notification Direction
+
+Operational signals are not automatically user tasks.
+
+Watchdog route dry-runs, heartbeat recovery checks, cron candidates, and Knowledge Loop review candidates may be useful internal signals, but they should not reach users as raw internal notices. If there is no user action, the package contract keeps the notification quiet or says clearly that no user action is needed. If a user-visible operational notice is necessary, it must separate:
+
+- user action or no-user-action
+- assistant action
+- not-yet or approval boundary
+
+Package references:
+
+- `docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md`
+- `config/beai-operational-notification-contract.json`
+- `tools/beai-operational-notification-gate.mjs`
+
 Current v0.1 candidate evidence:
 
 - `tools/beai-knowledge-loop.mjs` can turn source record JSON into review-first dry-run output.
@@ -118,10 +194,10 @@ Current scenario reinforcement evidence:
 
 This evidence proves package fit for a manual candidate. It does not prove release readiness or live automation readiness.
 
-Current promotion and registration result:
+Current local promotion and registration evidence:
 
-- Manual skill candidate review passed and `beai-knowledge-loop` was applied as a manual live skill.
-- Daily cron, missed-run recovery, external signal fetch, bounded daily memory append, Telegram delivery, local internal package generation, persistent review lane, and Gateway/Telegram watchdog now have applied evidence. Gateway hooks config, Gateway `agents.list` promotion, and public release publishing remain out of scope or blocked by protected config paths.
+- Manual skill candidate review passed and `beai-knowledge-loop` was applied as a manual live skill in 윤's local workspace.
+- Daily cron, missed-run recovery, external signal fetch, bounded daily memory append, Telegram delivery, local internal package generation, persistent review lane, and Gateway/Telegram watchdog have local evidence only. They are not package defaults and are tracked in `docs/03-verification/local/BEAI-KNOWLEDGE-LOOP-LOCAL-LIVE-EVIDENCE-20260702.md`. Gateway hooks config, Gateway `agents.list` promotion, and public release publishing remain out of scope or blocked by protected config paths.
 
 Manual skill apply evidence:
 
@@ -192,6 +268,8 @@ Current Flow verification command:
 
 ```bash
 node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
+node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
+node tools/beai-operational-notification-gate.mjs --root . --format md --output docs/03-verification/generated/beai-operational-notification-gate.md --stdout
 ```
 
 Expected:
@@ -200,9 +278,22 @@ Expected:
 - self-check, engineering-quality, field-readiness, perceived-quality, and release-checklist lanes all pass
 - no live OpenClaw config, Gateway, cron, hook, durable memory, external send, or release publishing mutation occurs during the check
 
+Current user-scenario audit command:
+
+```bash
+node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
+```
+
+Expected before user-experience or release-readiness claims:
+
+- Telegram delivery, repeated footer, memory approval, and progress scenarios are checked as user-facing risks
+- watchdog, heartbeat, cron dry-run, and Knowledge Loop candidate notices are checked so raw internal candidates do not become confusing user messages
+- pass, partial, and fail states are preserved instead of collapsed into a single ready claim
+- no live Telegram roundtrip, Gateway restart, cron mutation, external send, or release packaging occurs during this read-only check
+
 ## Not Included
 
-This package does not create OpenClaw core changes, installer files, Gateway-level hooks, Gateway `agents.list` promotion, or public release publishing. The local workspace currently has one registered daily cron for review-file generation, external signal fetch, bounded daily memory append, Telegram run-summary delivery, Telegram failure alerts, one missed-run recovery cron, one persistent review lane, one bounded Gateway/Telegram watchdog, and one local internal zip package candidate.
+This package does not create OpenClaw core changes, installer files, Gateway-level hooks, Gateway `agents.list` promotion, cron/watchdog registrations, persistent review lanes, live Telegram delivery, local zip candidates, or public release publishing by default. Local workspace evidence for those items is separated into `docs/03-verification/local/BEAI-KNOWLEDGE-LOOP-LOCAL-LIVE-EVIDENCE-20260702.md`.
 
 BEAI Knowledge Loop v0.1 also does not create session-end hooks, automatic Obsidian restructuring, external delivery, or live durable memory promotion.
 
@@ -218,8 +309,11 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `skills/beai-development-steward/templates/*.md`
 - `skills/beai-knowledge-loop-skill.md`
 - `skills/beai-doctor/SKILL.md`
+- `skills/beai-korean-natural-writing-skill.md`
 - `docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md`
 - `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md`
+- `docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md`
+- `docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md`
 - `tools/beai-doctor.js`
 - `tools/install-wake-guard-launchagent.js`
 - `agents/beai-starter-agent-alpha.md`
@@ -275,9 +369,11 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `tools/beai-knowledge-loop-external-connector.mjs`
 - `tools/beai-knowledge-loop-memory-append.mjs`
 - `tools/beai-doctor-package-check.mjs`
+- `tools/beai-operational-notification-gate.mjs`
 - `config/beai-knowledge-loop-external-sources.json`
 - `config/beai-trust-gate-statuses.json`
 - `config/beai-connector-onboarding-checklist.json`
+- `config/beai-operational-notification-contract.json`
 - `state/beai/agent-trust-ledger.json`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256`

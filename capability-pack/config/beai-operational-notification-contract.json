@@ -1,0 +1,77 @@
+{
+  "schema": "beai.operational_notification_contract.v0.1",
+  "status": "required",
+  "scope": "BEAI Package for OpenClaw operational, watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate notifications",
+  "rules": {
+    "dry_run_default_notify_false": true,
+    "watchdog_route_dry_run_default_suppressed": true,
+    "internal_review_candidates_are_not_user_tasks": true,
+    "internal_candidate_markers_must_not_be_sent_raw": true,
+    "user_visible_operational_notice_requires_action_frame": true,
+    "user_visible_no_action_notice_must_say_no_user_action": true,
+    "notification_must_separate_user_action_assistant_action_and_not_yet": true,
+    "cron_candidate_is_not_cron_ready": true,
+    "automation_registration_requires_separate_approval": true
+  },
+  "forbidden_raw_markers": [
+    "[검토 우선 / 비영구 메모]",
+    "[review-first / non-durable memory]",
+    "review-first / 비영구 메모",
+    "watchdog route dry run",
+    "BEAI watchdog route dry-run",
+    "검토 우선 후보",
+    "다음 실행 전 검토 우선 후보",
+    "cron_candidate",
+    "not_cron_ready"
+  ],
+  "visible_action_frame": {
+    "required_when_notify_true": true,
+    "allowed_user_action_labels": [
+      "윤이 할 일",
+      "사용자가 할 일",
+      "사용자 조치",
+      "사용자 조치 필요 없음"
+    ],
+    "allowed_assistant_action_labels": [
+      "제가 할 일",
+      "assistant action",
+      "다구가 할 일"
+    ],
+    "allowed_not_yet_labels": [
+      "아직 하지 말 일",
+      "아직 하지 않을 일",
+      "아직 하지 않을 것",
+      "승인 전 하지 않을 것"
+    ],
+    "no_user_action_phrases": [
+      "윤이 지금 할 일은 없습니다",
+      "사용자 조치 필요 없음",
+      "지금 대응하지 않으셔도 됩니다"
+    ]
+  },
+  "notification_examples": {
+    "suppressed_dry_run": {
+      "input": "System: BEAI watchdog route dry-run",
+      "notify": false,
+      "reason": "dry-run route check has no user action and should stay internal unless it finds an interruption-worthy failure"
+    },
+    "allowed_no_action_notice": {
+      "notify": true,
+      "notificationText": "윤, 사용자 조치 필요 없음입니다. 제가 할 일은 다음 실행 전에 패키지 검증 기준을 다시 확인하는 것이고, 아직 하지 않을 일은 Gateway 재시작, cron 등록, Telegram live send입니다."
+    },
+    "allowed_action_notice": {
+      "notify": true,
+      "notificationText": "윤, 사용자 조치가 필요한 알림입니다. 윤이 할 일은 live 검증 승인 여부를 정하는 것입니다. 제가 할 일은 승인 뒤 Gateway reload와 Telegram 왕복 증거를 확인하는 것입니다. 아직 하지 말 일은 release zip 생성과 public publish입니다."
+    }
+  },
+  "doctor_issue_codes": [
+    "beai-operational-notice-raw-internal-candidate",
+    "beai-operational-notice-dry-run-over-notified",
+    "beai-operational-notice-action-frame-missing",
+    "beai-operational-notice-cron-readiness-overclaimed"
+  ],
+  "ownership": {
+    "primary": "beai",
+    "rule": "If BEAI-generated operational, watchdog, heartbeat, cron dry-run, or Knowledge Loop candidate text reaches a user without a clear action frame or no-action statement, classify it as a BEAI package UX contract failure."
+  }
+}

@@ -18,7 +18,8 @@
     "recovery_resend_requires_idempotency_key": true,
     "quick_first_status_before_deep_check": true,
     "phase_timing_telemetry_required": true,
-    "long_running_work_requires_visible_progress": true
+    "long_running_work_requires_visible_progress": true,
+    "telegram_direct_non_install_surfaces_are_observer_only": true
   },
   "required_evidence": [
     "generated response records source_message_id, chat_id, content_hash, generated_at, and delivery_status",
@@ -31,6 +32,7 @@
     "Telegram-driven execution opens a quick first-status contract before deep checks or long tool work",
     "runtime phase timing evidence separates planning, tool, finalize, and delivery segments",
     "long-running Telegram-driven work has periodic visible progress or a recorded progress-gap issue",
+    "non-install BEAI before_agent_reply surfaces in Telegram direct are observer-only and defer to the model",
     "final report visible in the source conversation"
   ],
   "doctor_issue_codes": [
@@ -42,6 +44,7 @@
     "beai-quick-first-status-missing",
     "beai-phase-timing-telemetry-missing",
     "beai-long-running-visible-progress-missing",
+    "beai-telegram-direct-hard-surface-risk",
     "telegram-direct-routing-confusion",
     "telegram-channel-connected-but-not-roundtrip-verified"
   ],

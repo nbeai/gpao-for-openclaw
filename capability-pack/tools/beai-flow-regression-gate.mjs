@@ -142,10 +142,30 @@ const CHECKS = [
     lane: "field-readiness",
     regression: "state_confusion",
     file: "../plugin/beai-runtime/src/runtime-core.ts",
-    pattern: /closure_handle:\s*\$\{plan\.flowState\.closureHandle\}/,
-    description: "Closure handle remains visible across runtime planning.",
-    passEvidence: "closure_handle is rendered from flowState.",
-    failEvidence: "closure_handle render anchor is missing."
+    pattern: /closure_handle:\s*\$\{sanitizeRepeatedFooterInstruction\(plan\.flowState\.closureHandle\)\}/,
+    description: "Closure handle remains visible after repeated-footer sanitization.",
+    passEvidence: "closure_handle is rendered from sanitized flowState.",
+    failEvidence: "sanitized closure_handle render anchor is missing."
+  },
+  {
+    id: "field-readiness-no-forced-footer-rule",
+    lane: "field-readiness",
+    regression: "repeated_footer_instruction",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /final answer should not append the current decision handle as a repeated footer/,
+    description: "Runtime must not instruct answers to end with decision handles.",
+    passEvidence: "forced decision-handle footer rule is inverted.",
+    failEvidence: "forced decision-handle footer guard is missing."
+  },
+  {
+    id: "field-readiness-stale-footer-sanitizer",
+    lane: "field-readiness",
+    regression: "repeated_footer_instruction",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /sanitizeRepeatedFooterInstruction/,
+    description: "Stale closure handles are sanitized before prompt rendering.",
+    passEvidence: "stale repeated-footer sanitizer exists.",
+    failEvidence: "stale repeated-footer sanitizer is missing."
   },
   {
     id: "field-readiness-visible-delivery-boundary",
@@ -208,6 +228,26 @@ const CHECKS = [
     failEvidence: "Delivery contract does not document a recovery resend idempotency key."
   },
   {
+    id: "field-readiness-telegram-direct-hard-surface-observer-only",
+    lane: "field-readiness",
+    regression: "telegram_reply_blocked_by_beai_surface",
+    file: "../plugin/beai-runtime/src/index.ts",
+    pattern: /telegram direct hard surface deferred to model/,
+    description: "Telegram direct non-install BEAI surfaces defer to the model instead of replacing the reply.",
+    passEvidence: "Runtime records observer-only deferral for Telegram direct hard surfaces.",
+    failEvidence: "Runtime may hard-rewrite Telegram direct replies with BEAI surfaces."
+  },
+  {
+    id: "field-readiness-telegram-direct-hard-surface-contract",
+    lane: "field-readiness",
+    regression: "telegram_reply_blocked_by_beai_surface",
+    file: "config/beai-telegram-delivery-contract.json",
+    pattern: /"telegram_direct_non_install_surfaces_are_observer_only":\s*true/,
+    description: "Delivery contract requires Telegram direct non-install surfaces to stay observer-only.",
+    passEvidence: "Delivery contract declares observer-only Telegram direct non-install surfaces.",
+    failEvidence: "Delivery contract does not protect Telegram direct from hard BEAI surfaces."
+  },
+  {
     id: "perceived-quality-artifact-first-gate",
     lane: "perceived-quality",
     regression: "artifact_delay",
@@ -216,6 +256,76 @@ const CHECKS = [
     description: "Artifact requests can be gated against explanation-first output.",
     passEvidence: "artifactFirst gate exists.",
     failEvidence: "artifactFirst gate is missing."
+  },
+  {
+    id: "human-companion-quality-profile-present",
+    lane: "perceived-quality",
+    regression: "human_companion_quality_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /export type HumanCompanionQualityProfile/,
+    description: "Runtime has a Human Companion Quality profile, not only generic tone guidance.",
+    passEvidence: "HumanCompanionQualityProfile is present.",
+    failEvidence: "Human Companion Quality profile is missing."
+  },
+  {
+    id: "human-companion-quality-builder-present",
+    lane: "perceived-quality",
+    regression: "human_companion_quality_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /export function buildHumanCompanionQualityProfile/,
+    description: "Runtime builds human companion quality from turn state.",
+    passEvidence: "buildHumanCompanionQualityProfile is present.",
+    failEvidence: "Human Companion Quality builder is missing."
+  },
+  {
+    id: "human-companion-quality-current-request-anchor",
+    lane: "perceived-quality",
+    regression: "current_request_drift",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /current request must remain the first anchor/,
+    description: "Human companion quality explicitly protects the latest user request as first anchor.",
+    passEvidence: "Current request anchor regression check is present.",
+    failEvidence: "Current request anchor protection is missing."
+  },
+  {
+    id: "human-companion-quality-prior-context-boundary",
+    lane: "perceived-quality",
+    regression: "stale_context_takeover",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /prior context must support, not override, the current turn/,
+    description: "Long conversation context is bounded as supporting context, not authority over current input.",
+    passEvidence: "Prior-context boundary regression check is present.",
+    failEvidence: "Prior-context boundary is missing."
+  },
+  {
+    id: "human-companion-quality-overlay-rendered",
+    lane: "perceived-quality",
+    regression: "human_companion_quality_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /human_companion_quality:/,
+    description: "Prompt context renders the human companion quality gate.",
+    passEvidence: "human_companion_quality render section is present.",
+    failEvidence: "Human companion quality is not rendered into prompt context."
+  },
+  {
+    id: "human-companion-contract-present",
+    lane: "release-checklist",
+    regression: "human_companion_quality_regression",
+    file: "config/beai-human-companion-quality-contract.json",
+    pattern: /"current_request_is_primary_anchor":\s*true/,
+    description: "Package includes a machine-readable human companion quality contract.",
+    passEvidence: "Human companion contract anchors the current request.",
+    failEvidence: "Human companion quality contract is missing."
+  },
+  {
+    id: "human-companion-doc-present",
+    lane: "release-checklist",
+    regression: "human_companion_quality_regression",
+    file: "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md",
+    pattern: /응답 뒤 사용자의 현실이 더 선명해지고, 판단 부담이 줄며, 실제로 쓸 수 있는 무언가가 남았는가/,
+    description: "Package documents the human companion quality bar in Korean.",
+    passEvidence: "Human companion quality document includes the canonical quality bar.",
+    failEvidence: "Human companion quality document is missing or weakened."
   },
   {
     id: "perceived-quality-safe-but-pleasant-policy",
@@ -306,6 +416,46 @@ const CHECKS = [
     description: "Runtime keeps an internal process/tool-log stripping pattern list.",
     passEvidence: "INTERNAL_PROCESS_LINE_PATTERNS is present.",
     failEvidence: "Internal process line filtering is missing."
+  },
+  {
+    id: "operational-notification-contract-present",
+    lane: "perceived-quality",
+    regression: "operational_notification_confusion",
+    file: "config/beai-operational-notification-contract.json",
+    pattern: /"dry_run_default_notify_false":\s*true/,
+    description: "Operational dry-runs default to non-notifying unless user attention is needed.",
+    passEvidence: "Operational notification contract suppresses non-actionable dry-runs.",
+    failEvidence: "Operational notification dry-run suppression is missing."
+  },
+  {
+    id: "operational-notification-raw-candidate-markers-forbidden",
+    lane: "perceived-quality",
+    regression: "operational_notification_confusion",
+    file: "config/beai-operational-notification-contract.json",
+    pattern: /"\[검토 우선 \/ 비영구 메모\]"[\s\S]*"BEAI watchdog route dry-run"/,
+    description: "Raw internal review and watchdog dry-run markers are forbidden in visible user notices.",
+    passEvidence: "Forbidden raw operational markers are declared.",
+    failEvidence: "Forbidden raw operational markers are missing."
+  },
+  {
+    id: "operational-notification-action-frame-required",
+    lane: "perceived-quality",
+    regression: "operational_notification_confusion",
+    file: "config/beai-operational-notification-contract.json",
+    pattern: /"user_visible_operational_notice_requires_action_frame":\s*true/,
+    description: "User-visible operational notices require an action ownership frame.",
+    passEvidence: "Action frame requirement is present.",
+    failEvidence: "Action frame requirement is missing."
+  },
+  {
+    id: "operational-notification-gate-linked",
+    lane: "release-checklist",
+    regression: "operational_notification_confusion",
+    file: "tools/beai-package-verify.mjs",
+    pattern: /beai-operational-notification-gate\.mjs/,
+    description: "Package verify runs the operational notification gate.",
+    passEvidence: "Operational notification gate is included in package verify.",
+    failEvidence: "Package verify does not run operational notification gate."
   }
 ];
 
@@ -395,13 +545,14 @@ function main() {
   const rendered = options.format === "json"
     ? `${JSON.stringify(report, null, 2)}\n`
     : renderMarkdown(report);
+  if (options.output) {
+    const outputPath = path.resolve(options.output);
+    ensureOutputPath(outputPath);
+    fs.writeFileSync(outputPath, rendered, "utf8");
+  }
   if (options.stdout || !options.output) {
     process.stdout.write(rendered);
-    return;
   }
-  const outputPath = path.resolve(options.output);
-  ensureOutputPath(outputPath);
-  fs.writeFileSync(outputPath, rendered, "utf8");
 }
 
 try {

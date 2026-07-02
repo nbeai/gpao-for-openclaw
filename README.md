@@ -12,6 +12,7 @@ It helps OpenClaw users separate:
 - skill routing
 - automation readiness
 - Telegram visible delivery
+- operational notification action clarity
 - runtime operations health
 - package verification and release boundaries
 
@@ -73,6 +74,7 @@ Included:
 - Trust Gate statuses
 - Connector Onboarding checklist
 - Telegram delivery contract
+- Korean Natural AI Writing Standard v1.0
 - public documentation and examples
 
 Excluded:
@@ -99,6 +101,7 @@ By default, it should not:
 - write durable memory automatically
 - send external messages automatically
 - claim Telegram completion without messageId evidence
+- surface watchdog, heartbeat, cron dry-run, or Knowledge Loop review-candidate signals as raw user tasks
 
 ## Runtime Plugin
 
@@ -133,6 +136,37 @@ The v0.6.17 runtime includes Telegram speed-reliability rules:
 - message_sent + messageId delivery closure
 - reply_payload_sending treated as a candidate, not completion
 
+## ClawHub Positioning
+
+BEAI Runtime should be introduced to OpenClaw users as a trust operating layer, not as "one more plugin."
+
+The intended public position is:
+
+```text
+Runtime judgment, Knowledge Loop memory capture, and Telegram delivery trust for serious OpenClaw work.
+```
+
+The strongest launch hook is Knowledge Loop:
+
+```text
+Auto-capture, not auto-approve.
+```
+
+BEAI can help agents capture useful work traces and memory candidates, but it must not silently approve durable memory, external sends, public posts, account changes, money/legal actions, cron automation, or release claims.
+
+ClawHub launch and account-operation copy lives in:
+
+- `capability-pack/docs/BEAI-CLAWHUB-INFLUENCE-OPERATING-PLAN-v0.1-ko.md`
+- `capability-pack/docs/BEAI-CLAWHUB-CARD-COPY-v0.1.md`
+- `capability-pack/docs/BEAI-CLAWHUB-PRELAUNCH-CONTENT-BACKLOG-v0.1-ko.md`
+
+Korean public copy, Korean user-facing replies, app copy, error messages, release wording, and presentation scripts should follow:
+
+- `capability-pack/docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md`
+- `capability-pack/skills/beai-korean-natural-writing-skill.md`
+
+The Korean standard keeps BEAI wording from becoming stiff, translated, overconfident, or misleading. It preserves meaning first, then improves Korean order, medium fit, sentence length, uncertainty boundaries, and action clarity. It also keeps status language honest: implemented, verified, applied, sent, packaged, and published are separate states.
+
 ## Capability Pack
 
 The capability pack lives in:
@@ -149,6 +183,7 @@ It includes:
 - `beai-memory-curator-review`
 - `beai-release-verifier`
 - `beai-knowledge-loop`
+- `beai-korean-natural-writing`
 - `beai-starter-agent-alpha` as an agent candidate
 
 ## Verification
@@ -178,8 +213,10 @@ For the capability pack:
 cd capability-pack
 node --check tools/beai-doctor.js
 node --check tools/beai-doctor-package-check.mjs
+node --check tools/beai-user-scenario-audit.mjs
 node tools/beai-doctor-package-check.mjs
 node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
+node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
 ```
 
 Expected:
@@ -188,6 +225,7 @@ Expected:
 - the package check completes without missing required files
 - BEAI Doctor reports the capability pack as package-ready for controlled alpha review
 - BEAI 5 Flow regression checks pass before making user-experience or release-readiness claims
+- BEAI user-scenario audit separates pass, partial, and fail states before user-experience claims
 
 ## Public Release Status
 

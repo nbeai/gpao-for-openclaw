@@ -99,7 +99,86 @@ function checkTelegramDeliveryContract(root) {
     doctor_detects_restart_pending_delivery_scan_missing: issueCodes.includes("beai-gateway-restart-pending-delivery-scan-missing"),
     doctor_detects_quick_first_status_gap: issueCodes.includes("beai-quick-first-status-missing"),
     doctor_detects_phase_timing_missing: issueCodes.includes("beai-phase-timing-telemetry-missing"),
-    doctor_detects_long_running_progress_gap: issueCodes.includes("beai-long-running-visible-progress-missing")
+    doctor_detects_long_running_progress_gap: issueCodes.includes("beai-long-running-visible-progress-missing"),
+    telegram_direct_non_install_surfaces_are_observer_only: rules.telegram_direct_non_install_surfaces_are_observer_only === true,
+    doctor_detects_telegram_direct_hard_surface_risk: issueCodes.includes("beai-telegram-direct-hard-surface-risk")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
+function checkOperationalNotificationContract(root) {
+  const configPath = path.join(root, "config/beai-operational-notification-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract.rules || {};
+  const issueCodes = Array.isArray(contract.doctor_issue_codes) ? contract.doctor_issue_codes : [];
+  const forbiddenRawMarkers = Array.isArray(contract.forbidden_raw_markers) ? contract.forbidden_raw_markers : [];
+  const checks = {
+    config_exists: true,
+    dry_run_default_notify_false: rules.dry_run_default_notify_false === true,
+    watchdog_route_dry_run_default_suppressed: rules.watchdog_route_dry_run_default_suppressed === true,
+    internal_review_candidates_are_not_user_tasks: rules.internal_review_candidates_are_not_user_tasks === true,
+    internal_candidate_markers_must_not_be_sent_raw: rules.internal_candidate_markers_must_not_be_sent_raw === true,
+    user_visible_operational_notice_requires_action_frame: rules.user_visible_operational_notice_requires_action_frame === true,
+    user_visible_no_action_notice_must_say_no_user_action: rules.user_visible_no_action_notice_must_say_no_user_action === true,
+    cron_candidate_is_not_cron_ready: rules.cron_candidate_is_not_cron_ready === true,
+    automation_registration_requires_separate_approval: rules.automation_registration_requires_separate_approval === true,
+    forbidden_raw_marker_review_first: forbiddenRawMarkers.includes("[검토 우선 / 비영구 메모]"),
+    forbidden_raw_marker_watchdog_dry_run: forbiddenRawMarkers.includes("BEAI watchdog route dry-run"),
+    doctor_detects_raw_internal_candidate: issueCodes.includes("beai-operational-notice-raw-internal-candidate"),
+    doctor_detects_dry_run_over_notified: issueCodes.includes("beai-operational-notice-dry-run-over-notified"),
+    doctor_detects_action_frame_missing: issueCodes.includes("beai-operational-notice-action-frame-missing"),
+    doctor_detects_cron_readiness_overclaimed: issueCodes.includes("beai-operational-notice-cron-readiness-overclaimed")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
+function checkHumanCompanionQualityContract(root) {
+  const configPath = path.join(root, "config/beai-human-companion-quality-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract.rules || {};
+  const requiredRuntimeSymbols = Array.isArray(contract.required_runtime_symbols) ? contract.required_runtime_symbols : [];
+  const requiredGateCoverage = Array.isArray(contract.required_gate_coverage) ? contract.required_gate_coverage : [];
+  const checks = {
+    config_exists: true,
+    current_request_is_primary_anchor: rules.current_request_is_primary_anchor === true,
+    prior_context_supports_but_must_not_override_current_request: rules.prior_context_supports_but_must_not_override_current_request === true,
+    response_must_reduce_cognitive_load: rules.response_must_reduce_cognitive_load === true,
+    response_must_preserve_user_agency: rules.response_must_preserve_user_agency === true,
+    response_must_return_decision_or_action_handle: rules.response_must_return_decision_or_action_handle === true,
+    long_conversation_requires_continuity_boundary: rules.long_conversation_requires_continuity_boundary === true,
+    repair_turn_requires_trust_recovery_before_expansion: rules.repair_turn_requires_trust_recovery_before_expansion === true,
+    artifact_request_requires_usable_output_before_explanation: rules.artifact_request_requires_usable_output_before_explanation === true,
+    uncertainty_must_be_separated_from_verified_state: rules.uncertainty_must_be_separated_from_verified_state === true,
+    status_claim_must_not_exceed_evidence: rules.status_claim_must_not_exceed_evidence === true,
+    runtime_symbol_profile: requiredRuntimeSymbols.includes("HumanCompanionQualityProfile"),
+    runtime_symbol_builder: requiredRuntimeSymbols.includes("buildHumanCompanionQualityProfile"),
+    runtime_symbol_turn_plan: requiredRuntimeSymbols.includes("humanCompanionQuality"),
+    gate_flow_regression: requiredGateCoverage.includes("beai-flow-regression-gate"),
+    gate_user_scenario: requiredGateCoverage.includes("beai-user-scenario-audit"),
+    gate_doctor_package_check: requiredGateCoverage.includes("beai-doctor-package-check"),
+    gate_package_verify: requiredGateCoverage.includes("beai-package-verify")
   };
   return {
     status: Object.values(checks).every(Boolean) ? "ready" : "partial",
@@ -120,6 +199,8 @@ function renderMarkdown(report) {
   lines.push(`- manifest_has_doctor_trust_module: ${report.manifest_has_doctor_trust_module}`);
   lines.push(`- required_file_status: ${report.required_file_status}`);
   lines.push(`- telegram_delivery_contract_status: ${report.telegram_delivery_contract_status}`);
+  lines.push(`- operational_notification_contract_status: ${report.operational_notification_contract_status}`);
+  lines.push(`- human_companion_quality_contract_status: ${report.human_companion_quality_contract_status}`);
   lines.push(`- trust_gate_status_count: ${report.trust_gate_status_count}`);
   lines.push(`- ledger_entry_count: ${report.ledger_entry_count}`);
   lines.push(`- package_status: ${report.package_status}`);
@@ -135,6 +216,18 @@ function renderMarkdown(report) {
   lines.push("## Telegram Delivery Contract");
   lines.push("");
   for (const [key, value] of Object.entries(report.telegram_delivery_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## Operational Notification Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.operational_notification_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## Human Companion Quality Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.human_companion_quality_contract_checks || {})) {
     lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
   }
   lines.push("");
@@ -168,12 +261,21 @@ function main() {
     "docs/BEAI-AGENT-TRUST-LEDGER-v0.1-ko.md",
     "docs/BEAI-CONNECTOR-ONBOARDING-v0.1-ko.md",
     "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
+    "docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md",
+    "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md",
     "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
+    "docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md",
+    "skills/beai-korean-natural-writing-skill.md",
     "config/beai-trust-gate-statuses.json",
     "config/beai-connector-onboarding-checklist.json",
     "config/beai-telegram-delivery-contract.json",
+    "config/beai-operational-notification-contract.json",
+    "config/beai-human-companion-quality-contract.json",
     "state/beai/agent-trust-ledger.json",
-    "tools/beai-doctor-package-check.mjs"
+    "tools/beai-doctor-package-check.mjs",
+    "tools/beai-operational-notification-gate.mjs",
+    "tools/beai-organic-flow-audit.mjs",
+    "docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md"
   ]);
 
   const manifestHasDoctor = Array.isArray(manifest.skills)
@@ -181,9 +283,11 @@ function main() {
   const manifestHasDoctorTrustModule = Array.isArray(manifest.candidateModules)
     && manifest.candidateModules.some((module) => module.id === "beai-doctor-runtime-trust-upgrade");
   const telegramDeliveryContract = checkTelegramDeliveryContract(root);
+  const operationalNotificationContract = checkOperationalNotificationContract(root);
+  const humanCompanionQualityContract = checkHumanCompanionQualityContract(root);
 
   const requiredFileStatus = statusFor(requiredFiles);
-  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready"
+  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready" && operationalNotificationContract.status === "ready" && humanCompanionQualityContract.status === "ready"
     ? "ready"
     : "partial";
 
@@ -196,6 +300,10 @@ function main() {
     required_file_status: requiredFileStatus,
     telegram_delivery_contract_status: telegramDeliveryContract.status,
     telegram_delivery_contract_checks: telegramDeliveryContract.checks,
+    operational_notification_contract_status: operationalNotificationContract.status,
+    operational_notification_contract_checks: operationalNotificationContract.checks,
+    human_companion_quality_contract_status: humanCompanionQualityContract.status,
+    human_companion_quality_contract_checks: humanCompanionQualityContract.checks,
     trust_gate_status_count: Array.isArray(trustGate.statuses) ? trustGate.statuses.length : 0,
     ledger_entry_count: Array.isArray(ledger.entries) ? ledger.entries.length : 0,
     package_status: packageStatus,

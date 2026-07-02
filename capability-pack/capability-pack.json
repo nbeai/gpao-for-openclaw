@@ -14,10 +14,14 @@
     "automationPromotionRule": "Promote to Automation/Cron only after manual execution, failure boundaries, stop paths, and report channels are verified.",
     "memoryPolicy": "Allow only bounded daily Knowledge Loop memory append with same-day deduplication; do not promote unconfirmed agreement assets.",
     "doctorPolicy": "Use beai-doctor as the package runtime diagnosis surface for BEAI-owned OpenClaw reliability, package consistency, Trust Gate status, Knowledge Loop operations, and connector onboarding risk.",
-    "telegramDeliveryPolicy": "For Telegram direct conversations, internal final_answer/private final text is not delivery. reply_payload_sending is only a delivery candidate. Completion requires source-channel message_sent success and Telegram messageId evidence before user-visible closeout claims. Long-running Telegram-driven work also requires periodic visible progress or a recorded progress-gap issue.",
+    "telegramDeliveryPolicy": "For Telegram direct conversations, internal final_answer/private final text is not delivery. reply_payload_sending is only a delivery candidate. Completion requires source-channel message_sent success and Telegram messageId evidence before user-visible closeout claims. Long-running Telegram-driven work also requires periodic visible progress or a recorded progress-gap issue. Non-install BEAI before_agent_reply surfaces must remain observer-only in Telegram direct so they do not replace the user's real answer.",
     "trustGatePolicy": "Report ready, partial, unverified, blocked, needs_approval, hold, or unsafe before making completion or production-readiness claims.",
     "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the top-level BEAI Package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
-    "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target."
+    "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target.",
+    "humanCompanionQualityPolicy": "Use docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md and config/beai-human-companion-quality-contract.json to translate BEAI 5's perceived intelligence into product behavior: current-request anchoring, cognitive load reduction, user agency preservation, long-context stability, trust repair, and usable next movement. This is a runtime quality contract, not a fixed warmth or empathy style.",
+    "koreanNaturalWritingPolicy": "Use docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md and skills/beai-korean-natural-writing-skill.md for Korean user-facing output, status wording, public copy, release wording, Telegram visible-delivery wording, Knowledge Loop/Doctor explanation clarity, app copy, error messages, and presentation scripts. Preserve meaning first; then improve Korean order, medium fit, uncertainty boundaries, and action clarity.",
+    "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
+    "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks."
   },
   "skills": [
     {
@@ -61,43 +65,14 @@
       "label": "BEAI Knowledge Loop Skill",
       "source": "skills/beai-knowledge-loop-skill.md",
       "workshopProposalId": "beai-knowledge-loop-20260630-94e39992c7",
-      "status": "live-applied-daily-automation",
-      "purpose": "Turn work and session records into source-grounded BEAI package knowledge with daily review reporting, external signal fetch, bounded memory append, Telegram delivery, a persistent review lane, and a bounded Gateway watchdog.",
-      "manualOnly": false,
-      "registeredAutomations": [
-        {
-          "type": "cron",
-          "id": "ee0c67e8-53ba-435a-8df1-966f2e3d6d87",
-          "name": "beai-knowledge-loop-daily-applied-0910",
-          "schedule": "10 9 * * *",
-          "timezone": "Asia/Seoul",
-          "status": "enabled-force-run-ok"
-        },
-        {
-          "type": "persistent-session-cron",
-          "id": "64935f3e-7daf-48a6-b71c-5dc0483c8291",
-          "name": "beai-knowledge-loop-agent-review-0920",
-          "schedule": "20 9 * * *",
-          "timezone": "Asia/Seoul",
-          "status": "enabled-force-run-ok"
-        },
-        {
-          "type": "gateway-watchdog-cron",
-          "id": "c5546e55-d447-4f8b-84b7-b20504ce42bd",
-          "name": "beai-telegram-gateway-watchdog-30m",
-          "schedule": "every 30 minutes",
-          "status": "enabled-force-run-ok-no-restart-needed"
-        },
-        {
-          "type": "missed-run-recovery-cron",
-          "id": "14e01e74-9800-4947-9b34-8e1d21769dec",
-          "name": "beai-knowledge-loop-missed-run-recovery-2h",
-          "schedule": "10 11-23/2 * * *",
-          "timezone": "Asia/Seoul",
-          "status": "enabled-force-run-ok-no-action-when-marker-exists"
-        }
-      ],
+      "status": "packaged-skill-with-local-evidence-ledger",
+      "purpose": "Turn work and session records into source-grounded BEAI package knowledge with review-first reporting, external signal classification, bounded memory-candidate handling, and explicit approval boundaries.",
+      "manualOnly": true,
+      "localEvidenceLedger": "docs/03-verification/local/BEAI-KNOWLEDGE-LOOP-LOCAL-LIVE-EVIDENCE-20260702.md",
       "notActivated": [
+        "default package cron registration",
+        "default package watchdog registration",
+        "default package persistent review lane",
         "session-end hooks",
         "Gateway hooks config",
         "agents.list config promotion",
@@ -123,6 +98,21 @@
         "durable memory write",
         "external message send",
         "public release publishing"
+      ]
+    },
+    {
+      "id": "beai-korean-natural-writing",
+      "label": "BEAI Korean Natural Writing Skill",
+      "source": "skills/beai-korean-natural-writing-skill.md",
+      "status": "canonical-v1.0-package-language-skill",
+      "purpose": "Guide Korean user-facing replies, docs, release notes, ClawHub copy, Knowledge Loop cards, Doctor/Trust Gate explanations, app copy, error messages, customer notices, SNS posts, and presentation scripts so they preserve meaning, fit the medium, avoid AI-style filler, and clearly separate confirmed, assumed, unverified, applied, sent, packaged, and published states.",
+      "canonicalReference": "docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md",
+      "notActivated": [
+        "runtime mutation",
+        "automatic external send",
+        "memory approval",
+        "public publishing",
+        "release readiness declaration"
       ]
     }
   ],
@@ -161,7 +151,122 @@
         "package-wide regression gates"
       ],
       "tools": [
-        "tools/beai-flow-regression-gate.mjs"
+        "tools/beai-flow-regression-gate.mjs",
+        "tools/beai-user-scenario-audit.mjs"
+      ]
+    },
+    {
+      "id": "beai-korean-natural-ai-writing-standard",
+      "label": "BEAI Korean Natural AI Writing Standard",
+      "status": "canonical-package-language-standard",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md"
+      ],
+      "skills": [
+        "skills/beai-korean-natural-writing-skill.md"
+      ],
+      "scope": [
+        "Korean conversation replies",
+        "Telegram visible-delivery status wording",
+        "development progress reports",
+        "README, release, verification, and Doctor documents",
+        "ClawHub launch and card copy",
+        "Knowledge Loop review cards",
+        "confirmed/inferred/unverified separation",
+        "implemented/verified/applied/sent/packaged/published status separation"
+      ],
+      "evidence": [
+        "standard document is package-local",
+        "execution skill is package-local",
+        "routing references the skill for Korean user-facing output",
+        "doctor package check includes required files"
+      ]
+    },
+    {
+      "id": "beai-human-companion-quality-contract",
+      "label": "BEAI Human Companion Quality Contract",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw and BEAI Runtime Layer",
+      "docs": [
+        "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-human-companion-quality-contract.json"
+      ],
+      "scope": [
+        "BEAI 5 perceived intelligence as runtime quality",
+        "current request anchoring",
+        "cognitive load reduction",
+        "user agency preservation",
+        "long conversation context boundary",
+        "trust recovery after friction",
+        "usable next movement in conversation"
+      ],
+      "evidence": [
+        "HumanCompanionQualityProfile is part of runtime-core",
+        "buildHumanCompanionQualityProfile derives quality gates from current turn, input level, scene continuity, inertia, and evidence sharpness",
+        "runtime prompt context renders human_companion_quality",
+        "flow regression gate includes human_companion_quality_regression",
+        "user scenario audit includes S19 human companion quality",
+        "doctor package check requires the contract and document"
+      ]
+    },
+    {
+      "id": "beai-operational-notification-contract",
+      "label": "BEAI Operational Notification Contract",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-operational-notification-contract.json"
+      ],
+      "tools": [
+        "tools/beai-operational-notification-gate.mjs"
+      ],
+      "scope": [
+        "watchdog route dry-run notification suppression",
+        "heartbeat and cron dry-run user-action framing",
+        "Knowledge Loop review-candidate visibility boundary",
+        "raw internal marker leak prevention",
+        "cron_candidate versus cron-ready wording separation",
+        "action ownership for user-visible operational notices"
+      ],
+      "evidence": [
+        "operational notification contract is package-readable",
+        "raw internal candidate markers are forbidden in visible notices",
+        "non-actionable dry-run examples default to notify=false",
+        "visible operational notice examples include user action, assistant action, and not-yet boundary",
+        "package verify runs the operational notification gate",
+        "user scenario audit includes the operational notification action-frame scenario"
+      ]
+    },
+    {
+      "id": "beai-package-organic-flow-audit",
+      "label": "BEAI Package Organic Flow Audit",
+      "status": "package-production-flow-gate",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md"
+      ],
+      "tools": [
+        "tools/beai-organic-flow-audit.mjs"
+      ],
+      "scope": [
+        "runtime, hooks, skills, tools, evidence, user-facing Korean, and release boundary cohesion",
+        "Flow State spine and human companion quality integration",
+        "hook fail-soft and current request preservation",
+        "Telegram messageId delivery closure",
+        "operational notice raw-internal leak prevention",
+        "package-internal versus live/release boundary separation"
+      ],
+      "evidence": [
+        "organic flow audit is package-owned and read-only",
+        "package verify runs organic-flow-audit",
+        "doctor package check requires organic flow audit tool and document",
+        "audit uses organ-level summaries for brain, nervous system, muscle, bloodstream, immune system, skeleton, skin, metabolism, and boundary"
       ]
     },
     {
@@ -291,6 +396,7 @@
         "docs/BEAI-TRUST-GATE-v0.1-ko.md",
         "docs/BEAI-AGENT-TRUST-LEDGER-v0.1-ko.md",
         "docs/BEAI-CONNECTOR-ONBOARDING-v0.1-ko.md",
+        "docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md",
         "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
         "docs/03-verification/generated/beai-doctor-package-check.md",
         "docs/03-verification/generated/beai-doctor-package-check.json",
@@ -307,7 +413,8 @@
         "user-facing Doctor report boundary",
         "Telegram visible delivery contract",
         "Telegram message_sent/messageId delivery closure",
-        "Long-running Telegram visible progress contract"
+        "Long-running Telegram visible progress contract",
+        "Korean natural status wording"
       ],
       "tools": [
         "tools/beai-doctor-package-check.mjs"
@@ -329,6 +436,7 @@
         "package check helper generates markdown and JSON reports",
         "live beai-doctor skill is ready and hash-aligned with packaged beai-doctor",
         "Telegram direct completion requires message_sent success and messageId evidence",
+        "Korean user-facing output has a package-local natural writing standard and skill",
         "BEAI Doctor classifies internal final_answer without visible send as beai-visible-delivery-contract-missing",
         "BEAI Doctor classifies reply_payload_sending without message_sent/messageId as beai-visible-delivery-candidate-not-verified",
         "BEAI Doctor classifies message_sent without messageId as beai-visible-delivery-message-sent-unverified",
@@ -381,14 +489,15 @@
   ],
   "upgradePolicy": {
     "existingInstallers": "If v0.1.1 is already installed, update the existing BEAI skills in place and add only beai-development-steward as the new skill.",
-    "doNotDuplicate": [
-      "beai-release-verifier",
-      "beai-session-handoff",
-      "beai-memory-curator-review",
-      "beai-knowledge-loop",
-      "beai-doctor",
-      "beai-starter-agent-alpha"
-    ],
+      "doNotDuplicate": [
+        "beai-release-verifier",
+        "beai-session-handoff",
+        "beai-memory-curator-review",
+        "beai-knowledge-loop",
+        "beai-doctor",
+        "beai-korean-natural-writing",
+        "beai-starter-agent-alpha"
+      ],
     "applyMode": "Use Skill Workshop or the local OpenClaw safe skill-apply procedure. Do not modify BEAI Layer core, gateway, broad automation, or durable memory settings."
   }
 }

@@ -980,6 +980,35 @@ function isTelegramDirectSession(ctx) {
     const sessionKey = typeof ctx?.sessionKey === "string" ? ctx.sessionKey : "";
     return /:telegram(?::[^:]+)?:direct:/.test(sessionKey);
 }
+function allowBeforeAgentReplySurface(ctx, resolvedPlan, kind, decision) {
+    if (!decision.allowHardRewrite)
+        return false;
+    if (!isTelegramDirectSession(ctx))
+        return true;
+    if (kind === "install_guide" || kind === "install_resume")
+        return true;
+    appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
+        hook: "before_agent_reply",
+        action: "telegram direct hard surface deferred to model",
+        evidenceLevel: "hook_observed",
+        runId: ctx.runId ?? null,
+        sessionKey: ctx.sessionKey ?? null,
+        outboundChannel: "telegram",
+        userVisible: false,
+        ...summarizeEvidence(resolvedPlan?.plan),
+        confirmed: [
+            `surface: ${kind}`,
+            `decision_mode: ${decision.mode}`,
+            `decision_reason: ${decision.reason}`
+        ],
+        unknown: [
+            "The model reply and source-channel delivery still need normal messageId verification."
+        ],
+        preview: compactPreview(resolvedPlan?.plan.currentTurn.cleanInput),
+        note: "Telegram direct hard reply surfaces are observer-only except install/resume. This prevents BEAI recovery, approval, hygiene, delegation, session split, or handoff surfaces from replacing the user's real answer."
+    });
+    return false;
+}
 function normalizeExecutionSurfaceText(text, plan) {
     const source = text?.trim();
     if (!source)
@@ -1578,7 +1607,8 @@ export default definePluginEntry({
             if (!plan)
                 return;
             const installCandidate = resolveInstallCandidateForTurn(ctx);
-            if (allowHardReplyIntervention && shouldOfferCompanionSetup(plan.currentTurn.cleanInput) && decideSurfaceIntervention(plan, "companion_setup").allowHardRewrite) {
+            const companionSetupDecision = decideSurfaceIntervention(plan, "companion_setup");
+            if (allowHardReplyIntervention && shouldOfferCompanionSetup(plan.currentTurn.cleanInput) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "companion_setup", companionSetupDecision)) {
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
                     action: "companion setup surface returned",
@@ -1594,7 +1624,8 @@ export default definePluginEntry({
                     reply: { text: renderCompanionSetupPrompt() }
                 };
             }
-            if (allowHardReplyIntervention && isInstallResumeTurn(carriedHandoff) && config.hardHandoffOverride && decideSurfaceIntervention(plan, "install_resume").allowHardRewrite) {
+            const installResumeDecision = decideSurfaceIntervention(plan, "install_resume");
+            if (allowHardReplyIntervention && isInstallResumeTurn(carriedHandoff) && config.hardHandoffOverride && allowBeforeAgentReplySurface(ctx, resolvedPlan, "install_resume", installResumeDecision)) {
                 const installResume = carriedHandoff?.installResume;
                 logHookEvent(api.logger, "info", "beai hook: before_agent_reply install resume override", {
                     runId: ctx.runId ?? null,
@@ -1631,7 +1662,8 @@ export default definePluginEntry({
                     }
                 };
             }
-            if (allowHardReplyIntervention && shouldSurfaceInstallGuide(plan, installCandidate) && config.hardHandoffOverride && decideSurfaceIntervention(plan, "install_guide").allowHardRewrite) {
+            const installGuideDecision = decideSurfaceIntervention(plan, "install_guide");
+            if (allowHardReplyIntervention && shouldSurfaceInstallGuide(plan, installCandidate) && config.hardHandoffOverride && allowBeforeAgentReplySurface(ctx, resolvedPlan, "install_guide", installGuideDecision)) {
                 logHookEvent(api.logger, "info", "beai hook: before_agent_reply install guide override", {
                     runId: ctx.runId ?? null,
                     mode: plan.mode,
@@ -1665,7 +1697,8 @@ export default definePluginEntry({
                     }
                 };
             }
-            if (allowHardReplyIntervention && shouldRenderApprovalBoundarySurface(plan) && decideSurfaceIntervention(plan, "approval_boundary").allowHardRewrite) {
+            const approvalBoundaryDecision = decideSurfaceIntervention(plan, "approval_boundary");
+            if (allowHardReplyIntervention && shouldRenderApprovalBoundarySurface(plan) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "approval_boundary", approvalBoundaryDecision)) {
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
                     action: "approval boundary surface returned",
@@ -1687,7 +1720,8 @@ export default definePluginEntry({
                     reply: { text: renderApprovalBoundarySurfaceReply(plan) || "" }
                 };
             }
-            if (allowHardReplyIntervention && shouldRenderStateHygieneSurface(plan) && decideSurfaceIntervention(plan, "state_hygiene").allowHardRewrite) {
+            const stateHygieneDecision = decideSurfaceIntervention(plan, "state_hygiene");
+            if (allowHardReplyIntervention && shouldRenderStateHygieneSurface(plan) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "state_hygiene", stateHygieneDecision)) {
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
                     action: "state hygiene surface returned",
@@ -1721,7 +1755,8 @@ export default definePluginEntry({
                 });
                 return;
             }
-            if (allowHardReplyIntervention && shouldRenderRecoverySummary(plan.currentTurn.cleanInput) && decideSurfaceIntervention(plan, "recovery").allowHardRewrite) {
+            const recoveryDecision = decideSurfaceIntervention(plan, "recovery");
+            if (allowHardReplyIntervention && shouldRenderRecoverySummary(plan.currentTurn.cleanInput) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "recovery", recoveryDecision)) {
                 const occurrence = nextRecoveryOccurrence(ctx.sessionKey, plan.currentTurn.cleanInput);
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
@@ -1739,7 +1774,8 @@ export default definePluginEntry({
                     reply: { text: renderRecoveryEscalationReply(plan.currentTurn.cleanInput, occurrence) }
                 };
             }
-            if (allowHardReplyIntervention && shouldRenderDelegationSurface(plan) && decideSurfaceIntervention(plan, "delegation").allowHardRewrite) {
+            const delegationDecision = decideSurfaceIntervention(plan, "delegation");
+            if (allowHardReplyIntervention && shouldRenderDelegationSurface(plan) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "delegation", delegationDecision)) {
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
                     action: "delegation surface returned",
@@ -1761,7 +1797,8 @@ export default definePluginEntry({
                     reply: { text: renderDelegationSurfaceReply(plan) || "" }
                 };
             }
-            if (allowHardReplyIntervention && shouldTranslateCapability(plan.currentTurn.cleanInput) && decideSurfaceIntervention(plan, "capability_translation").allowHardRewrite) {
+            const capabilityTranslationDecision = decideSurfaceIntervention(plan, "capability_translation");
+            if (allowHardReplyIntervention && shouldTranslateCapability(plan.currentTurn.cleanInput) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "capability_translation", capabilityTranslationDecision)) {
                 appendLiveEvidence(resolveStateWorkspaceDir(ctx.workspaceDir), {
                     hook: "before_agent_reply",
                     action: "capability translation surface returned",
@@ -1779,7 +1816,8 @@ export default definePluginEntry({
                 };
             }
             const sessionSplitReply = renderSessionSplitApprovalReply(plan);
-            if (allowHardReplyIntervention && sessionSplitReply && decideSurfaceIntervention(plan, "session_split").allowHardRewrite) {
+            const sessionSplitDecision = decideSurfaceIntervention(plan, "session_split");
+            if (allowHardReplyIntervention && sessionSplitReply && allowBeforeAgentReplySurface(ctx, resolvedPlan, "session_split", sessionSplitDecision)) {
                 logHookEvent(api.logger, "info", "beai hook: before_agent_reply session split approval", {
                     runId: ctx.runId ?? null,
                     mode: plan.mode,
@@ -1803,7 +1841,8 @@ export default definePluginEntry({
                     reply: { text: sessionSplitReply }
                 };
             }
-            if (allowHardReplyIntervention && plan.mode === "handoff" && config.hardHandoffOverride && (plan.riskLevel === "high" || plan.requiresUserConfirmation) && decideSurfaceIntervention(plan, "handoff").allowHardRewrite) {
+            const handoffDecision = decideSurfaceIntervention(plan, "handoff");
+            if (allowHardReplyIntervention && plan.mode === "handoff" && config.hardHandoffOverride && (plan.riskLevel === "high" || plan.requiresUserConfirmation) && allowBeforeAgentReplySurface(ctx, resolvedPlan, "handoff", handoffDecision)) {
                 logHookEvent(api.logger, "info", "beai hook: before_agent_reply handoff override", {
                     runId: ctx.runId ?? null,
                     mode: plan.mode,
@@ -1826,7 +1865,8 @@ export default definePluginEntry({
                 };
             }
             const normalizedReply = normalizeExecutionSurfaceText(event.cleanedBody, plan);
-            if (allowHardReplyIntervention && normalizedReply && normalizedReply !== event.cleanedBody.trim() && decideSurfaceIntervention(plan, "execution_review").allowHardRewrite) {
+            const executionReviewDecision = decideSurfaceIntervention(plan, "execution_review");
+            if (allowHardReplyIntervention && normalizedReply && normalizedReply !== event.cleanedBody.trim() && allowBeforeAgentReplySurface(ctx, resolvedPlan, "execution_review", executionReviewDecision)) {
                 logHookEvent(api.logger, "info", "beai hook: before_agent_reply normalized execution review", {
                     runId: ctx.runId ?? null,
                     mode: plan.mode,

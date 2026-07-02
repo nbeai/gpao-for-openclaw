@@ -933,6 +933,7 @@ export type BeaiTurnPlan = {
   decisionHandleSurface: DecisionHandleSurfaceProfile;
   conversationalRhythm: ConversationalRhythmProfile;
   conversationQualityGuard: ConversationQualityGuardProfile;
+  humanCompanionQuality: HumanCompanionQualityProfile;
   runtimeResponseGate: RuntimeResponseGateProfile;
   classificationFailSoft: ClassificationFailSoftProfile;
   operatingJudgment: BeaiOperatingJudgmentReport;
@@ -1018,6 +1019,37 @@ export type ConversationQualityGuardProfile = {
   qualityTarget: "clear_mind" | "usable_artifact" | "calm_recovery" | "decision_clarity";
   mustPreserve: string[];
   mustAvoid: string[];
+  regressionChecks: string[];
+};
+
+export type HumanCompanionQualityProfile = {
+  version: "0.1";
+  mode: "guide_only";
+  userExperienceTarget:
+    | "feel_understood"
+    | "clear_next_action"
+    | "stable_long_context"
+    | "recover_trust"
+    | "usable_output";
+  cognitiveFrame: {
+    load: "low" | "medium" | "high";
+    reduceBy: string[];
+  };
+  dialogueFrame: {
+    stance: "mirror_then_move" | "clarify_then_act" | "act_then_explain" | "repair_then_verify";
+    mustDo: string[];
+    mustAvoid: string[];
+  };
+  continuityFrame: {
+    preserveCurrentRequest: boolean;
+    usePriorContextAs: "supporting_context" | "active_constraint" | "ignore_unless_relevant";
+    longConversationRisk: "low" | "medium" | "high";
+  };
+  agencyFrame: {
+    preserveUserChoice: boolean;
+    doNotOutsourceJudgmentToUser: boolean;
+    decisionReturn: string;
+  };
   regressionChecks: string[];
 };
 
@@ -1256,8 +1288,11 @@ function cleanCurrentTurnInput(text: string): string {
     return cleanCurrentTurnInput(currentRequestMatch[1]);
   }
 
-  const transcriptLineMatches = Array.from(trimmed.matchAll(/^#\d+\s+[^\n]*?\s+(?:User|사용자):\s*([\s\S]*?)(?=\n#\d+\s+|\n```json|\n*$)/gim));
-  const lastTranscriptUserText = transcriptLineMatches.at(-1)?.[1]?.trim();
+  const transcriptLineMatches = Array.from(trimmed.matchAll(/^#\d+\s+[^\n]*?\s+([^:\n]+):\s*([\s\S]*?)(?=\n#\d+\s+|\n```json|\n*$)/gim)).filter((match) => {
+    const speaker = String(match[1] || "").trim();
+    return Boolean(speaker) && !/(aigis|assistant|다구|codex|bot)/i.test(speaker);
+  });
+  const lastTranscriptUserText = transcriptLineMatches.at(-1)?.[2]?.trim();
   if (lastTranscriptUserText) {
     const tailAfterLastTranscript = trimmed.slice((transcriptLineMatches.at(-1)?.index ?? 0) + transcriptLineMatches.at(-1)![0].length).trim();
     const nonMetaTail = tailAfterLastTranscript
@@ -2133,7 +2168,7 @@ function detectPreviousResponseSurface(reply: string | undefined): {
     hasNumberedStructure: /(?:^|\n)\s*(?:\d+\.|-\s+|\*\*)/.test(text),
     endsWithQuestion: /[?？]\s*$/.test(text) || /(인가요|할까요|해볼까요|원하시나요)\s*[.?？]?\s*$/.test(text),
     hasSectionHeadings: /(?:^|\n)\s*\*\*[^*\n]{2,80}\*\*/.test(text) || /(?:^|\n)#{1,3}\s+\S/.test(text),
-    hasStrongConclusionFormula: /(핵심은|결론은|정리하면|최종 판단은|다음 확인 하나는)/.test(text)
+    hasStrongConclusionFormula: /(핵심은|결론은|정리하면|최종 판단은|확인 필요 항목은)/.test(text)
   };
 }
 
@@ -2814,18 +2849,21 @@ export function buildDecisionHandleSurfaceProfile(
         ? "next_action_first"
         : "decision_first";
 
+  const nextVerification =
+    plan.judgmentFlow.unresolvedChecks[0] || plan.realitySignalProfile.needsVerification[0];
+
   const primaryHandle =
     kind === "artifact"
       ? "사용자가 바로 쓸 산출물을 먼저 놓고, 설명은 필요한 만큼만 뒤에 둡니다."
       : hasRemainingChecks
-        ? `다음 확인 하나: ${plan.judgmentFlow.unresolvedChecks[0] || plan.realitySignalProfile.needsVerification[0]}`
+        ? `확인이 필요한 항목: ${nextVerification}`
         : plan.judgmentFlow.nextJudgmentHandle;
 
   const guidance = [
     "답변 마지막은 새 질문을 늘리는 대신 사용자가 붙잡을 판단 기준, 다음 행동, 보류 조건 중 하나로 닫습니다.",
     "좋은 응답은 무조건 압축이 아니라 사용자가 자연스럽게 이해하고 납득하도록 흐름을 선명하게 만드는 것입니다."
   ];
-  if (kind === "verification") guidance.push("미확인 항목이 남아 있으면 결론을 강하게 닫지 말고 다음 확인 하나를 제시합니다.");
+  if (kind === "verification") guidance.push("미확인 항목이 남아 있으면 결론을 강하게 닫지 말고 확인이 필요한 범위를 본문 안에서 자연스럽게 분리합니다.");
   if (kind === "judgment") guidance.push("판단 요청에서는 선택지를 늘리기보다 현재 가장 중요한 판단 기준 하나를 남깁니다.");
   if (kind === "artifact") guidance.push("산출물 요청에서는 사용자가 바로 쓸 결과물을 먼저 제공합니다.");
 
@@ -3086,7 +3124,7 @@ export function buildConversationQualityGuardProfile(
   ];
   const regressionChecks: string[] = [
     "final answer should not expose internal overlay labels",
-    "answer should end with the current decision handle"
+    "final answer should not append the current decision handle as a repeated footer"
   ];
 
   if (fixture === "family_asset") {
@@ -3122,6 +3160,120 @@ export function buildConversationQualityGuardProfile(
     mustPreserve: Array.from(new Set(mustPreserve)).slice(0, 7),
     mustAvoid: Array.from(new Set(mustAvoid)).slice(0, 7),
     regressionChecks: Array.from(new Set(regressionChecks)).slice(0, 7)
+  };
+}
+
+export function buildHumanCompanionQualityProfile(
+  plan: Pick<
+    BeaiTurnPlan,
+    | "currentTurn"
+    | "inputLevelCompanion"
+    | "conversationSceneContinuity"
+    | "conversationQualityGuard"
+    | "conversationalRhythm"
+    | "responseInertia"
+    | "judgmentSharpness"
+    | "flowState"
+  >
+): HumanCompanionQualityProfile {
+  const input = plan.currentTurn.cleanInput;
+  const reduceBy = new Set<string>();
+  const mustDo = new Set<string>();
+  const mustAvoid = new Set<string>();
+  const regressionChecks = new Set<string>();
+
+  reduceBy.add("핵심 판단 변수를 먼저 분리합니다.");
+  reduceBy.add("불필요한 선택지를 늘리지 않습니다.");
+  mustDo.add("사용자가 실제로 말한 요청을 먼저 붙잡습니다.");
+  mustDo.add("확인된 것과 아직 확인할 것을 분리합니다.");
+  mustAvoid.add("비아이 내부 상태명을 사용자 답변처럼 말하기");
+  mustAvoid.add("긴 대화의 이전 결론을 현재 요청보다 앞세우기");
+  regressionChecks.add("current request must remain the first anchor");
+  regressionChecks.add("prior context must support, not override, the current turn");
+
+  if (plan.inputLevelCompanion.cognitiveLoadLevel !== "low") {
+    reduceBy.add("먼저 사용자가 당장 붙잡을 하나의 기준을 둡니다.");
+    reduceBy.add("설명보다 구조화된 판단 회수를 우선합니다.");
+  }
+  if (plan.inputLevelCompanion.choiceOwnershipRisk !== "low") {
+    mustDo.add("AI가 결정을 대신 닫지 말고 선택 기준을 돌려줍니다.");
+    mustAvoid.add("사용자의 선택 부담을 AI 권위로 덮기");
+    regressionChecks.add("preserve user agency while reducing choice burden");
+  }
+  if (plan.inputLevelCompanion.trustCalibrationNeed === "strong" || plan.conversationQualityGuard.qualityTarget === "calm_recovery") {
+    mustDo.add("신뢰가 흔들린 지점을 인정하고, 원인 후보와 확인 경로를 좁힙니다.");
+    mustAvoid.add("방어적 해명 또는 감정 없는 상태 보고");
+    regressionChecks.add("repair trust before expanding the plan");
+  }
+  if (plan.responseInertia.requiredShift === "shorter_delta_only" || plan.currentTurn.followUpScope !== "full") {
+    mustDo.add("후속 턴에서는 바뀐 지점만 반영합니다.");
+    mustAvoid.add("이전 답변 구조를 습관적으로 반복하기");
+    regressionChecks.add("follow-up answer must be delta-only when scope is narrow");
+  }
+  if (plan.conversationSceneContinuity.sceneStatus === "active_scene") {
+    reduceBy.add("진행 중인 장면은 이어가되, 새 입력이 우선합니다.");
+  }
+
+  const userExperienceTarget: HumanCompanionQualityProfile["userExperienceTarget"] =
+    plan.conversationQualityGuard.qualityTarget === "usable_artifact" || plan.flowState.responseRole === "artifact"
+      ? "usable_output"
+      : plan.inputLevelCompanion.trustCalibrationNeed === "strong"
+        ? "recover_trust"
+        : plan.conversationSceneContinuity.sceneStatus === "active_scene"
+          ? "stable_long_context"
+          : plan.inputLevelCompanion.primaryNeed === "execution" || plan.inputLevelCompanion.primaryNeed === "verification"
+            ? "clear_next_action"
+            : "feel_understood";
+
+  const stance: HumanCompanionQualityProfile["dialogueFrame"]["stance"] =
+    userExperienceTarget === "usable_output"
+      ? "act_then_explain"
+      : userExperienceTarget === "recover_trust"
+        ? "repair_then_verify"
+        : plan.currentTurn.missingCriticalInputs.length > 0
+          ? "clarify_then_act"
+          : "mirror_then_move";
+
+  const longConversationRisk: HumanCompanionQualityProfile["continuityFrame"]["longConversationRisk"] =
+    plan.conversationSceneContinuity.sceneStatus === "active_scene" && plan.responseInertia.previousResponseReuseRisk !== "low"
+      ? "high"
+      : plan.conversationSceneContinuity.sceneStatus === "active_scene" || input.length > 700
+        ? "medium"
+        : "low";
+
+  const decisionReturn =
+    plan.flowState.responseRole === "artifact"
+      ? "바로 쓸 산출물"
+      : plan.flowState.approvalBoundary.required
+        ? "승인 경계와 복구 기준"
+        : plan.judgmentSharpness.claimStrength === "hold"
+          ? "확인해야 할 기준"
+          : "다음 행동 또는 판단 기준";
+
+  return {
+    version: "0.1",
+    mode: "guide_only",
+    userExperienceTarget,
+    cognitiveFrame: {
+      load: plan.inputLevelCompanion.cognitiveLoadLevel,
+      reduceBy: Array.from(reduceBy).slice(0, 4)
+    },
+    dialogueFrame: {
+      stance,
+      mustDo: Array.from(mustDo).slice(0, 5),
+      mustAvoid: Array.from(mustAvoid).slice(0, 5)
+    },
+    continuityFrame: {
+      preserveCurrentRequest: true,
+      usePriorContextAs: longConversationRisk === "high" ? "supporting_context" : "active_constraint",
+      longConversationRisk
+    },
+    agencyFrame: {
+      preserveUserChoice: true,
+      doNotOutsourceJudgmentToUser: plan.inputLevelCompanion.questionBudget === 0,
+      decisionReturn
+    },
+    regressionChecks: Array.from(regressionChecks).slice(0, 6)
   };
 }
 
@@ -3423,7 +3575,7 @@ export function checkClaimStrength(
     reasons,
     rewriteInstruction:
       reasons.length > 0
-        ? "완료/해결/원인 단정 대신 확인된 범위, 아직 확인되지 않은 범위, 다음 확인 하나로 낮춥니다."
+        ? "완료/해결/원인 단정 대신 확인된 범위와 아직 확인되지 않은 범위를 분리합니다."
         : undefined
   };
 }
@@ -4669,6 +4821,16 @@ export function buildTurnPlan(
     decisionHandleSurface,
     conversationalRhythm
   });
+  const humanCompanionQuality = buildHumanCompanionQualityProfile({
+    currentTurn,
+    inputLevelCompanion,
+    conversationSceneContinuity,
+    conversationQualityGuard,
+    conversationalRhythm,
+    responseInertia,
+    judgmentSharpness,
+    flowState
+  });
   const runtimeResponseGate = buildRuntimeResponseGateProfile({
     currentTurn,
     flowState,
@@ -4718,6 +4880,7 @@ export function buildTurnPlan(
     decisionHandleSurface,
     conversationalRhythm,
     conversationQualityGuard,
+    humanCompanionQuality,
     runtimeResponseGate,
     classificationFailSoft,
     operatingJudgment,
@@ -4728,6 +4891,19 @@ export function buildTurnPlan(
     judgmentSharpness,
     sharedPlan
   };
+}
+
+function sanitizeRepeatedFooterInstruction(value: string | undefined): string {
+  if (!value) return "";
+  return value
+    .replace(/다음\s*확인\s*하나\s*:/g, "확인 필요 항목:")
+    .replace(/answer should end with the current decision handle/gi, "final answer should not append decision handles as repeated footers")
+    .replace(/answer should end with[^|,\n]*/gi, "final answer should not use forced footer rules")
+    .trim();
+}
+
+function sanitizeRepeatedFooterList(values: string[]): string[] {
+  return values.map((value) => sanitizeRepeatedFooterInstruction(value)).filter(Boolean);
 }
 
 export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: CompanionProfile): string {
@@ -4763,7 +4939,7 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push(`- evidence_output: ${plan.flowState.evidenceState.outputVerified}`);
   lines.push(`- evidence_doctor: ${plan.flowState.evidenceState.doctor}`);
   lines.push(`- evidence_release: ${plan.flowState.evidenceState.release}`);
-  lines.push(`- closure_handle: ${plan.flowState.closureHandle}`);
+  lines.push(`- closure_handle: ${sanitizeRepeatedFooterInstruction(plan.flowState.closureHandle)}`);
   lines.push(`- delivery_surface: ${plan.flowState.deliverySurface.surface}`);
   lines.push(`- visible_delivery: ${plan.flowState.deliverySurface.visibleDelivery}`);
   if (plan.flowState.memoryInfluence.length > 0) {
@@ -4776,12 +4952,12 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push(`- follow_up_delta_only: ${plan.runtimeResponseGate.followUpDeltaOnly}`);
   lines.push(`- state_boundary: ${plan.runtimeResponseGate.stateBoundary}`);
   lines.push(`- visible_delivery: ${plan.runtimeResponseGate.visibleDelivery}`);
-  lines.push(`- closure_handle: ${plan.runtimeResponseGate.closureHandle}`);
+  lines.push(`- closure_handle: ${sanitizeRepeatedFooterInstruction(plan.runtimeResponseGate.closureHandle)}`);
   if (plan.runtimeResponseGate.blockIf.length > 0) {
-    lines.push(`- block_if: ${plan.runtimeResponseGate.blockIf.slice(0, 5).join(" | ")}`);
+    lines.push(`- block_if: ${sanitizeRepeatedFooterList(plan.runtimeResponseGate.blockIf).slice(0, 5).join(" | ")}`);
   }
-  lines.push(`- must_preserve: ${plan.runtimeResponseGate.mustPreserve.slice(0, 4).join(" | ")}`);
-  lines.push(`- must_avoid: ${plan.runtimeResponseGate.mustAvoid.slice(0, 5).join(" | ")}`);
+  lines.push(`- must_preserve: ${sanitizeRepeatedFooterList(plan.runtimeResponseGate.mustPreserve).slice(0, 4).join(" | ")}`);
+  lines.push(`- must_avoid: ${sanitizeRepeatedFooterList(plan.runtimeResponseGate.mustAvoid).slice(0, 5).join(" | ")}`);
   lines.push("input_level_companion:");
   lines.push("- mode: guide_only");
   lines.push(`- input_maturity: ${plan.inputLevelCompanion.inputMaturity}`);
@@ -4896,7 +5072,7 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   }
   lines.push("judgment_frame:");
   lines.push(`- response_role: ${plan.judgmentFrame.responseRole}`);
-  lines.push(`- last_handle: ${plan.judgmentFrame.lastHandle}`);
+  lines.push(`- last_handle: ${sanitizeRepeatedFooterInstruction(plan.judgmentFrame.lastHandle)}`);
   if (plan.judgmentFrame.confirmed.length > 0) {
     lines.push("- confirmed:");
     for (const item of plan.judgmentFrame.confirmed.slice(0, 6)) lines.push(`  - ${item}`);
@@ -4976,14 +5152,14 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push(`- unresolved_checks: ${plan.judgmentFlow.unresolvedChecks.slice(0, 3).join(" | ") || "none"}`);
   lines.push(`- evidence_closure: ${plan.judgmentFlow.evidenceClosure.state}`);
   lines.push(`- closed_checks: ${plan.judgmentFlow.evidenceClosure.closedChecks.slice(0, 3).join(" | ") || "none"}`);
-  lines.push(`- next_judgment_handle: ${plan.judgmentFlow.nextJudgmentHandle}`);
+  lines.push(`- next_judgment_handle: ${sanitizeRepeatedFooterInstruction(plan.judgmentFlow.nextJudgmentHandle)}`);
   lines.push("decision_handle_surface:");
   lines.push("- mode: guide_only");
   lines.push("- rewrite_output: false");
   lines.push(`- kind: ${plan.decisionHandleSurface.kind}`);
   lines.push(`- close_style: ${plan.decisionHandleSurface.closeStyle}`);
-  lines.push(`- primary_handle: ${plan.decisionHandleSurface.primaryHandle}`);
-  lines.push(`- must_not_close_with: ${plan.decisionHandleSurface.mustNotCloseWith.slice(0, 3).join(" | ")}`);
+  lines.push(`- primary_handle: ${sanitizeRepeatedFooterInstruction(plan.decisionHandleSurface.primaryHandle)}`);
+  lines.push(`- must_not_close_with: ${sanitizeRepeatedFooterList(plan.decisionHandleSurface.mustNotCloseWith).slice(0, 3).join(" | ")}`);
   lines.push("conversational_rhythm:");
   lines.push("- mode: guide_only");
   lines.push("- rewrite_output: false");
@@ -5000,7 +5176,20 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push(`- quality_target: ${plan.conversationQualityGuard.qualityTarget}`);
   lines.push(`- must_preserve: ${plan.conversationQualityGuard.mustPreserve.slice(0, 4).join(" | ")}`);
   lines.push(`- must_avoid: ${plan.conversationQualityGuard.mustAvoid.slice(0, 4).join(" | ")}`);
-  lines.push(`- regression_checks: ${plan.conversationQualityGuard.regressionChecks.slice(0, 3).join(" | ")}`);
+  lines.push(`- regression_checks: ${sanitizeRepeatedFooterList(plan.conversationQualityGuard.regressionChecks).slice(0, 3).join(" | ")}`);
+  lines.push("human_companion_quality:");
+  lines.push("- mode: guide_only");
+  lines.push("- rewrite_output: false");
+  lines.push(`- user_experience_target: ${plan.humanCompanionQuality.userExperienceTarget}`);
+  lines.push(`- cognitive_load: ${plan.humanCompanionQuality.cognitiveFrame.load}`);
+  lines.push(`- reduce_by: ${plan.humanCompanionQuality.cognitiveFrame.reduceBy.slice(0, 3).join(" | ")}`);
+  lines.push(`- dialogue_stance: ${plan.humanCompanionQuality.dialogueFrame.stance}`);
+  lines.push(`- must_do: ${plan.humanCompanionQuality.dialogueFrame.mustDo.slice(0, 4).join(" | ")}`);
+  lines.push(`- must_avoid: ${plan.humanCompanionQuality.dialogueFrame.mustAvoid.slice(0, 4).join(" | ")}`);
+  lines.push(`- prior_context_role: ${plan.humanCompanionQuality.continuityFrame.usePriorContextAs}`);
+  lines.push(`- long_conversation_risk: ${plan.humanCompanionQuality.continuityFrame.longConversationRisk}`);
+  lines.push(`- decision_return: ${plan.humanCompanionQuality.agencyFrame.decisionReturn}`);
+  lines.push(`- regression_checks: ${plan.humanCompanionQuality.regressionChecks.slice(0, 4).join(" | ")}`);
   lines.push("classification_fail_soft:");
   lines.push("- mode: guide_only");
   lines.push("- rewrite_output: false");
@@ -5035,6 +5224,8 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push("- 첫 문장은 내부 결론보다 사용자의 현실, 요청된 산출물, 확인된 상태 중 현재 턴에 맞는 곳에서 시작합니다.");
   lines.push("- 좋은 응답은 무조건 짧은 응답이 아니라, 과잉과 중복 없이 사용자가 자연스럽게 이해하고 납득하며 머릿속이 선명해지는 응답입니다.");
   lines.push("- 필요한 맥락은 남기고, 같은 말을 구조만 바꿔 반복하거나 무조건 요약/압축하지 않습니다.");
+  lines.push("- human_companion_quality가 있으면 사용자가 이해받고, 맥락이 살아 있으며, 다음 판단을 회수할 수 있게 답변합니다.");
+  lines.push("- 이전 맥락은 현재 요청을 돕는 재료이지 현재 요청을 덮는 권한이 아닙니다.");
   lines.push("- continuity_judgment가 있으면 과거 전체가 아니라 다음 판단을 바꾸는 기준, 현재 위치, 다음 행동만 이어갑니다.");
   lines.push("- 세션 연속성은 장기 기억으로 단정하지 말고 memory_boundary에 따라 후보/세션/프로젝트 상태를 분리합니다.");
   lines.push("- judgment_flow가 있으면 이전 판단, 새 변수, 미검증 항목, 다음 판단 기준을 섞지 않습니다.");
@@ -5081,8 +5272,8 @@ export function renderSessionSplitApprovalReply(plan: BeaiTurnPlan): string | nu
     if (topics.length > 0 || mustCarry.length > 0) {
       lines.push(`우선 이어갈 기준은 ${compactBullets(topics, 3).join(", ") || compactBullets(mustCarry, 3).join(", ")}입니다.`);
     }
-    const closureHandle = handoffState.closure_handle || plan.flowState.closureHandle;
-    if (closureHandle) lines.push(`마지막에 붙잡을 기준은 ${closureHandle}입니다.`);
+    const closureHandle = sanitizeRepeatedFooterInstruction(handoffState.closure_handle || plan.flowState.closureHandle);
+    if (closureHandle) lines.push(`참고할 기준은 ${closureHandle}입니다.`);
     if (handoffState.new_session_opening_message) lines.push(`다음 대화는 "${handoffState.new_session_opening_message}"로 바로 시작하면 됩니다.`);
   }
   lines.push("");
@@ -5126,7 +5317,7 @@ export function buildSessionContinuityState(plan: BeaiTurnPlan): SessionContinui
   const flowState = (plan as Partial<BeaiTurnPlan>).flowState;
   const decisionHandleSurface = (plan as Partial<BeaiTurnPlan>).decisionHandleSurface;
   const closureHandle =
-    compactText(handoffState?.closure_handle || flowState?.closureHandle || decisionHandleSurface?.primaryHandle || nextAction, 220) ||
+    compactText(sanitizeRepeatedFooterInstruction(handoffState?.closure_handle || flowState?.closureHandle || decisionHandleSurface?.primaryHandle || nextAction), 220) ||
     "다음 판단 기준을 확인합니다.";
   const nextSessionOpening =
     compactText(

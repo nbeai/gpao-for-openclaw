@@ -5,6 +5,7 @@ const os = require("node:os");
 const { execFile } = require("node:child_process");
 
 const args = new Set(process.argv.slice(2));
+const help = args.has("--help") || args.has("-h");
 const modeArg = process.argv.find((arg) => arg.startsWith("--mode="));
 const mode = modeArg ? modeArg.slice("--mode=".length) : "check";
 const symptomArg = process.argv.find((arg) => arg.startsWith("--symptom="));
@@ -19,6 +20,14 @@ const cooldownArg = process.argv.find((arg) => arg.startsWith("--cooldown-ms="))
 const cooldownMs = cooldownArg ? Number(cooldownArg.slice("--cooldown-ms=".length)) : 20 * 60 * 1000;
 const cwd = process.cwd();
 const startedAt = Date.now();
+
+function usage() {
+  return `Usage:
+  node tools/beai-doctor.js [--mode=check|repair-plan|verify|auto-repair|wake-guard] [--symptom=<text>] [--log-file=<path>] [--deep] [--include-openclaw-doctor] [--json]
+
+Help mode is usage-only. It does not run diagnosis, inspect logs, request approval, restart Gateway, send Telegram messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
+`;
+}
 
 function exists(file) {
   try {
@@ -1206,6 +1215,21 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
   }
   if (
     includesAny(combinedText, [/:telegram:direct:/i, /telegram:direct/i, /agent:main:telegram:direct/i]) &&
+    includesAny(combinedText, [/surface returned/i, /surface_rewritten/i, /before_agent_reply/i]) &&
+    includesAny(combinedText, [/approval boundary surface returned/i, /state hygiene surface returned/i, /delegation surface returned/i, /capability translation surface returned/i, /session split approval surface returned/i, /work order surface returned/i, /execution review normalized/i]) &&
+    !includesAny(combinedText, [/install guide surface returned/i, /install resume surface returned/i])
+  ) {
+    issues.push(issue(
+      "approval_required",
+      "beai-telegram-direct-hard-surface-risk",
+      "Recent logs or report text suggest a BEAI before_agent_reply surface may have hard-rewritten a Telegram direct answer outside the install/resume path.",
+      "beai",
+      "runtime-hook",
+      "Patch/reinstall BEAI Runtime so Telegram direct non-install surfaces are observer-only and defer to the normal model/delivery path."
+    ));
+  }
+  if (
+    includesAny(combinedText, [/:telegram:direct:/i, /telegram:direct/i, /agent:main:telegram:direct/i]) &&
     includesAny(combinedText, [/before_agent_reply/i]) &&
     includesAny(combinedText, [/recovery summary surface returned/i, /recovery escalation surface returned/i, /beai-recovery-summary/i, /beai-recovery-escalation/i]) &&
     includesAny(combinedText, [/stale/i, /previous message/i, /previous-turn/i, /previous turn/i, /이전 메시지/i, /이전 턴/i, /second[- ]turn/i, /두 번째/i, /normal user transcript/i, /not appended/i, /handled:\s*true/i])
@@ -1230,7 +1254,8 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
     "beai-gateway-injected-response-loop",
     "beai-reply-payload-rewrite-hook-active",
     "beai-ux-state-guide-replace-risk",
-    "beai-before-agent-reply-override-active"
+    "beai-before-agent-reply-override-active",
+    "beai-telegram-direct-hard-surface-risk"
   ].includes(entry.code));
   if (symptomTags.includes("repeated_response") && !hasSpecificRepeatedRootCause) {
     if (deep) {
@@ -1309,6 +1334,7 @@ function buildIncidentAnalysis(issues, symptomTags, checks, supplementalText, op
     "beai-reply-payload-rewrite-hook-active",
     "beai-ux-state-guide-replace-risk",
     "beai-before-agent-reply-override-active",
+    "beai-telegram-direct-hard-surface-risk",
     "beai-telegram-direct-recovery-surface-stale-plan",
     "approval-or-surface-loop-suspected"
   ].filter((code) => hasIssue(issues, code));
@@ -1609,6 +1635,7 @@ function buildOperationalReliability(issues, checks, helpers, openclawConfig) {
     /Telegram\s*:?\s*(?:ON|OK|default|configured|running|connected)/i.test(telegramText) &&
     !hasCode("beai-gateway-injected-response-loop") &&
     !hasCode("beai-canned-response-loop-signature") &&
+    !hasCode("beai-telegram-direct-hard-surface-risk") &&
     !hasCode("beai-install-intent-lost") &&
     !hasCode("telegram-delivery-pending-not-failed") &&
     !hasCode("telegram-direct-session-bloat-risk") &&
@@ -1907,6 +1934,11 @@ async function buildReport(apply = false) {
 }
 
 async function main() {
+  if (help) {
+    process.stdout.write(usage());
+    return;
+  }
+
   let report;
   if (mode === "wake-guard") {
     report = await runWakeGuard();

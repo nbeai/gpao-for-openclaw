@@ -15,6 +15,7 @@ The goal is to avoid accidental role overlap and to keep each capability narrow.
 - Do not turn onboarding suggestions into immediate automation.
 - For BEAI Package work, keep `docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md` as the top-level product principle reference.
 - For BEAI 5 implementation work, keep `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md` as the development plan. Do not create a separate runtime; implement Flow State first inside the existing OpenClaw BEAI Runtime Layer, then align adapter, doctor, knowledge, response gates, and later Codex Harness language.
+- For Korean user-facing output, keep `docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md` as the source standard and route writing/review tasks to `beai-korean-natural-writing` when Korean tone, status wording, public copy, or verification language matters.
 - Safety and security must not become avoidable user friction. Approval, verification, and recovery should make the user more comfortable delegating work, not make OpenClaw feel slow or obstructive.
 
 ## Primary Routes
@@ -217,7 +218,6 @@ Use when:
 - the user asks to make BEAI Package compound knowledge from work records.
 
 Carry:
-
 - source record or source reference
 - project/package lane
 - observed facts
@@ -231,6 +231,29 @@ Do not carry:
 - debug residue
 - unsupported completion claims
 - automatic memory promotion
+
+### Any BEAI Skill -> BEAI Korean Natural Writing Skill
+
+Use when:
+
+- the output is Korean and user-facing.
+- Telegram, release, package, live-apply, verification, or public-copy wording could be misunderstood.
+- a draft sounds translated, stiff, too promotional, too apologetic, or overconfident.
+- ClawHub card copy, launch copy, feedback requests, README text, release notes, app copy, error messages, presentation scripts, Knowledge Loop cards, or Doctor reports need Korean review.
+
+Carry:
+
+- meaning that must not change
+- target audience
+- output surface
+- confirmed facts
+- assumptions
+- unverified items
+- status boundary that must not be overstated
+
+Rule:
+
+The Korean writing skill preserves meaning first, then edits Korean order, medium fit, sentence length, uncertainty boundaries, and status clarity. It does not change runtime state, approve memory, publish content, send messages, or declare release readiness.
 
 ### Development Steward Skill -> BEAI Package Development Principles
 

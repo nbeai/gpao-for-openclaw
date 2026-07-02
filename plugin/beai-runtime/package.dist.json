@@ -9,6 +9,7 @@
     "runtime/beai-runtime-lib.cjs",
     "openclaw.plugin.json",
     "README.md",
+    "README.dist.md",
     "RELEASE-NOTES-v0.6.17-ko.md"
   ],
   "openclaw": {

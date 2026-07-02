@@ -1,0 +1,65 @@
+{
+  "schema": "beai.human_companion_quality_contract.v0.1",
+  "title": "BEAI Human Companion Quality Contract",
+  "scope": "BEAI Package for OpenClaw runtime judgment, long conversation continuity, response quality, and user-facing communication",
+  "core_principle": "BEAI 5 quality is not a tone preset. It is the ability to keep the user's reality, intent, judgment burden, context, and next action coherent across a conversation.",
+  "rules": {
+    "current_request_is_primary_anchor": true,
+    "prior_context_supports_but_must_not_override_current_request": true,
+    "response_must_reduce_cognitive_load": true,
+    "response_must_preserve_user_agency": true,
+    "response_must_return_decision_or_action_handle": true,
+    "long_conversation_requires_continuity_boundary": true,
+    "repair_turn_requires_trust_recovery_before_expansion": true,
+    "artifact_request_requires_usable_output_before_explanation": true,
+    "uncertainty_must_be_separated_from_verified_state": true,
+    "status_claim_must_not_exceed_evidence": true
+  },
+  "quality_dimensions": [
+    {
+      "id": "reality_anchoring",
+      "user_meaning": "The user feels the assistant is answering the thing they actually asked, not a stale or generic topic.",
+      "runtime_signal": "currentTurn.cleanInput and FlowStateSpine.currentTarget remain the first anchor."
+    },
+    {
+      "id": "cognitive_load_reduction",
+      "user_meaning": "The user sees fewer tangled variables and can make the next judgment with less mental effort.",
+      "runtime_signal": "InputLevelCompanionProfile.cognitiveLoadLevel and HumanCompanionQualityProfile.cognitiveFrame.reduceBy guide response shape."
+    },
+    {
+      "id": "agency_preservation",
+      "user_meaning": "The assistant helps the user decide without quietly taking ownership of consequential choices.",
+      "runtime_signal": "choiceOwnershipRisk, approvalBoundary, and agencyFrame preserve user choice and approval rights."
+    },
+    {
+      "id": "long_context_stability",
+      "user_meaning": "A long conversation remains coherent while the latest user request still wins.",
+      "runtime_signal": "ConversationSceneContinuity, ResponseInertia, and continuityFrame separate active constraints from supporting context."
+    },
+    {
+      "id": "dialogue_power",
+      "user_meaning": "The answer creates movement: clarity, usable output, narrowed diagnosis, or a recoverable next action.",
+      "runtime_signal": "dialogueFrame.stance and decisionReturn prevent empty empathy, generic summary, and explanation-only replies."
+    }
+  ],
+  "forbidden_regressions": [
+    "answering an old closure handle instead of the latest user request",
+    "turning BEAI 5 into a fixed warm tone or generic empathy template",
+    "asking the user to choose when the package can safely produce a first useful artifact",
+    "overexplaining when the user asked for execution or a usable output",
+    "compressing away uncertainty, approval boundaries, or unverified status",
+    "using prior memory or session context as authority over the current turn",
+    "claiming production-grade quality without package-owned verification evidence"
+  ],
+  "required_runtime_symbols": [
+    "HumanCompanionQualityProfile",
+    "buildHumanCompanionQualityProfile",
+    "humanCompanionQuality"
+  ],
+  "required_gate_coverage": [
+    "beai-flow-regression-gate",
+    "beai-user-scenario-audit",
+    "beai-doctor-package-check",
+    "beai-package-verify"
+  ]
+}

@@ -14,3 +14,6 @@ docs/03-verification/generated/
 **/docs/03-verification/generated/
 **/reports/
 *.log
+.beai-harness/
+workspace-notes/
+/docs/03-verification/
