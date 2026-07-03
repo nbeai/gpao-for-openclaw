@@ -1,6 +1,6 @@
 # BEAI Runtime
 
-OpenClaw runtime plugin for BEAI Layer v0.6.17.
+OpenClaw runtime plugin for BEAI Layer v0.6.18.
 
 BEAI Runtime helps OpenClaw preserve the current user request, separate evidence from assumptions, keep memory candidates scoped, and carry session continuity without dumping old conversations.
 
@@ -10,7 +10,7 @@ It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
 
 This section applies to the source development workspace only.
 
-The v0.6.17 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
+The v0.6.18 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
 
 ```bash
 npm install
@@ -169,7 +169,7 @@ Current package audit baseline from 2026-07-02:
 - organic flow audit: pass
 - package verify: pass after representative package verify command and developer-owned fixtures were added
 
-For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.17 public staging runtime candidate package is generated separately under `packages/`.
+For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.18 public staging runtime candidate package is generated separately under `packages/`.
 
 Final local-live verification ledger for the previous v0.6.13 candidate:
 
@@ -177,7 +177,7 @@ Final local-live verification ledger for the previous v0.6.13 candidate:
 docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md
 ```
 
-v0.6.17 is a speed-reliability patch on top of v0.6.16. It keeps reply hook boundary guards intact, preserves post-send evidence split so BEAI Runtime does not treat internal final text or `reply_payload_sending` as Telegram completion, records visible progress gaps for long-running Telegram-driven execution work, opens a quick first-status contract before deep work, and records runtime phase timing for planning/tool/finalize/delivery separation. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
+v0.6.18 is a flow-and-operations hardening patch on top of v0.6.17. It keeps the Telegram delivery ledger and speed-reliability contract, adds package-level operational notification gating, organic-flow audit coverage, human companion quality checks, and current-intent stability rules so runtime replies do not drift into noisy status claims, raw internal labels, or over-strong completion wording. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
 
 Session handoff and workspace hygiene notes:
 

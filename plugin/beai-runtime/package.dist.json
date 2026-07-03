@@ -1,8 +1,8 @@
 {
   "name": "@nbeai/beai-runtime",
-  "version": "0.6.17",
+  "version": "0.6.18",
   "type": "module",
-  "description": "BEAI Layer v0.6.17 runtime plugin for OpenClaw. Dist-only clean internal team candidate package.",
+  "description": "BEAI Layer v0.6.18 runtime plugin for OpenClaw. Dist-only clean internal team candidate package.",
   "files": [
     "dist/index.js",
     "dist/runtime-core.js",
@@ -10,7 +10,7 @@
     "openclaw.plugin.json",
     "README.md",
     "README.dist.md",
-    "RELEASE-NOTES-v0.6.17-ko.md"
+    "RELEASE-NOTES-v0.6.18-ko.md"
   ],
   "openclaw": {
     "extensions": [

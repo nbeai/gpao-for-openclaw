@@ -290,7 +290,7 @@ export type HumanJourneyStage =
   | "expert_expansion";
 
 export type InputLevelCompanionProfile = {
-  version: "0.6.10" | "0.6.11" | "0.6.12" | "0.6.14" | "0.6.15" | "0.6.16" | "0.6.17";
+  version: "0.6.10" | "0.6.11" | "0.6.12" | "0.6.14" | "0.6.15" | "0.6.16" | "0.6.17" | "0.6.18";
   mode: "guide_only";
   inputMaturity: InputLevelMaturity;
   primaryNeed: InputLevelNeed;
@@ -2601,7 +2601,7 @@ export function buildInputLevelCompanionProfile(input: {
   if (recommendedSkillFamilies.length > 0) guidance.push(`필요하면 ${recommendedSkillFamilies.join(", ")} 계열 스킬을 후보로 둡니다.`);
 
   return {
-    version: "0.6.17",
+    version: "0.6.18",
     mode: "guide_only",
     inputMaturity,
     primaryNeed,

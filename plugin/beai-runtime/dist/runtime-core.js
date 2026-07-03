@@ -1267,7 +1267,7 @@ export function buildInputLevelCompanionProfile(input) {
     if (recommendedSkillFamilies.length > 0)
         guidance.push(`필요하면 ${recommendedSkillFamilies.join(", ")} 계열 스킬을 후보로 둡니다.`);
     return {
-        version: "0.6.17",
+        version: "0.6.18",
         mode: "guide_only",
         inputMaturity,
         primaryNeed,
