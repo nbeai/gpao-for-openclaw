@@ -1,4 +1,4 @@
-# BEAI Capability Pack v0.2.1
+# BEAI Capability Pack v0.2.2
 
 BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
 
@@ -30,6 +30,7 @@ This package contains planning-ready definitions for:
 - BEAI Operational Notification Contract (watchdog, heartbeat, cron dry-run, and Knowledge Loop candidate user-action framing)
 - BEAI Human Companion Quality Contract (current-request anchoring, cognitive load reduction, user agency, long-context stability, and trust recovery)
 - BEAI Organic Flow Audit (runtime, hooks, skills, tools, evidence, Korean wording, and release-boundary cohesion)
+- BEAI Action Semantics and Recovery Claim Contract (diagnose/report/mitigate/repair/verify/prevent separation and recovery claim evidence gate)
 - Capability routing rules
 
 ## BEAI Korean Natural Writing Direction

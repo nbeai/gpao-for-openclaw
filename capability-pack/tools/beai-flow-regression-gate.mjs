@@ -111,6 +111,26 @@ const CHECKS = [
     failEvidence: "Runtime response gate is missing."
   },
   {
+    id: "self-check-action-semantics-profile-present",
+    lane: "self-check",
+    regression: "semantic_action_mismatch",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /export type ActionSemanticsProfile/,
+    description: "Runtime has an action semantics profile for report/mitigate/repair/verify separation.",
+    passEvidence: "ActionSemanticsProfile is present.",
+    failEvidence: "ActionSemanticsProfile is missing."
+  },
+  {
+    id: "self-check-action-semantics-builder-present",
+    lane: "self-check",
+    regression: "semantic_action_mismatch",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /export function buildActionSemanticsProfile/,
+    description: "Runtime builds action semantics from the current user request.",
+    passEvidence: "buildActionSemanticsProfile is present.",
+    failEvidence: "Action semantics builder is missing."
+  },
+  {
     id: "self-check-evidence-language-present",
     lane: "self-check",
     regression: "completion_overclaim",
@@ -413,6 +433,16 @@ const CHECKS = [
     failEvidence: "Human companion quality is not rendered into prompt context."
   },
   {
+    id: "action-semantics-overlay-rendered",
+    lane: "perceived-quality",
+    regression: "semantic_action_mismatch",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /action_semantics:/,
+    description: "Prompt context renders action semantics so recovery/report/mitigation claims stay distinct.",
+    passEvidence: "action_semantics render section is present.",
+    failEvidence: "Action semantics is not rendered into prompt context."
+  },
+  {
     id: "human-companion-contract-present",
     lane: "release-checklist",
     regression: "human_companion_quality_regression",
@@ -431,6 +461,36 @@ const CHECKS = [
     description: "Package documents the human companion quality bar in Korean.",
     passEvidence: "Human companion quality document includes the canonical quality bar.",
     failEvidence: "Human companion quality document is missing or weakened."
+  },
+  {
+    id: "action-semantics-contract-present",
+    lane: "release-checklist",
+    regression: "semantic_action_mismatch",
+    file: "config/beai-action-semantics-contract.json",
+    pattern: /"recovery_claim_gate"/,
+    description: "Package includes a machine-readable action semantics and recovery claim contract.",
+    passEvidence: "Action semantics recovery claim contract is present.",
+    failEvidence: "Action semantics recovery claim contract is missing."
+  },
+  {
+    id: "action-semantics-recovery-claim-evidence",
+    lane: "release-checklist",
+    regression: "completion_overclaim",
+    file: "config/beai-action-semantics-contract.json",
+    pattern: /failure_path_reproduced_or_currently_observed[\s\S]*cause_identified[\s\S]*failing_path_changed[\s\S]*same_condition_reverified/,
+    description: "Recovery claims require failure path evidence before completion wording.",
+    passEvidence: "Recovery claim evidence requirements are present.",
+    failEvidence: "Recovery claim evidence requirements are incomplete."
+  },
+  {
+    id: "action-semantics-doc-present",
+    lane: "release-checklist",
+    regression: "semantic_action_mismatch",
+    file: "docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md",
+    pattern: /보고만 했으면 보고다[\s\S]*실패 경로를 바꾸고 같은 조건에서 다시 성공/,
+    description: "Package documents report versus repair in Korean user-facing terms.",
+    passEvidence: "Action semantics document includes report/repair boundary.",
+    failEvidence: "Action semantics document is missing or weakened."
   },
   {
     id: "perceived-quality-safe-but-pleasant-policy",

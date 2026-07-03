@@ -1,6 +1,6 @@
-# BEAI Runtime v0.6.18
+# BEAI Runtime v0.6.19
 
-Dist-only runtime package for the BEAI Package for OpenClaw v0.2.1 public staging release candidate.
+Dist-only runtime package for the BEAI Package for OpenClaw v0.2.2 public staging release candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
@@ -33,10 +33,10 @@ openclaw.plugin.json
 ## Included Guide
 
 ```text
-RELEASE-NOTES-v0.6.18-ko.md
+RELEASE-NOTES-v0.6.19-ko.md
 ```
 
-This candidate includes only the runtime files needed by OpenClaw and the v0.6.18 release note.
+This candidate includes only the runtime files needed by OpenClaw and the v0.6.19 release note.
 
 The final verification ledger remains in the development workspace:
 
@@ -99,7 +99,8 @@ openclaw hooks
 - Adds v0.6.12 Operating Contract Closure so read-only status/list checks do not become mutation work, explicit "do not create skill/agent/automation" wording suppresses candidate routing, retry/watchdog/destructive/core/memory requests get approval boundaries, and Notion/Telegram read-write behavior is separated.
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
 - Adds v0.6.17 Telegram Delivery Ledger so generated Telegram replies, send attempts, delivery confirmations, messageId absence, restart pending-scan requirements, and resend idempotency are tracked separately from internal final-answer generation.
-- Adds v0.6.18 flow-and-operations hardening so operational dry-runs, watchdog candidates, heartbeat candidates, organic-flow checks, and human companion quality gates stay separated from user-visible completion claims.
+- Adds v0.6.19 action-semantics hardening so diagnosis, report, mitigation, repair, verification, and prevention stay separated from user-visible completion claims.
+- Requires recovery claims to carry failure-path observation, cause, changed path, and same-condition re-verification evidence.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Separates memory candidates, agreement assets, project state, and discarded context.
 - Carries session continuity through BEAI-owned state files.
@@ -151,7 +152,7 @@ Memory candidates are not accepted memories. Agreement assets are not promoted a
 ## Package Status
 
 ```text
-BEAI Runtime v0.6.18
+BEAI Runtime v0.6.19
 Public Staging Release Candidate
 ```
 

@@ -117,7 +117,7 @@ The runtime plugin lives in:
 plugin/beai-runtime
 ```
 
-Its current public staging version is `0.6.18`.
+Its current public staging version is `0.6.19`.
 
 ClawHub package name:
 
@@ -134,7 +134,7 @@ openclaw plugins enable beai-runtime
 
 The GitHub ZIP release remains the full BEAI Package distribution candidate. The ClawHub package is the OpenClaw runtime plugin install surface.
 
-The v0.6.18 runtime includes Telegram reliability and organic-flow rules:
+The v0.6.19 runtime includes Telegram reliability, organic-flow, and action-semantics rules:
 
 - quick first-status contract before deep work
 - phase timing telemetry
@@ -143,6 +143,8 @@ The v0.6.18 runtime includes Telegram reliability and organic-flow rules:
 - reply_payload_sending treated as a candidate, not completion
 - operational-notification gating so dry-run/watchdog/heartbeat candidates do not become noisy user tasks
 - organic flow and human companion quality checks so current intent, context, and evidence boundaries stay aligned
+- action semantics gating so diagnosis, report, mitigation, repair, verification, and prevention are not described as the same state
+- recovery claim evidence rules so "fixed/recovered/resolved" wording requires failure-path observation, cause, path change, and same-condition re-verification
 
 ## ClawHub Positioning
 

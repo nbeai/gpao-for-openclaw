@@ -1,0 +1,151 @@
+{
+  "schema": "beai.action_semantics_contract.v0.1",
+  "status": "required",
+  "scope": "BEAI Package for OpenClaw runtime response quality, recovery claims, operational reports, Doctor reports, Knowledge Loop cards, and Telegram-visible closeouts",
+  "core_principle": "The action label must match the action actually performed. Reporting, mitigation, prevention, verification, and repair are different states.",
+  "action_classes": {
+    "diagnose": {
+      "definition": "Identify the symptom, affected layer, probable cause, or missing evidence.",
+      "allowed_claims": [
+        "진단했습니다",
+        "원인을 좁혔습니다",
+        "확인했습니다"
+      ],
+      "forbidden_claims_without_more_evidence": [
+        "복구했습니다",
+        "해결했습니다",
+        "고쳤습니다"
+      ]
+    },
+    "report": {
+      "definition": "Describe current or historical state without changing the failure path.",
+      "allowed_claims": [
+        "보고했습니다",
+        "상태를 분리했습니다",
+        "현재 확인된 상태입니다"
+      ],
+      "forbidden_claims_without_more_evidence": [
+        "복구했습니다",
+        "해결했습니다"
+      ]
+    },
+    "mitigate": {
+      "definition": "Reduce noise, confusing visibility, user-facing blast radius, or warning severity without proving the underlying failure path is fixed.",
+      "allowed_claims": [
+        "완화했습니다",
+        "노출을 줄였습니다",
+        "보고 방식을 정리했습니다"
+      ],
+      "forbidden_claims_without_more_evidence": [
+        "복구했습니다",
+        "오류를 해결했습니다"
+      ]
+    },
+    "repair": {
+      "definition": "Change the failing path or configuration so the same failure should no longer occur under the same condition.",
+      "required_evidence": [
+        "failure_path_reproduced_or_currently_observed",
+        "cause_identified",
+        "failing_path_changed",
+        "same_condition_reverified"
+      ],
+      "allowed_claims": [
+        "복구했습니다",
+        "해결했습니다",
+        "고쳤습니다"
+      ]
+    },
+    "verify": {
+      "definition": "Run a check that proves a claim, output, delivery, or repaired path.",
+      "allowed_claims": [
+        "검증했습니다",
+        "통과했습니다",
+        "확인됐습니다"
+      ],
+      "forbidden_claims_without_more_evidence": [
+        "복구했습니다",
+        "배포 준비 완료입니다"
+      ]
+    },
+    "prevent": {
+      "definition": "Add a guard, contract, prompt rule, or regression test to reduce future recurrence.",
+      "allowed_claims": [
+        "재발 방지 규칙을 추가했습니다",
+        "회귀 테스트를 추가했습니다",
+        "가드를 추가했습니다"
+      ],
+      "forbidden_claims_without_more_evidence": [
+        "기존 오류가 복구됐습니다"
+      ]
+    }
+  },
+  "recovery_claim_gate": {
+    "required_for_repair_claim": [
+      "failure_path_reproduced_or_currently_observed",
+      "cause_identified",
+      "failing_path_changed",
+      "same_condition_reverified"
+    ],
+    "if_missing_any_required_evidence": {
+      "must_not_use": [
+        "복구했습니다",
+        "해결했습니다",
+        "고쳤습니다",
+        "recovered",
+        "fixed",
+        "resolved"
+      ],
+      "must_use_one_of": [
+        "진단",
+        "보고",
+        "완화",
+        "예방 규칙",
+        "부분 조치",
+        "검증 대기"
+      ]
+    }
+  },
+  "correction_escalator": {
+    "trigger_phrases": [
+      "이게 복구야",
+      "상태 보고잖아",
+      "오류면 복구",
+      "오류면 고쳐야",
+      "말귀를 못 알아듣",
+      "그게 아니라",
+      "복구가 아니라"
+    ],
+    "required_runtime_behavior": [
+      "discard_previous_frame",
+      "reclassify_requested_action",
+      "separate_report_mitigate_repair_verify",
+      "perform_or_plan_actual_repair_evidence",
+      "correct_previous_status_label"
+    ]
+  },
+  "status_mapping": {
+    "prompt_or_copy_rule_only": "prevent",
+    "user_visible_error_shortening": "mitigate",
+    "state_summary_only": "report",
+    "root_cause_found_only": "diagnose",
+    "same_condition_check_only": "verify",
+    "failing_path_changed_and_reverified": "repair"
+  },
+  "forbidden_regressions": [
+    "calling warning suppression a repair",
+    "calling prompt wording changes a repaired runtime path",
+    "calling historical failure analysis current recovery",
+    "claiming fixed before same-condition re-verification",
+    "responding to a correction signal with the previous report structure",
+    "using applied, verified, sent, packaged, deployed, and recovered as interchangeable status words"
+  ],
+  "required_gate_coverage": [
+    "beai-user-scenario-audit",
+    "beai-flow-regression-gate",
+    "beai-package-verify"
+  ],
+  "ownership": {
+    "primary": "beai",
+    "rule": "If BEAI reports a repair while evidence only supports diagnose, report, mitigate, verify, or prevent, classify it as a BEAI package semantic-action regression."
+  }
+}

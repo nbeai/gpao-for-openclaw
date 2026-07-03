@@ -109,7 +109,7 @@ async function buildReport(root, runtimeRel) {
     package_files_match_dist_files: manifestComparison.missing.length === 0 && manifestComparison.extra.length === 0,
     npm_pack_dry_run_ok: pack.ok && packParseOk,
     npm_pack_matches_intent: pack.ok && packParseOk && packComparison.missing.length === 0 && packComparison.extra.length === 0,
-    release_notes_included: packEntries.includes("RELEASE-NOTES-v0.6.18-ko.md"),
+    release_notes_included: packEntries.includes(`RELEASE-NOTES-v${packageJson?.version}-ko.md`),
     readme_dist_intentionally_included: packageFiles.includes("README.dist.md") && distFiles.includes("README.dist.md") && packEntries.includes("README.dist.md")
   };
   return {

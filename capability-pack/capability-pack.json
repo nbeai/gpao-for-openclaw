@@ -1,6 +1,6 @@
 {
   "id": "beai-capability-pack",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "status": "internal-team-release-candidate",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [
@@ -19,6 +19,7 @@
     "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the top-level BEAI Package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
     "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target.",
     "humanCompanionQualityPolicy": "Use docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md and config/beai-human-companion-quality-contract.json to translate BEAI 5's perceived intelligence into product behavior: current-request anchoring, cognitive load reduction, user agency preservation, long-context stability, trust repair, and usable next movement. This is a runtime quality contract, not a fixed warmth or empathy style.",
+    "actionSemanticsPolicy": "Use docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md and config/beai-action-semantics-contract.json so BEAI cannot call reports, warning suppression, prompt rules, or partial diagnostics a repair. Recovery claims require reproduced or observed failure, identified cause, changed failing path, and same-condition re-verification.",
     "koreanNaturalWritingPolicy": "Use docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md and skills/beai-korean-natural-writing-skill.md for Korean user-facing output, status wording, public copy, release wording, Telegram visible-delivery wording, Knowledge Loop/Doctor explanation clarity, app copy, error messages, and presentation scripts. Preserve meaning first; then improve Korean order, medium fit, uncertainty boundaries, and action clarity.",
     "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
     "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks."
@@ -213,6 +214,33 @@
       ]
     },
     {
+      "id": "beai-action-semantics-recovery-claim-contract",
+      "label": "BEAI Action Semantics and Recovery Claim Contract",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw and BEAI Runtime Layer",
+      "docs": [
+        "docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-action-semantics-contract.json"
+      ],
+      "scope": [
+        "report, mitigation, repair, verification, prevention, and diagnosis status separation",
+        "recovery claim evidence gate",
+        "correction signal escalation when a user challenges the action label",
+        "completion-honesty for repair wording",
+        "scenario and flow-regression coverage for semantic action mismatch"
+      ],
+      "evidence": [
+        "ActionSemanticsProfile is part of runtime-core",
+        "buildActionSemanticsProfile classifies current input into action classes",
+        "runtime prompt context renders action_semantics",
+        "recovery claims require reproduced or observed failure, identified cause, changed failing path, and same-condition re-verification",
+        "user scenario audit includes S20 action semantics and recovery claim",
+        "flow regression gate includes semantic_action_mismatch checks"
+      ]
+    },
+    {
       "id": "beai-operational-notification-contract",
       "label": "BEAI Operational Notification Contract",
       "status": "package-regression-gate",
@@ -285,12 +313,14 @@
         "docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session.json",
         "docs/03-verification/generated/knowledge-loop-scenario-reinforcement.json",
         "docs/03-verification/generated/knowledge-loop-telegram-response-persistence.json",
+        "docs/03-verification/generated/knowledge-loop-action-semantics-recovery-claim-20260703.json",
         "docs/03-verification/generated/knowledge-loop-retrieval-index.json",
         "docs/03-verification/generated/knowledge-loop-case3a-companion-brief.json",
         "docs/03-verification/generated/knowledge-loop-external-signal-companion-brief.json",
         "docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session-companion-brief.json",
         "docs/03-verification/generated/knowledge-loop-scenario-reinforcement-companion-brief.json",
         "docs/03-verification/generated/knowledge-loop-telegram-response-persistence-companion-brief.json",
+        "docs/03-verification/generated/knowledge-loop-action-semantics-recovery-claim-20260703-companion-brief.json",
         "docs/03-verification/generated/knowledge-loop-report-only-review.md",
         "docs/03-verification/generated/knowledge-loop-external-connector-report.md",
         "docs/03-verification/generated/knowledge-loop-external-connector-report.json",

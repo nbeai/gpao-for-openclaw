@@ -1,0 +1,224 @@
+{
+  "id": "action-semantics-recovery-claim-20260703",
+  "title": "보고 완화를 오류 복구로 오분류한 실제 사용자 불신 장면",
+  "created_at": "2026-07-03T07:05:00+09:00",
+  "source_type": "internal_work_record",
+  "source_reference": "telegram-direct:8601204821 messages 5541-5549, 2026-07-03 KST",
+  "project": "BEAI Package for OpenClaw",
+  "observed_facts": [
+    {
+      "text": "사용자는 남은 경고를 어떻게 처리할지와 자동 메시지 가독성 개선을 요청했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 1,
+        "evidence": 2,
+        "action_path": 1,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "assistant는 처음에 Calendar, git status, plugin 조회 경고가 사용자에게 짧게 보이도록 만드는 보고 완화와 cron prompt 규칙 변경을 '반영'으로 보고했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 1,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "사용자는 '이게 오류 복구야? 이건 그냥 상태 보고잖아. 오류면 복구를 해야하는거 아냐?'라고 정정했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "이후 실제 복구 단계에서 Calendar -600 실패는 Calendar 앱을 먼저 깨우고 48시간 범위 조회 성공으로 확인했고, git status는 git 저장소가 아닌 경로에서 실행하지 않도록 바꾸었고, plugin 조회는 openclaw plugins list --json 또는 doctor 경로로 고정했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "user_decisions": [
+    {
+      "text": "오류 복구는 상태 보고나 표시 완화가 아니라 원인 확인, 실패 경로 수정, 재검증까지 포함해야 한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "사용자는 이 실패를 '사용자들이 AI 보고 머리가 나쁘다고 말하는 부분'으로 규정했고, BEAI Package 업그레이드 소재로 삼으라고 했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "assistant_judgments": [
+    {
+      "text": "이번 실패는 지식 부족보다 사용자가 요구한 행위의 의미와 assistant가 실제 수행한 행동의 불일치다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "BEAI Package의 기존 게이트는 완료 과장, Telegram 전달 검증, 내부 로그 노출, 오래된 맥락 반복은 잡지만 보고/완화/복구/검증의 의미 불일치는 충분히 잡지 못했다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "inferred_patterns": [
+    {
+      "text": "사용자가 행위 단어를 썼을 때 assistant는 그 단어를 보고 문구로 받아들이지 말고 실제 수행해야 하는 상태 전이를 먼저 분류해야 한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "traps": [
+    {
+      "text": "경고를 덜 보기 흉하게 만들거나 프롬프트 규칙을 추가한 일을 '복구'라고 부르면 사용자는 말뜻을 못 알아들은 것으로 느낀다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "cron 본문에 규칙이 들어갔는지 확인하는 것은 복구 검증이 아니다. 실패 조건에서 다시 성공하는지 확인해야 한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "knowledge_candidates": [
+    {
+      "text": "복구 claim은 실패 경로 관찰, 원인 특정, 실패 경로 변경, 같은 조건 재검증을 모두 요구하는 gate가 있어야 한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "execution_assets": [
+    {
+      "text": "상태 라벨 매핑: diagnose=원인/범위 확인, report=상태 설명, mitigate=노출/소음/영향 완화, repair=실패 경로 변경+같은 조건 재검증, verify=증거 확인, prevent=재발 방지 규칙/테스트.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "정정 신호 escalator: '이게 복구야?', '상태 보고잖아', '오류면 복구해야지'가 나오면 기존 프레임을 폐기하고 실제 요청 행위로 재분류한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "development_candidates": [
+    {
+      "text": "BEAI Package에 Action Semantics Contract와 Recovery Claim Gate를 추가하고 runtime overlay에 action_semantics를 렌더링한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    },
+    {
+      "text": "user-scenario audit에 보고 완화를 복구로 말하지 않는 시나리오를 추가하고 flow regression gate에 semantic_action_mismatch lane을 추가한다.",
+      "scores": {
+        "relevance": 2,
+        "reuse": 2,
+        "evidence": 2,
+        "action_path": 2,
+        "boundary_safety": 2
+      }
+    }
+  ],
+  "evidence": [
+    "message 5543: reporting/readability mitigation was reported as reflected",
+    "message 5544: user corrected that this was not error recovery",
+    "message 5546: assistant reclassified and performed actual repair checks",
+    "message 5549: upgrade analysis identified missing semantic-action alignment gate"
+  ],
+  "next_actions": [
+    "Add Action Semantics Contract to package manifest and regression gates.",
+    "Render action_semantics in BEAI Runtime prompt context.",
+    "Regenerate Knowledge Loop retrieval index with this source record."
+  ],
+  "rejected_scope": [
+    "Do not mutate OpenClaw core from this source record.",
+    "Do not register cron, hooks, Gateway config, or public release automation from this source record.",
+    "Do not claim live deployment until runtime package candidate is separately applied and verified."
+  ],
+  "aliases": [
+    "recovery claim gate",
+    "action semantics",
+    "semantic action mismatch",
+    "보고 완화와 복구 혼동",
+    "이게 복구야"
+  ],
+  "query_examples": [
+    "복구라고 말하려면 어떤 증거가 필요하지?",
+    "보고 완화를 복구로 말하는 문제를 어떻게 막지?",
+    "Action Semantics Contract가 왜 필요한가?"
+  ],
+  "korean_terms": [
+    "복구",
+    "보고",
+    "완화",
+    "검증",
+    "예방",
+    "실패 경로",
+    "같은 조건 재검증"
+  ],
+  "memory_status": "review-required-no-durable-write",
+  "package_status": "action-semantics-upgrade-candidate",
+  "release_state": "not-a-release-action"
+}

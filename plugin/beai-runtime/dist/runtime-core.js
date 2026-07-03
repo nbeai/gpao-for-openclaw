@@ -427,6 +427,107 @@ export function buildRuntimeResponseGateProfile(input) {
         guidance: Array.from(guidance)
     };
 }
+function classifyRequestedActionSemantics(text) {
+    if (/복구|고쳐|고침|해결|수정|fix|repair|recover|resolve/i.test(text))
+        return "repair";
+    if (/완화|줄여|가독성|보기\s*좋|노출|소음|숨겨|짧게|정리해서\s*보/i.test(text))
+        return "mitigate";
+    if (/검증|확인|테스트|통과|verify|check|test/i.test(text))
+        return "verify";
+    if (/재발|방지|예방|규칙|게이트|contract|테스트\s*추가|막아|prevent/i.test(text))
+        return "prevent";
+    if (/진단|원인|왜|분석|검토|diagnos|analy[sz]e|review/i.test(text))
+        return "diagnose";
+    if (/보고|상태|요약|정리|report|status|summary/i.test(text))
+        return "report";
+    return "unknown";
+}
+function detectActionCorrectionTrigger(text) {
+    const triggers = [
+        "이게 복구야",
+        "상태 보고잖아",
+        "오류면 복구",
+        "오류면 고쳐야",
+        "말귀를 못 알아듣",
+        "그게 아니라",
+        "복구가 아니라"
+    ];
+    return triggers.find((trigger) => text.includes(trigger)) || "";
+}
+export function buildActionSemanticsProfile(input) {
+    const text = input.currentTurn.cleanInput || "";
+    const correctionTrigger = detectActionCorrectionTrigger(text);
+    const requestedActionClass = correctionTrigger
+        ? "repair"
+        : classifyRequestedActionSemantics(text);
+    const recoveryClaimRequired = requestedActionClass === "repair" ||
+        Boolean(correctionTrigger) ||
+        input.humanCompanionQuality.recoveryFrame.required ||
+        /복구|고침|해결|fixed|resolved|recovered/i.test(input.runtimeResponseGate.closureHandle || "");
+    return {
+        version: "0.1",
+        mode: "guide_only",
+        requestedActionClass,
+        recoveryClaimGate: {
+            required: recoveryClaimRequired,
+            requiredEvidence: [
+                "실패 경로를 재현했거나 현재 관찰했습니다.",
+                "원인을 특정했습니다.",
+                "실패 경로 자체를 바꾸었습니다.",
+                "같은 조건에서 다시 성공을 확인했습니다."
+            ],
+            forbiddenWithoutEvidence: [
+                "복구했습니다",
+                "해결했습니다",
+                "고쳤습니다",
+                "처리했습니다",
+                "recovered",
+                "fixed",
+                "resolved"
+            ],
+            fallbackLabels: [
+                "진단",
+                "상태 보고",
+                "보고 완화",
+                "예방 규칙",
+                "부분 조치",
+                "검증 대기"
+            ]
+        },
+        correctionEscalator: {
+            triggered: Boolean(correctionTrigger),
+            trigger: correctionTrigger || "none",
+            requiredBehavior: [
+                "이전 프레임을 방어하지 않고 폐기합니다.",
+                "사용자가 요구한 행위의 의미를 다시 분류합니다.",
+                "보고, 완화, 복구, 검증을 분리합니다.",
+                "복구를 주장하려면 실패 경로 변경과 재검증 증거를 먼저 확보합니다.",
+                "이전 상태 라벨이 부정확했다면 명시적으로 정정합니다."
+            ]
+        },
+        statusMapping: [
+            "diagnose=원인/범위 확인, 복구 주장 금지",
+            "report=상태 설명, 변경 없음",
+            "mitigate=노출/소음/영향 완화, 실패 경로 미수정",
+            "repair=실패 경로 변경 + 같은 조건 재검증",
+            "verify=증거 확인, 단독 복구 주장 금지",
+            "prevent=재발 방지 규칙/테스트, 기존 오류 복구 주장 금지"
+        ],
+        mustSeparate: [
+            "보고와 복구",
+            "완화와 복구",
+            "프롬프트 규칙 추가와 실패 경로 수정",
+            "현재 장애와 과거 실패 이력",
+            "적용, 검증, 배포, 전달"
+        ],
+        mustNotClaim: [
+            "경고를 짧게 보이게 한 것을 오류 복구라고 말하지 않습니다.",
+            "프롬프트 문구 추가만으로 런타임 실패 경로가 고쳐졌다고 말하지 않습니다.",
+            "현재 재현/재검증 없이 과거 실패 이력을 현재 복구 완료로 말하지 않습니다.",
+            "사용자의 정정 신호 뒤에 기존 해석을 계속 밀지 않습니다."
+        ]
+    };
+}
 function stringifyToolParams(params) {
     if (!params)
         return "";
@@ -1267,7 +1368,7 @@ export function buildInputLevelCompanionProfile(input) {
     if (recommendedSkillFamilies.length > 0)
         guidance.push(`필요하면 ${recommendedSkillFamilies.join(", ")} 계열 스킬을 후보로 둡니다.`);
     return {
-        version: "0.6.18",
+        version: "0.6.19",
         mode: "guide_only",
         inputMaturity,
         primaryNeed,
@@ -3368,6 +3469,12 @@ export function buildTurnPlan(prompt, options) {
         responseInertia,
         conversationQualityGuard
     });
+    const actionSemantics = buildActionSemanticsProfile({
+        currentTurn,
+        responseResolution,
+        humanCompanionQuality,
+        runtimeResponseGate
+    });
     const classificationFailSoft = buildClassificationFailSoftProfile({
         currentTurn,
         conversationQualityGuard,
@@ -3411,6 +3518,7 @@ export function buildTurnPlan(prompt, options) {
         conversationQualityGuard,
         humanCompanionQuality,
         runtimeResponseGate,
+        actionSemantics,
         classificationFailSoft,
         operatingJudgment,
         workflowStateLedger,
@@ -3498,6 +3606,19 @@ export function renderPromptContext(plan, companionProfile) {
     }
     lines.push(`- must_preserve: ${sanitizeRepeatedFooterList(plan.runtimeResponseGate.mustPreserve).slice(0, 4).join(" | ")}`);
     lines.push(`- must_avoid: ${sanitizeRepeatedFooterList(plan.runtimeResponseGate.mustAvoid).slice(0, 5).join(" | ")}`);
+    lines.push("action_semantics:");
+    lines.push("- mode: guide_only");
+    lines.push(`- requested_action_class: ${plan.actionSemantics.requestedActionClass}`);
+    lines.push(`- recovery_claim_required: ${plan.actionSemantics.recoveryClaimGate.required ? "true" : "false"}`);
+    lines.push(`- required_recovery_evidence: ${plan.actionSemantics.recoveryClaimGate.requiredEvidence.join(" | ")}`);
+    lines.push(`- forbidden_recovery_claims_without_evidence: ${plan.actionSemantics.recoveryClaimGate.forbiddenWithoutEvidence.join(" | ")}`);
+    lines.push(`- fallback_labels_without_evidence: ${plan.actionSemantics.recoveryClaimGate.fallbackLabels.join(" | ")}`);
+    lines.push(`- correction_escalator_triggered: ${plan.actionSemantics.correctionEscalator.triggered ? "true" : "false"}`);
+    lines.push(`- correction_trigger: ${plan.actionSemantics.correctionEscalator.trigger}`);
+    lines.push(`- correction_required_behavior: ${plan.actionSemantics.correctionEscalator.requiredBehavior.slice(0, 5).join(" | ")}`);
+    lines.push(`- status_mapping: ${plan.actionSemantics.statusMapping.join(" | ")}`);
+    lines.push(`- must_separate: ${plan.actionSemantics.mustSeparate.join(" | ")}`);
+    lines.push(`- must_not_claim: ${plan.actionSemantics.mustNotClaim.slice(0, 4).join(" | ")}`);
     lines.push("input_level_companion:");
     lines.push("- mode: guide_only");
     lines.push(`- input_maturity: ${plan.inputLevelCompanion.inputMaturity}`);

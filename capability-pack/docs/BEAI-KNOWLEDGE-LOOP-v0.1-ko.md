@@ -127,10 +127,12 @@ installable capability bundle
 - `docs/03-verification/generated/knowledge-loop-case3a.json`
 - `docs/03-verification/generated/knowledge-loop-external-signal.json`
 - `docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session.json`
+- `docs/03-verification/generated/knowledge-loop-action-semantics-recovery-claim-20260703.json`
 - `docs/03-verification/generated/knowledge-loop-retrieval-index.json`
 - `docs/03-verification/generated/knowledge-loop-case3a-companion-brief.json`
 - `docs/03-verification/generated/knowledge-loop-external-signal-companion-brief.json`
 - `docs/03-verification/generated/knowledge-loop-beai-knowledge-loop-v0.1-dev-session-companion-brief.json`
+- `docs/03-verification/generated/knowledge-loop-action-semantics-recovery-claim-20260703-companion-brief.json`
 - `docs/03-verification/BEAI-KNOWLEDGE-LOOP-v0.1-FINAL-CHECK-20260630.md`
 - `docs/03-verification/BEAI-KNOWLEDGE-LOOP-REAL-RECORD-CHECK-20260630.md`
 - `docs/03-verification/BEAI-KNOWLEDGE-LOOP-SCENARIO-USEFULNESS-TEST-20260630.md`

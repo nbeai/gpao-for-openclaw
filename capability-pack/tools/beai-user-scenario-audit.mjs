@@ -132,6 +132,8 @@ function buildReport(root) {
   const operationalNotificationGate = "tools/beai-operational-notification-gate.mjs";
   const humanCompanionContract = "config/beai-human-companion-quality-contract.json";
   const humanCompanionDoc = "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md";
+  const actionSemanticsContract = "config/beai-action-semantics-contract.json";
+  const actionSemanticsDoc = "docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md";
   const contractDoc = "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md";
   const doctor = "tools/beai-doctor.js";
   const flowGate = "tools/beai-flow-regression-gate.mjs";
@@ -144,6 +146,7 @@ function buildReport(root) {
   const deliveryContract = readJson(root, contract);
   const operationalContract = readJson(root, operationalNotificationContract);
   const humanCompanionQualityContract = readJson(root, humanCompanionContract);
+  const actionSemanticsQualityContract = readJson(root, actionSemanticsContract);
   const runtimeFiles = compareRuntimeFiles(packageJson, packageDistJson);
 
   const rules = deliveryContract?.rules || {};
@@ -152,6 +155,15 @@ function buildReport(root) {
   const humanCompanionRules = humanCompanionQualityContract?.rules || {};
   const humanCompanionRuntimeSymbols = Array.isArray(humanCompanionQualityContract?.required_runtime_symbols)
     ? humanCompanionQualityContract.required_runtime_symbols
+    : [];
+  const recoveryRequiredEvidence = Array.isArray(actionSemanticsQualityContract?.action_classes?.repair?.required_evidence)
+    ? actionSemanticsQualityContract.action_classes.repair.required_evidence
+    : [];
+  const recoveryForbiddenClaims = Array.isArray(actionSemanticsQualityContract?.recovery_claim_gate?.if_missing_any_required_evidence?.must_not_use)
+    ? actionSemanticsQualityContract.recovery_claim_gate.if_missing_any_required_evidence.must_not_use
+    : [];
+  const correctionTriggers = Array.isArray(actionSemanticsQualityContract?.correction_escalator?.trigger_phrases)
+    ? actionSemanticsQualityContract.correction_escalator.trigger_phrases
     : [];
   const forbiddenOperationalMarkers = Array.isArray(operationalContract?.forbidden_raw_markers) ? operationalContract.forbidden_raw_markers : [];
   const skills = Array.isArray(manifest?.skills) ? manifest.skills : [];
@@ -382,6 +394,24 @@ function buildReport(root) {
         makeCheck("flow-gate-covers-human-companion", "Flow regression gate covers human companion quality.", fileContains(files, root, flowGate, /human_companion_quality_regression/), "Flow gate has human companion quality regression lane.", "P1")
       ],
       recommendation: "Treat BEAI 5 integration as runtime behavior: preserve user reality, reduce burden, promote only accepted context, fit artifacts to the scene, recover from misreads, and keep context moving naturally with intent, state, and situation."
+    }),
+    buildScenario({
+      id: "S20-action-semantics-and-recovery-claim",
+      title: "보고/완화/복구/검증의 의미가 섞여 사용자 정정까지 가는가",
+      userRisk: "사용자가 오류 복구를 원했는데 시스템이 보고 형식 완화나 프롬프트 규칙 추가를 복구처럼 말하면, 사용자는 AI가 말뜻과 실제 행동을 구분하지 못한다고 느낀다.",
+      checks: [
+        makeCheck("action-semantics-contract-parses", "Action semantics contract parses.", Boolean(actionSemanticsQualityContract), "Action semantics contract JSON parses.", "P0"),
+        makeCheck("recovery-claim-four-evidence-items", "Repair claims require reproduce/observe, cause, changed path, and same-condition reverification.", recoveryRequiredEvidence.includes("failure_path_reproduced_or_currently_observed") && recoveryRequiredEvidence.includes("cause_identified") && recoveryRequiredEvidence.includes("failing_path_changed") && recoveryRequiredEvidence.includes("same_condition_reverified"), `repair required evidence=${recoveryRequiredEvidence.join(",") || "none"}`, "P0"),
+        makeCheck("recovery-forbidden-claims", "Recovery-like claims are forbidden without repair evidence.", recoveryForbiddenClaims.includes("복구했습니다") && recoveryForbiddenClaims.includes("해결했습니다") && recoveryForbiddenClaims.includes("fixed"), "Forbidden recovery claims exist.", "P0"),
+        makeCheck("correction-trigger-this-is-recovery", "User correction trigger for '이게 복구야' is explicit.", correctionTriggers.includes("이게 복구야") && correctionTriggers.includes("상태 보고잖아"), "Correction trigger phrases exist.", "P0"),
+        makeCheck("action-semantics-runtime-profile", "Runtime includes ActionSemanticsProfile.", fileContains(files, root, runtimeCore, /ActionSemanticsProfile/), "ActionSemanticsProfile exists in runtime core.", "P0"),
+        makeCheck("action-semantics-runtime-builder", "Runtime builds action semantics from current user input.", fileContains(files, root, runtimeCore, /buildActionSemanticsProfile/), "buildActionSemanticsProfile exists.", "P0"),
+        makeCheck("action-semantics-runtime-render", "Runtime prompt context renders action semantics.", fileContains(files, root, runtimeCore, /action_semantics:/), "action_semantics overlay section exists.", "P1"),
+        makeCheck("doc-report-not-repair", "Korean doc says report-only is report, not repair.", fileContains(files, root, actionSemanticsDoc, /보고만 했으면 보고다/), "Report-only boundary is documented.", "P1"),
+        makeCheck("doc-failure-path-reverify", "Korean doc says repair changes the failing path and verifies the same condition.", fileContains(files, root, actionSemanticsDoc, /실패 경로를 바꾸고 같은 조건에서 다시 성공/), "Repair evidence boundary is documented.", "P1"),
+        makeCheck("flow-gate-covers-action-semantics", "Flow regression gate covers semantic action mismatch.", fileContains(files, root, flowGate, /semantic_action_mismatch/), "Flow gate has semantic action mismatch lane.", "P1")
+      ],
+      recommendation: "When user wording names an action, classify the actual performed action first. Only call it recovery after failing path change and same-condition re-verification; otherwise label it diagnosis, report, mitigation, prevention, partial action, or pending verification."
     })
   ];
 
