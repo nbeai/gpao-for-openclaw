@@ -1,6 +1,6 @@
 {
   "id": "beai-capability-pack",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "status": "internal-team-release-candidate",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [

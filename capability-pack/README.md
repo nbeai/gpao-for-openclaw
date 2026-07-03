@@ -1,4 +1,4 @@
-# BEAI Capability Pack v0.2.2
+# BEAI Capability Pack v0.2.3
 
 BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
 

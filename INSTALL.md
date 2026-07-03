@@ -14,7 +14,7 @@ openclaw plugins enable beai-runtime
 Use the ZIP when you received a release candidate file:
 
 ```bash
-unzip beai-package-for-openclaw-v0.2.2-runtime-v0.6.19-*.zip
+unzip beai-package-for-openclaw-v0.2.3-runtime-v0.6.19-*.zip
 cd beai-package-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime

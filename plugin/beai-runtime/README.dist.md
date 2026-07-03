@@ -1,6 +1,6 @@
 # BEAI Runtime v0.6.19
 
-Dist-only runtime package for the BEAI Package for OpenClaw v0.2.2 public staging release candidate.
+Dist-only runtime package for the BEAI Package for OpenClaw v0.2.3 public staging release candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
