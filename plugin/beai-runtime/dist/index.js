@@ -852,7 +852,23 @@ function resolveCarriedHandoffForTurn(ctx) {
     return undefined;
 }
 function isExplicitContinuityResumeRequest(input) {
-    return /(이전\s*흐름|이전\s*대화|이어받|이어\s*받|어디까지|왜\s*여기까지|새\s*세션|다음\s*세션|세션\s*연속성|handoff|continuity|resume)/i.test(String(input || ""));
+    return /((이전\s*(?:흐름|대화).{0,24}(?:이어|계속|복구|재개))|이어\s*받|이어받|(?:새|다음)\s*세션.{0,24}(?:이어|인계|handoff|context|컨텍스트)|세션\s*연속성|handoff|continuity|resume)/i.test(String(input || ""));
+}
+function extractContinuityIntentInput(input) {
+    const text = String(input || "");
+    const currentUserRequestMatch = text.match(/Current user request:\s*([\s\S]*)$/i);
+    if (currentUserRequestMatch?.[1]?.trim())
+        return currentUserRequestMatch[1].trim();
+    const transcriptUserLines = Array.from(text.matchAll(/^#\d+\s+.*?:\s*(.*)$/gm))
+        .filter((match) => !/\sAigis:\s/.test(match[0]))
+        .map((match) => match[1]?.trim())
+        .filter(Boolean);
+    if (transcriptUserLines.length > 0)
+        return transcriptUserLines[transcriptUserLines.length - 1] || "";
+    return text;
+}
+function isContinuityFallbackBlockedInput(input) {
+    return /(왜\s*계속|계속\s*나오|문구|footer|푸터|없애|빼라|제거|방금\s*(?:네가|보낸|답변)|근본\s*원인|구조적\s*수정|정밀\s*분석|재등장\s*금지)/i.test(String(input || ""));
 }
 function readPersistedNewSessionContextPack(workspaceDir) {
     if (!workspaceDir)
@@ -879,7 +895,10 @@ function compactStringArray(value, limit = 8) {
         .slice(0, limit);
 }
 function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
-    if (!isExplicitContinuityResumeRequest(currentInput))
+    const intentInput = extractContinuityIntentInput(currentInput);
+    if (isContinuityFallbackBlockedInput(intentInput))
+        return undefined;
+    if (!isExplicitContinuityResumeRequest(intentInput))
         return undefined;
     const pack = readPersistedNewSessionContextPack(workspaceDir);
     if (!pack)
@@ -899,7 +918,7 @@ function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
         ? continuity.closureHandle.trim()
         : typeof arc?.currentFlowContext === "string" && arc.currentFlowContext.trim()
             ? arc.currentFlowContext.trim()
-            : "이전 세션의 마지막 판단 기준을 확인합니다.";
+            : "이전 세션의 판단 기준을 확인합니다.";
     const traceId = `beai-handoff-fallback:${sessionKey || "unknown"}:${Date.now()}`;
     const handoffState = {
         current_track: typeof continuity?.currentTrack === "string" && continuity.currentTrack.trim()
@@ -927,7 +946,6 @@ function buildPersistedHandoffFallback(workspaceDir, currentInput, sessionKey) {
         }
     };
     const textParts = [opening, ...carry.slice(0, 4).map((item) => `이어갈 기준: ${item}`)];
-    textParts.push(`마지막 판단 기준: ${closureHandle}`);
     if (doNotCarry.length > 0)
         textParts.push(`넘기지 않을 것: ${doNotCarry.slice(0, 3).join(", ")}`);
     return {

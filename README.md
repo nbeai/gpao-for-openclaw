@@ -22,7 +22,7 @@ It helps OpenClaw users separate:
 - runtime operations health
 - package verification and release boundaries
 
-This repository is a public staging release-candidate repository. It is not an OpenClaw core fork, and it does not claim stable production support status until the public ClawHub/release path is completed and clean-environment evidence is attached.
+This repository is an alpha public staging release-candidate repository. It is not an OpenClaw core fork, and it does not claim stable production support status until the public ClawHub/release path is completed and clean-environment evidence is attached.
 
 In practical terms, this means BEAI Package is currently best read as:
 
@@ -30,7 +30,7 @@ In practical terms, this means BEAI Package is currently best read as:
 - a reviewable source package for BEAI Runtime and BEAI Capability Pack components
 - a manual-verification release candidate for users who understand OpenClaw plugins, skills, hooks, and local runtime operations
 
-It should not yet be described as a stable one-command support promise.
+It should not yet be described as a stable one-command installer or support promise.
 
 ## Package Shape
 

@@ -387,13 +387,13 @@ export function buildRuntimeResponseGateProfile(input) {
         : "not_applicable";
     mustPreserve.add("현재 요청의 대상과 형식");
     mustPreserve.add("확인된 것과 아직 확인되지 않은 것의 경계");
-    mustPreserve.add(`마지막에 남길 것: ${input.flowState.closureHandle}`);
     mustAvoid.add("내부 상태명이나 디버그 요약을 사용자 답변에 그대로 노출");
     mustAvoid.add("완료, 적용, 검증, 전송, 배포 상태를 섞어 말하기");
     mustAvoid.add("후속 턴에서 이전 답변 구조를 습관적으로 반복");
+    mustAvoid.add("사용자가 요청하지 않은 고정 footer나 반복 decision handle을 붙이기");
     guidance.add("첫 문장은 현재 요청으로 바로 들어갑니다.");
     guidance.add("상태 판단은 Flow State의 evidenceState와 deliverySurface보다 강하게 말하지 않습니다.");
-    guidance.add("마지막은 새 질문보다 기준, 행동, 확인 신호, 보류 조건 중 하나로 닫습니다.");
+    guidance.add("마지막 문장은 현재 요청에 필요한 경우에만 기준, 행동, 확인 신호, 보류 조건 중 하나로 닫습니다.");
     if (artifactFirst === "required") {
         blockIf.add("산출물 요청에서 설명이나 작성 의도가 결과물보다 앞서는 경우");
         guidance.add("산출물 요청은 결과물을 먼저 두고 설명은 필요한 만큼만 뒤에 둡니다.");
@@ -1817,6 +1817,10 @@ export function buildHumanCompanionQualityProfile(plan) {
     mustAvoid.add("긴 대화의 이전 결론을 현재 요청보다 앞세우기");
     regressionChecks.add("current request must remain the first anchor");
     regressionChecks.add("prior context must support, not override, the current turn");
+    regressionChecks.add("user reality must be preserved before interpretation");
+    regressionChecks.add("conversation assets require user acceptance or reuse");
+    regressionChecks.add("artifacts must fit the actual recipient and scene");
+    regressionChecks.add("conversation flow must track intent, state, and situation without mechanical context stuffing");
     if (plan.inputLevelCompanion.cognitiveLoadLevel !== "low") {
         reduceBy.add("먼저 사용자가 당장 붙잡을 하나의 기준을 둡니다.");
         reduceBy.add("설명보다 구조화된 판단 회수를 우선합니다.");
@@ -1867,6 +1871,19 @@ export function buildHumanCompanionQualityProfile(plan) {
             : plan.judgmentSharpness.claimStrength === "hold"
                 ? "확인해야 할 기준"
                 : "다음 행동 또는 판단 기준";
+    const burdenStrategy = plan.flowState.responseRole === "artifact"
+        ? "artifact_first"
+        : plan.judgmentSharpness.claimStrength === "hold"
+            ? "verify_then_decide"
+            : plan.inputLevelCompanion.cognitiveLoadLevel === "high"
+                ? "narrow_to_one_handle"
+                : "keep_small";
+    const trustRepairRequired = userExperienceTarget === "recover_trust" ||
+        plan.conversationSceneContinuity.utteranceRole === "repair_previous_interpretation" ||
+        plan.conversationQualityGuard.qualityTarget === "calm_recovery";
+    const conversationalFlowNeedsBoundary = longConversationRisk !== "low" ||
+        plan.responseInertia.requiredShift === "shorter_delta_only" ||
+        plan.conversationSceneContinuity.utteranceRole === "repair_previous_interpretation";
     return {
         version: "0.1",
         mode: "guide_only",
@@ -1890,7 +1907,62 @@ export function buildHumanCompanionQualityProfile(plan) {
             doNotOutsourceJudgmentToUser: plan.inputLevelCompanion.questionBudget === 0,
             decisionReturn
         },
-        regressionChecks: Array.from(regressionChecks).slice(0, 6)
+        userRealityFrame: {
+            preserveBeforeInterpretation: true,
+            realitySignals: [
+                "currentTurn.cleanInput",
+                "judgmentFrame.confirmed",
+                "realitySignalMap.strong"
+            ],
+            mustNotOverwrite: [
+                "사용자가 말한 현재 요청",
+                "확인된 사실과 아직 모르는 것의 경계",
+                "사용자의 선택권과 승인 경계"
+            ]
+        },
+        burdenReducer: {
+            strategy: burdenStrategy,
+            reduceBy: Array.from(reduceBy).slice(0, 4)
+        },
+        conversationAssetLedger: {
+            acceptedContextOnly: true,
+            priorContextRole: longConversationRisk === "high" ? "supporting_context" : "active_constraint",
+            mustNotPromote: [
+                "AI가 한 번 말했을 뿐인 해석",
+                "사용자가 받아들이지 않은 기억 후보",
+                "현재 요청을 덮는 오래된 closure handle"
+            ]
+        },
+        artifactSceneModel: {
+            artifactFirst: plan.flowState.responseRole === "artifact",
+            sceneFit: plan.flowState.responseRole === "artifact" ? "required" : "not_applicable",
+            mustDo: plan.flowState.responseRole === "artifact"
+                ? ["수신자, 장소, 목적에 맞춘 결과물을 먼저 냅니다.", "내부 전략을 외부 문장에 그대로 드러내지 않습니다."]
+                : ["산출물 요청이 아니면 장면 모델을 과하게 열지 않습니다."]
+        },
+        recoveryFrame: {
+            required: trustRepairRequired,
+            repairAction: trustRepairRequired
+                ? "잘못 적용한 프레임을 폐기하고 현재 요청으로 재정렬합니다."
+                : "새 신호가 들어오면 기존 판단을 방어하지 않고 보정합니다.",
+            mustAvoid: ["방어적 해명", "오인된 이전 구조 반복", "검증 전 완료 주장"]
+        },
+        conversationalFlowCore: {
+            intentTracking: plan.currentTurn.missingCriticalInputs.length > 0 ? "unclear_intent_verify_first" : "current_intent_first",
+            contextMotion: conversationalFlowNeedsBoundary ? "boundary_required" : "fluid_context_selection",
+            naturalnessTarget: conversationalFlowNeedsBoundary ? "mechanical_context_risk" : "human_state_aware",
+            mustDo: [
+                "사용자의 현재 의도, 대화 단계, 상황 압력을 함께 읽습니다.",
+                "필요한 맥락만 붙이고 나머지는 배경으로 낮춥니다.",
+                "정정 신호가 오면 이전 프레임을 방어하지 않고 갱신합니다."
+            ],
+            mustAvoid: [
+                "단어 매칭만으로 의도 확정하기",
+                "오래된 맥락을 많이 붙여 자연스러움처럼 보이게 하기",
+                "사용자 상태와 요청 형식을 분리하지 못한 기계적 요약"
+            ]
+        },
+        regressionChecks: Array.from(regressionChecks).slice(0, 8)
     };
 }
 export function buildClassificationFailSoftProfile(plan) {
@@ -3353,13 +3425,23 @@ function sanitizeRepeatedFooterInstruction(value) {
     if (!value)
         return "";
     return value
-        .replace(/다음\s*확인\s*하나\s*:/g, "확인 필요 항목:")
+        .replace(/다음\s*확인\s*하나\s*:/g, "")
         .replace(/answer should end with the current decision handle/gi, "final answer should not append decision handles as repeated footers")
         .replace(/answer should end with[^|,\n]*/gi, "final answer should not use forced footer rules")
         .trim();
 }
 function sanitizeRepeatedFooterList(values) {
     return values.map((value) => sanitizeRepeatedFooterInstruction(value)).filter(Boolean);
+}
+function sanitizeContinuityStateText(value) {
+    const sanitized = sanitizeRepeatedFooterInstruction(value)
+        .replace(/마지막\s*판단\s*기준\s*:\s*/g, "")
+        .replace(/마지막\s*기준은\s*/g, "")
+        .replace(/마지막에\s*붙잡을\s*기준은\s*/g, "")
+        .replace(/참고할\s*기준은\s*/g, "")
+        .replace(/입니다\.?$/g, "")
+        .trim();
+    return compactText(sanitized, 220);
 }
 export function renderPromptContext(plan, companionProfile) {
     const lines = [
@@ -3652,7 +3734,15 @@ export function renderPromptContext(plan, companionProfile) {
     lines.push(`- prior_context_role: ${plan.humanCompanionQuality.continuityFrame.usePriorContextAs}`);
     lines.push(`- long_conversation_risk: ${plan.humanCompanionQuality.continuityFrame.longConversationRisk}`);
     lines.push(`- decision_return: ${plan.humanCompanionQuality.agencyFrame.decisionReturn}`);
-    lines.push(`- regression_checks: ${plan.humanCompanionQuality.regressionChecks.slice(0, 4).join(" | ")}`);
+    lines.push(`- user_reality_must_preserve: ${plan.humanCompanionQuality.userRealityFrame.mustNotOverwrite.slice(0, 3).join(" | ")}`);
+    lines.push(`- burden_reducer_strategy: ${plan.humanCompanionQuality.burdenReducer.strategy}`);
+    lines.push(`- conversation_assets: accepted_context_only=${plan.humanCompanionQuality.conversationAssetLedger.acceptedContextOnly}, prior_context_role=${plan.humanCompanionQuality.conversationAssetLedger.priorContextRole}`);
+    lines.push(`- artifact_scene: artifact_first=${plan.humanCompanionQuality.artifactSceneModel.artifactFirst}, scene_fit=${plan.humanCompanionQuality.artifactSceneModel.sceneFit}`);
+    lines.push(`- recovery_frame: required=${plan.humanCompanionQuality.recoveryFrame.required}, action=${plan.humanCompanionQuality.recoveryFrame.repairAction}`);
+    lines.push(`- conversational_flow_core: intent_tracking=${plan.humanCompanionQuality.conversationalFlowCore.intentTracking}, context_motion=${plan.humanCompanionQuality.conversationalFlowCore.contextMotion}, naturalness_target=${plan.humanCompanionQuality.conversationalFlowCore.naturalnessTarget}`);
+    lines.push(`- conversational_flow_must_do: ${plan.humanCompanionQuality.conversationalFlowCore.mustDo.slice(0, 3).join(" | ")}`);
+    lines.push(`- conversational_flow_must_avoid: ${plan.humanCompanionQuality.conversationalFlowCore.mustAvoid.slice(0, 3).join(" | ")}`);
+    lines.push(`- regression_checks: ${plan.humanCompanionQuality.regressionChecks.slice(0, 6).join(" | ")}`);
     lines.push("classification_fail_soft:");
     lines.push("- mode: guide_only");
     lines.push("- rewrite_output: false");
@@ -3738,9 +3828,6 @@ export function renderSessionSplitApprovalReply(plan) {
         if (topics.length > 0 || mustCarry.length > 0) {
             lines.push(`우선 이어갈 기준은 ${compactBullets(topics, 3).join(", ") || compactBullets(mustCarry, 3).join(", ")}입니다.`);
         }
-        const closureHandle = sanitizeRepeatedFooterInstruction(handoffState.closure_handle || plan.flowState.closureHandle);
-        if (closureHandle)
-            lines.push(`참고할 기준은 ${closureHandle}입니다.`);
         if (handoffState.new_session_opening_message)
             lines.push(`다음 대화는 "${handoffState.new_session_opening_message}"로 바로 시작하면 됩니다.`);
     }
@@ -3769,16 +3856,16 @@ export function buildSessionContinuityState(plan) {
         ? handoffState?.current_track || inferProjectStage(plan)
         : handoffState?.current_track || plan.continuityPatch.current_focus || inferProjectStage(plan);
     const currentTrack = compactText(currentTrackSource, 180) || inferProjectStage(plan);
-    const nextAction = compactText(handoffState?.next_action || handoffState?.next_work || inferProjectNextStep(plan), 180) ||
+    const nextAction = sanitizeContinuityStateText(handoffState?.next_action || handoffState?.next_work || inferProjectNextStep(plan)) ||
         "다음 작업 기준을 확인합니다.";
     const flowState = plan.flowState;
     const decisionHandleSurface = plan.decisionHandleSurface;
-    const closureHandle = compactText(sanitizeRepeatedFooterInstruction(handoffState?.closure_handle || flowState?.closureHandle || decisionHandleSurface?.primaryHandle || nextAction), 220) ||
+    const closureHandle = sanitizeContinuityStateText(handoffState?.closure_handle || flowState?.closureHandle || decisionHandleSurface?.primaryHandle || nextAction) ||
         "다음 판단 기준을 확인합니다.";
-    const nextSessionOpening = compactText(handoffState?.new_session_opening_message ||
+    const nextSessionOpening = sanitizeContinuityStateText(handoffState?.new_session_opening_message ||
         handoffState?.user_continuation_opening ||
         handoffState?.user_continuity_message ||
-        `이전 대화의 다음 행동부터 이어가겠습니다: ${nextAction}`, 220) || "이전 대화에서 여기까지 정리해두었습니다.";
+        `이전 대화의 다음 행동부터 이어가겠습니다: ${nextAction}`) || "이전 대화에서 여기까지 정리해두었습니다.";
     return {
         currentTrack,
         completed,
@@ -3855,14 +3942,14 @@ function inferUserConcerns(plan) {
 }
 export function buildConversationArcCapsule(plan, continuity = buildSessionContinuityState(plan)) {
     const turningPoints = inferConversationTurningPoints(plan, continuity);
-    const nextIntent = compactText(continuity.nextAction || plan.handoffState?.next_action || inferProjectNextStep(plan), 180) || "다음 행동을 확인합니다.";
+    const nextIntent = sanitizeContinuityStateText(continuity.nextAction || plan.handoffState?.next_action || inferProjectNextStep(plan)) || "다음 행동을 확인합니다.";
     const normalizedNextIntent = nextIntent.replace(/[.!?。！？]\s*$/, "");
     return {
         origin: inferConversationOrigin(plan),
         turningPoints,
         discardedPaths: inferDiscardedPaths(plan, continuity),
         userConcerns: inferUserConcerns(plan),
-        currentFlowContext: compactText(`현재 흐름은 ${continuity.currentTrack}이고, 다음 판단은 ${normalizedNextIntent}에 맞춰 이어집니다. 마지막 기준은 ${continuity.closureHandle}입니다.`, 220) || "현재 흐름과 다음 행동을 짧게 이어받습니다.",
+        currentFlowContext: compactText(`현재 흐름은 ${continuity.currentTrack}이고, 다음 판단은 ${normalizedNextIntent}에 맞춰 이어집니다.`, 220) || "현재 흐름과 다음 행동을 짧게 이어받습니다.",
         nextIntent,
         updatedAt: new Date().toISOString()
     };
@@ -4096,9 +4183,8 @@ export function buildNewSessionContextPack(plan) {
         conversationArc.origin,
         ...conversationArc.turningPoints.slice(0, 3),
         ...continuity.lockedDecisions.slice(0, 3),
-        continuity.closureHandle,
         continuity.nextAction
-    ], 8);
+    ].map((item) => sanitizeContinuityStateText(item) || ""), 8);
     const opening = compactText(`${continuity.nextSessionOpening} ${conversationArc.currentFlowContext}`, 260) || continuity.nextSessionOpening;
     return {
         opening,
@@ -4132,9 +4218,6 @@ export function renderNextSessionSeed(plan) {
     }
     if (state.lockedDecisions.length > 0) {
         lines.push("", `이미 정한 기준은 ${state.lockedDecisions.slice(0, 3).join(", ")}입니다.`);
-    }
-    if (state.closureHandle) {
-        lines.push("", `마지막에 붙잡을 기준은 ${state.closureHandle}입니다.`);
     }
     if (state.openLoops.length > 0) {
         lines.push("", `이번에는 ${state.openLoops.slice(0, 2).join(", ")}부터 확인하겠습니다.`);

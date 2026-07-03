@@ -23,11 +23,25 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  node tools/beai-organic-flow-audit.mjs [--root <capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
+  node tools/beai-organic-flow-audit.mjs [--root <repo-root|capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
 
 Audits whether BEAI Package runtime, skills, hooks, tools, evidence, and release boundaries are connected as one production operating system.
 This is read-only: no memory writes, OpenClaw core changes, Gateway restart, Telegram send, cron/hook/agent registration, release packaging, or publish.
 `;
+}
+
+function isFile(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
+function resolveCapabilityRoot(inputRoot) {
+  const root = path.resolve(inputRoot || ".");
+  if (isFile(path.join(root, "capability-pack.json"))) return root;
+  const nested = path.join(root, "capability-pack");
+  if (isFile(path.join(nested, "capability-pack.json"))) return nested;
+  const scriptRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  if (isFile(path.join(scriptRoot, "capability-pack.json"))) return scriptRoot;
+  return root;
 }
 
 function readText(root, relativePath) {
@@ -313,7 +327,7 @@ function main() {
     return;
   }
   if (!["json", "md"].includes(options.format)) throw new Error("--format must be json or md");
-  const root = path.resolve(options.root);
+  const root = resolveCapabilityRoot(options.root);
   const report = buildReport(root);
   const rendered = options.format === "json" ? `${JSON.stringify(report, null, 2)}\n` : renderMarkdown(report);
   if (options.output) {

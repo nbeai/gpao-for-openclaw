@@ -13,8 +13,43 @@
     "repair_turn_requires_trust_recovery_before_expansion": true,
     "artifact_request_requires_usable_output_before_explanation": true,
     "uncertainty_must_be_separated_from_verified_state": true,
-    "status_claim_must_not_exceed_evidence": true
+    "status_claim_must_not_exceed_evidence": true,
+    "conversation_flow_must_track_intent_state_and_situation": true,
+    "context_must_move_fluidly_without_mechanical_stuffing": true,
+    "correction_signal_must_update_frame_without_defense": true
   },
+  "runtime_frames": [
+    {
+      "id": "user_reality_frame",
+      "runtime_symbol": "userRealityFrame",
+      "purpose": "Preserve the user's current reality before turning it into labels, structures, or recommendations."
+    },
+    {
+      "id": "burden_reducer",
+      "runtime_symbol": "burdenReducer",
+      "purpose": "Reduce the user's judgment burden by returning one usable handle, artifact, verification criterion, or next action."
+    },
+    {
+      "id": "conversation_asset_ledger",
+      "runtime_symbol": "conversationAssetLedger",
+      "purpose": "Treat prior assistant interpretations as candidates until the user accepts, reuses, or applies them."
+    },
+    {
+      "id": "artifact_scene_model",
+      "runtime_symbol": "artifactSceneModel",
+      "purpose": "Make user-requested artifacts work in the actual recipient, place, purpose, and relationship temperature."
+    },
+    {
+      "id": "recovery_frame",
+      "runtime_symbol": "recoveryFrame",
+      "purpose": "Recover from misreads by discarding the wrong frame and realigning to the current request."
+    },
+    {
+      "id": "conversational_flow_core",
+      "runtime_symbol": "conversationalFlowCore",
+      "purpose": "Track current intent, conversation state, and situation pressure so context moves naturally instead of mechanically accumulating."
+    }
+  ],
   "quality_dimensions": [
     {
       "id": "reality_anchoring",
@@ -40,6 +75,11 @@
       "id": "dialogue_power",
       "user_meaning": "The answer creates movement: clarity, usable output, narrowed diagnosis, or a recoverable next action.",
       "runtime_signal": "dialogueFrame.stance and decisionReturn prevent empty empathy, generic summary, and explanation-only replies."
+    },
+    {
+      "id": "conversational_flow_naturalness",
+      "user_meaning": "The user feels the assistant follows the living flow of the conversation, including corrections, short follow-ups, and situation changes.",
+      "runtime_signal": "conversationalFlowCore separates current intent tracking, fluid context selection, and mechanical-context risk."
     }
   ],
   "forbidden_regressions": [
@@ -49,12 +89,19 @@
     "overexplaining when the user asked for execution or a usable output",
     "compressing away uncertainty, approval boundaries, or unverified status",
     "using prior memory or session context as authority over the current turn",
-    "claiming production-grade quality without package-owned verification evidence"
+    "claiming production-grade quality without package-owned verification evidence",
+    "treating context as more text to include instead of intent, state, and situation to select"
   ],
   "required_runtime_symbols": [
     "HumanCompanionQualityProfile",
     "buildHumanCompanionQualityProfile",
-    "humanCompanionQuality"
+    "humanCompanionQuality",
+    "userRealityFrame",
+    "burdenReducer",
+    "conversationAssetLedger",
+    "artifactSceneModel",
+    "recoveryFrame",
+    "conversationalFlowCore"
   ],
   "required_gate_coverage": [
     "beai-flow-regression-gate",

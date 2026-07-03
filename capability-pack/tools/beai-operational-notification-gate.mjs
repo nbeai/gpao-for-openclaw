@@ -23,10 +23,24 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  node tools/beai-operational-notification-gate.mjs [--root <capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
+  node tools/beai-operational-notification-gate.mjs [--root <repo-root|capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
 
 Checks the BEAI operational notification contract without sending messages, registering cron, restarting Gateway, writing memory, or changing OpenClaw core.
 `;
+}
+
+function isFile(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
+function resolveCapabilityRoot(inputRoot) {
+  const root = path.resolve(inputRoot || ".");
+  if (isFile(path.join(root, "capability-pack.json"))) return root;
+  const nested = path.join(root, "capability-pack");
+  if (isFile(path.join(nested, "capability-pack.json"))) return nested;
+  const scriptRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  if (isFile(path.join(scriptRoot, "capability-pack.json"))) return scriptRoot;
+  return root;
 }
 
 function readText(root, relativePath) {
@@ -202,7 +216,7 @@ function main() {
     return;
   }
   if (!["json", "md"].includes(options.format)) throw new Error("--format must be json or md");
-  const root = path.resolve(options.root);
+  const root = resolveCapabilityRoot(options.root);
   const report = buildReport(root);
   const rendered = options.format === "json" ? `${JSON.stringify(report, null, 2)}\n` : renderMarkdown(report);
   if (options.output) {

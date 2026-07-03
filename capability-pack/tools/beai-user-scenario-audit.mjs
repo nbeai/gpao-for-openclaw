@@ -23,11 +23,25 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  node tools/beai-user-scenario-audit.mjs [--root <capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
+  node tools/beai-user-scenario-audit.mjs [--root <repo-root|capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
 
 This helper performs a read-only user-scenario audit for BEAI Package on OpenClaw.
 It does not write memory, change OpenClaw config, register cron/hooks/agents, send messages, package releases, or restart Gateway.
 `;
+}
+
+function isFile(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
+function resolveCapabilityRoot(inputRoot) {
+  const root = path.resolve(inputRoot || ".");
+  if (isFile(path.join(root, "capability-pack.json"))) return root;
+  const nested = path.join(root, "capability-pack");
+  if (isFile(path.join(nested, "capability-pack.json"))) return nested;
+  const scriptRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  if (isFile(path.join(scriptRoot, "capability-pack.json"))) return scriptRoot;
+  return root;
 }
 
 function readText(root, relativePath) {
@@ -136,6 +150,9 @@ function buildReport(root) {
   const issueCodes = Array.isArray(deliveryContract?.doctor_issue_codes) ? deliveryContract.doctor_issue_codes : [];
   const operationalRules = operationalContract?.rules || {};
   const humanCompanionRules = humanCompanionQualityContract?.rules || {};
+  const humanCompanionRuntimeSymbols = Array.isArray(humanCompanionQualityContract?.required_runtime_symbols)
+    ? humanCompanionQualityContract.required_runtime_symbols
+    : [];
   const forbiddenOperationalMarkers = Array.isArray(operationalContract?.forbidden_raw_markers) ? operationalContract.forbidden_raw_markers : [];
   const skills = Array.isArray(manifest?.skills) ? manifest.skills : [];
   const knowledgeLoopSkill = skills.find((skill) => skill.id === "beai-knowledge-loop");
@@ -192,7 +209,7 @@ function buildReport(root) {
       checks: [
         makeCheck("current-input-render-anchor", "Runtime overlay renders currentTurn.cleanInput.", fileContains(files, root, runtimeCore, /current_input:\s*\$\{plan\.currentTurn\.cleanInput\}/), "current_input render anchor exists.", "P0"),
         makeCheck("telegram-transcript-latest-user-fix", "Runtime has Telegram transcript/latest user extraction logic.", fileContains(files, root, runtimeCore, /Park Jongyoon|latest.*user|currentTurn\.cleanInput/i), "Current-input extraction markers are present.", "P1"),
-        makeCheck("handoff-seed-sanitized", "Handoff/session seed closure handle is sanitized.", fileContains(files, root, runtimeCore, /sanitizeRepeatedFooterInstruction\(handoffState\?\.closure_handle/), "Handoff seed sanitizer path exists.", "P1")
+        makeCheck("handoff-seed-sanitized", "Handoff/session seed closure handle is sanitized.", fileContains(files, root, runtimeCore, /sanitize(?:RepeatedFooterInstruction|ContinuityStateText)\(handoffState\?\.closure_handle/), "Handoff seed sanitizer path exists.", "P1")
       ],
       recommendation: "Add fixture tests for numeric Telegram transcript and handoff overlay in the runtime package test suite."
     }),
@@ -234,6 +251,8 @@ function buildReport(root) {
       userRisk: "이미 복구된 문제를 현재 장애로 보고하면 사용자가 불필요한 재시작이나 설정 변경을 하게 된다.",
       checks: [
         makeCheck("freshness-language-present", "Doctor contains freshness/window language.", fileContains(files, root, doctor, /freshness|evidence window|historical_signal|not currently reproduced/i), "Freshness language is present if true.", "P1"),
+        makeCheck("doctor-evidence-window-configurable", "Doctor has a configurable live evidence freshness window.", fileContains(files, root, doctor, /BEAI_DOCTOR_LIVE_EVIDENCE_WINDOW_MS|liveEvidenceFreshnessWindowMs/), "Live evidence freshness window exists.", "P1"),
+        makeCheck("historical-gap-not-current-failure", "Doctor separates historical speed/progress gaps from current failure proof.", fileContains(files, root, doctor, /historicalDetected|historicalLongestGapMs|beai-historical-quick-first-status-gap/), "Historical gap separation exists.", "P1"),
         makeCheck("connected-not-roundtrip-separated", "Doctor separates connected from roundtrip verified.", fileContains(files, root, doctor, /connected-but-not-roundtrip-verified/), "Connected-but-not-roundtrip issue exists.", "P1")
       ],
       recommendation: "Add evidence timestamp/window to every log-derived issue and lower stale findings to review/historical_signal."
@@ -346,11 +365,23 @@ function buildReport(root) {
         makeCheck("user-agency-preserved", "Responses preserve user agency and decision ownership.", humanCompanionRules.response_must_preserve_user_agency === true, "agency preservation rule is true.", "P0"),
         makeCheck("runtime-profile-present", "Runtime includes HumanCompanionQualityProfile.", fileContains(files, root, runtimeCore, /HumanCompanionQualityProfile/), "HumanCompanionQualityProfile exists in runtime core.", "P0"),
         makeCheck("runtime-builder-present", "Runtime builds human companion quality from current turn state.", fileContains(files, root, runtimeCore, /buildHumanCompanionQualityProfile/), "buildHumanCompanionQualityProfile exists.", "P0"),
+        makeCheck("runtime-user-reality-frame", "Runtime preserves user reality before interpretation.", fileContains(files, root, runtimeCore, /userRealityFrame/) && humanCompanionRuntimeSymbols.includes("userRealityFrame"), "userRealityFrame exists in runtime and contract.", "P0"),
+        makeCheck("runtime-burden-reducer", "Runtime reduces burden instead of expanding options.", fileContains(files, root, runtimeCore, /burdenReducer/) && humanCompanionRuntimeSymbols.includes("burdenReducer"), "burdenReducer exists in runtime and contract.", "P0"),
+        makeCheck("runtime-conversation-asset-ledger", "Runtime separates accepted context from assistant-only interpretations.", fileContains(files, root, runtimeCore, /conversationAssetLedger/) && humanCompanionRuntimeSymbols.includes("conversationAssetLedger"), "conversationAssetLedger exists in runtime and contract.", "P0"),
+        makeCheck("runtime-artifact-scene-model", "Runtime models artifact scene fit, not just artifact-first timing.", fileContains(files, root, runtimeCore, /artifactSceneModel/) && humanCompanionRuntimeSymbols.includes("artifactSceneModel"), "artifactSceneModel exists in runtime and contract.", "P1"),
+        makeCheck("runtime-recovery-frame", "Runtime carries recovery behavior for misread repair.", fileContains(files, root, runtimeCore, /recoveryFrame/) && humanCompanionRuntimeSymbols.includes("recoveryFrame"), "recoveryFrame exists in runtime and contract.", "P1"),
+        makeCheck("conversation-flow-intent-state-situation-rule", "Contract requires intent, conversation state, and situation tracking.", humanCompanionRules.conversation_flow_must_track_intent_state_and_situation === true, "conversation flow intent/state/situation rule is true.", "P0"),
+        makeCheck("conversation-flow-fluid-context-rule", "Contract rejects mechanical context stuffing.", humanCompanionRules.context_must_move_fluidly_without_mechanical_stuffing === true, "fluid context selection rule is true.", "P0"),
+        makeCheck("conversation-flow-correction-rule", "Contract requires correction signals to update the frame without defense.", humanCompanionRules.correction_signal_must_update_frame_without_defense === true, "correction signal frame-update rule is true.", "P0"),
+        makeCheck("runtime-conversational-flow-core", "Runtime carries conversational flow core for natural intent/context motion.", fileContains(files, root, runtimeCore, /conversationalFlowCore/) && humanCompanionRuntimeSymbols.includes("conversationalFlowCore"), "conversationalFlowCore exists in runtime and contract.", "P0"),
+        makeCheck("runtime-conversational-flow-rendered", "Runtime prompt context renders conversational flow core.", fileContains(files, root, runtimeCore, /conversational_flow_core:/), "conversational_flow_core overlay section exists.", "P1"),
         makeCheck("runtime-overlay-renders-quality-gate", "Runtime prompt context renders human companion quality gate.", fileContains(files, root, runtimeCore, /human_companion_quality:/), "human_companion_quality overlay section exists.", "P1"),
         makeCheck("human-companion-doc-quality-bar", "Korean document includes the canonical human quality bar.", fileContains(files, root, humanCompanionDoc, /응답 뒤 사용자의 현실이 더 선명해지고, 판단 부담이 줄며, 실제로 쓸 수 있는 무언가가 남았는가/), "Canonical human quality bar is documented.", "P1"),
+        makeCheck("human-companion-doc-five-frames", "Korean document names the five BEAI 5 runtime frames.", fileContains(files, root, humanCompanionDoc, /userRealityFrame/) && fileContains(files, root, humanCompanionDoc, /burdenReducer/) && fileContains(files, root, humanCompanionDoc, /conversationAssetLedger/) && fileContains(files, root, humanCompanionDoc, /artifactSceneModel/) && fileContains(files, root, humanCompanionDoc, /recoveryFrame/), "Five runtime frames are documented.", "P1"),
+        makeCheck("human-companion-doc-flow-naturalness", "Korean document explains conversational flow naturalness.", fileContains(files, root, humanCompanionDoc, /대화 흐름의 자연스러움/) && fileContains(files, root, humanCompanionDoc, /conversationalFlowCore/), "Conversational flow naturalness is documented.", "P1"),
         makeCheck("flow-gate-covers-human-companion", "Flow regression gate covers human companion quality.", fileContains(files, root, flowGate, /human_companion_quality_regression/), "Flow gate has human companion quality regression lane.", "P1")
       ],
-      recommendation: "Treat BEAI 5 integration as a human companion quality contract: current request anchoring, cognitive load reduction, agency preservation, continuity boundary, and usable next movement must remain gate-covered."
+      recommendation: "Treat BEAI 5 integration as runtime behavior: preserve user reality, reduce burden, promote only accepted context, fit artifacts to the scene, recover from misreads, and keep context moving naturally with intent, state, and situation."
     })
   ];
 
@@ -430,7 +461,7 @@ function main() {
   if (!["json", "md"].includes(options.format)) {
     throw new Error("--format must be json or md");
   }
-  const root = path.resolve(options.root);
+  const root = resolveCapabilityRoot(options.root);
   const report = buildReport(root);
   const rendered = options.format === "json" ? `${JSON.stringify(report, null, 2)}\n` : renderMarkdown(report);
   if (options.output) {

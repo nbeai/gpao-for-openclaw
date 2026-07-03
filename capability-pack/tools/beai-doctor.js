@@ -136,6 +136,12 @@ function readRecentLiveEvidenceSafe() {
   return "";
 }
 
+function liveEvidenceFreshnessWindowMs() {
+  const raw = Number(process.env.BEAI_DOCTOR_LIVE_EVIDENCE_WINDOW_MS);
+  if (Number.isFinite(raw) && raw >= 60 * 1000) return raw;
+  return 10 * 60 * 1000;
+}
+
 function parseRelativeAgeMs(label, text) {
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`${escaped}:\\s*(just now|never|unknown|n/a|([0-9]+)([smhd]) ago)`, "i");
@@ -451,14 +457,47 @@ function parseLiveEvidenceEvents(text) {
     .filter((event) => typeof event.timestamp === "string");
 }
 
-function detectVisibleProgressGap(liveEvidenceText, thresholdMs = 2 * 60 * 1000) {
-  const events = parseLiveEvidenceEvents(liveEvidenceText)
+function parseElapsedMsFromConfirmed(event, pattern) {
+  const confirmed = Array.isArray(event.confirmed) ? event.confirmed.join("\n") : "";
+  const match = confirmed.match(pattern);
+  return match ? Number(match[1]) : null;
+}
+
+function summarizeTimedEvents(events, windowMs = liveEvidenceFreshnessWindowMs()) {
+  const now = Date.now();
+  const timed = events
     .map((event) => ({ ...event, time: Date.parse(event.timestamp) }))
     .filter((event) => Number.isFinite(event.time))
     .sort((a, b) => a.time - b.time);
+  const latestEventAt = timed.length ? timed[timed.length - 1].time : null;
+  const oldestEventAt = timed.length ? timed[0].time : null;
+  return {
+    events: timed,
+    now,
+    windowMs,
+    latestEventAt,
+    oldestEventAt,
+    latestEventAgeMs: latestEventAt ? now - latestEventAt : null
+  };
+}
+
+function splitFreshAndHistorical(items, now, windowMs) {
+  const fresh = items.filter((item) => now - item.time <= windowMs);
+  const historical = items.filter((item) => now - item.time > windowMs);
+  return {
+    fresh,
+    historical,
+    freshMaxMs: fresh.reduce((max, item) => Math.max(max, item.elapsedMs || 0), 0),
+    historicalMaxMs: historical.reduce((max, item) => Math.max(max, item.elapsedMs || 0), 0)
+  };
+}
+
+function detectVisibleProgressGap(liveEvidenceText, thresholdMs = 2 * 60 * 1000, windowMs = liveEvidenceFreshnessWindowMs()) {
+  const timed = summarizeTimedEvents(parseLiveEvidenceEvents(liveEvidenceText), windowMs);
+  const events = timed.events;
   let activityWindowStart = null;
   let activityCount = 0;
-  let longestGapMs = 0;
+  const gapItems = [];
   for (const event of events) {
     const sessionKey = String(event.sessionKey || "");
     if (sessionKey.includes(":cron:")) continue;
@@ -467,7 +506,8 @@ function detectVisibleProgressGap(liveEvidenceText, thresholdMs = 2 * 60 * 1000)
       event.action === "telegram visible delivery verified";
     if (visibleVerified) {
       if (activityWindowStart && activityCount >= 2) {
-        longestGapMs = Math.max(longestGapMs, event.time - activityWindowStart);
+        const elapsedMs = event.time - activityWindowStart;
+        if (elapsedMs > thresholdMs) gapItems.push({ time: event.time, elapsedMs });
       }
       activityWindowStart = null;
       activityCount = 0;
@@ -482,21 +522,30 @@ function detectVisibleProgressGap(liveEvidenceText, thresholdMs = 2 * 60 * 1000)
     if (!activityWindowStart) activityWindowStart = event.time;
     activityCount += 1;
     if (event.evidenceLevel === "visible_progress_contract_observed") {
-      longestGapMs = Math.max(longestGapMs, thresholdMs + 1);
+      const elapsedMs = parseElapsedMsFromConfirmed(event, /elapsed_ms_without_visible_progress:\s*(\d+)/i) || thresholdMs + 1;
+      gapItems.push({ time: event.time, elapsedMs });
     }
   }
+  if (activityWindowStart && activityCount >= 2) {
+    const elapsedMs = timed.now - activityWindowStart;
+    if (elapsedMs > thresholdMs) gapItems.push({ time: timed.now, elapsedMs });
+  }
+  const split = splitFreshAndHistorical(gapItems, timed.now, windowMs);
   return {
-    detected: longestGapMs > thresholdMs,
-    longestGapMs,
-    thresholdMs
+    detected: split.freshMaxMs > thresholdMs,
+    historicalDetected: split.historicalMaxMs > thresholdMs,
+    longestGapMs: split.freshMaxMs,
+    historicalLongestGapMs: split.historicalMaxMs,
+    thresholdMs,
+    evidenceWindowMs: windowMs,
+    eventCount: events.length,
+    latestEventAgeMs: timed.latestEventAgeMs
   };
 }
 
-function detectQuickFirstStatusGap(liveEvidenceText, thresholdMs = 30 * 1000) {
-  const events = parseLiveEvidenceEvents(liveEvidenceText)
-    .map((event) => ({ ...event, time: Date.parse(event.timestamp) }))
-    .filter((event) => Number.isFinite(event.time))
-    .sort((a, b) => a.time - b.time);
+function detectQuickFirstStatusGap(liveEvidenceText, thresholdMs = 30 * 1000, windowMs = liveEvidenceFreshnessWindowMs()) {
+  const timed = summarizeTimedEvents(parseLiveEvidenceEvents(liveEvidenceText), windowMs);
+  const events = timed.events;
   const opened = new Map();
   const missing = [];
   for (const event of events) {
@@ -513,19 +562,25 @@ function detectQuickFirstStatusGap(liveEvidenceText, thresholdMs = 30 * 1000) {
       continue;
     }
     if (evidenceLevel === "quick_first_status_contract_observed" && /missing/i.test(action)) {
-      const confirmed = Array.isArray(event.confirmed) ? event.confirmed.join("\n") : "";
-      const elapsedMatch = confirmed.match(/elapsed_ms_without_quick_first_status:\s*(\d+)/i);
-      const elapsedMs = elapsedMatch ? Number(elapsedMatch[1]) : thresholdMs + 1;
-      missing.push({ event, elapsedMs });
+      const elapsedMs = parseElapsedMsFromConfirmed(event, /elapsed_ms_without_quick_first_status:\s*(\d+)/i) || thresholdMs + 1;
+      missing.push({ event, elapsedMs, time: event.time });
     }
   }
-  const longestGapMs = missing.reduce((max, item) => Math.max(max, item.elapsedMs), 0);
+  const split = splitFreshAndHistorical(missing, timed.now, windowMs);
+  const freshOpenedCount = [...opened.values()].filter((event) => timed.now - event.time <= windowMs).length;
   return {
-    detected: missing.length > 0 || longestGapMs > thresholdMs,
-    openedCount: opened.size,
-    missingCount: missing.length,
-    longestGapMs,
-    thresholdMs
+    detected: split.fresh.length > 0 || split.freshMaxMs > thresholdMs,
+    historicalDetected: split.historical.length > 0 || split.historicalMaxMs > thresholdMs,
+    openedCount: freshOpenedCount,
+    historicalOpenedCount: opened.size - freshOpenedCount,
+    missingCount: split.fresh.length,
+    historicalMissingCount: split.historical.length,
+    longestGapMs: split.freshMaxMs,
+    historicalLongestGapMs: split.historicalMaxMs,
+    thresholdMs,
+    evidenceWindowMs: windowMs,
+    eventCount: events.length,
+    latestEventAgeMs: timed.latestEventAgeMs
   };
 }
 
@@ -1113,35 +1168,60 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
   const visibleProgressGap = detectVisibleProgressGap(checks.beaiLiveEvidence.output || "");
   const quickFirstStatusGap = detectQuickFirstStatusGap(checks.beaiLiveEvidence.output || "");
   const phaseTimingTelemetry = detectPhaseTimingTelemetry(checks.beaiLiveEvidence.output || "");
-  if (
-    includesAny(combinedText, [/telegram long-running visible progress gap observed/i, /visible_progress_contract_observed/i]) ||
-    visibleProgressGap.detected ||
-    (
-      includesAny(combinedText, [/long-running.*visible progress/i, /진행.*보고.*비|visible update.*missing/i]) &&
-      includesAny(combinedText, [/Telegram|telegram|텔레그램/i])
-    )
+  if (visibleProgressGap.detected) {
+    issues.push(issue(
+      "approval_required",
+      "beai-long-running-visible-progress-missing",
+      `BEAI live evidence in the current evidence window shows runtime/tool activity continued without a verified Telegram-visible progress update for about ${Math.round(visibleProgressGap.longestGapMs / 1000)}s (threshold ${Math.round(visibleProgressGap.thresholdMs / 1000)}s, window ${Math.round(visibleProgressGap.evidenceWindowMs / 1000)}s).`,
+      "beai",
+      "visible-progress-contract",
+      "Keep the work state in-progress/unverified until a source-channel progress update or closeout messageId is observed. Design any automatic heartbeat sender as approval-gated external messaging."
+    ));
+  } else if (visibleProgressGap.historicalDetected) {
+    issues.push(issue(
+      "review",
+      "beai-historical-long-running-visible-progress-gap",
+      `Historical BEAI live evidence contains a Telegram visible-progress gap of about ${Math.round(visibleProgressGap.historicalLongestGapMs / 1000)}s, but it is outside the current evidence window (${Math.round(visibleProgressGap.evidenceWindowMs / 1000)}s). Treat it as a regression signal, not current failure proof.`,
+      "beai",
+      "visible-progress-contract",
+      "Keep this as regression evidence and only escalate if a fresh gap appears in the current evidence window."
+    ));
+  } else if (
+    includesAny(combinedText, [/long-running.*visible progress/i, /진행.*보고.*비|visible update.*missing/i]) &&
+    includesAny(combinedText, [/Telegram|telegram|텔레그램/i])
   ) {
     issues.push(issue(
       "approval_required",
       "beai-long-running-visible-progress-missing",
-      visibleProgressGap.detected
-        ? `BEAI live evidence shows runtime/tool activity continued without a verified Telegram-visible progress update for about ${Math.round(visibleProgressGap.longestGapMs / 1000)}s (threshold ${Math.round(visibleProgressGap.thresholdMs / 1000)}s).`
-        : "BEAI live evidence or report text suggests long-running Telegram-driven work had no periodic source-channel visible progress update.",
+      "Supplemental report text suggests long-running Telegram-driven work had no periodic source-channel visible progress update.",
       "beai",
       "visible-progress-contract",
       "Keep the work state in-progress/unverified until a source-channel progress update or closeout messageId is observed. Design any automatic heartbeat sender as approval-gated external messaging."
     ));
   }
-  if (
-    includesAny(combinedText, [/telegram quick first status missing/i, /quick_first_status_contract_observed[\s\S]{0,300}missing/i]) ||
-    quickFirstStatusGap.detected
-  ) {
+  if (quickFirstStatusGap.detected) {
     issues.push(issue(
       "approval_required",
       "beai-quick-first-status-missing",
-      quickFirstStatusGap.detected
-        ? `BEAI live evidence shows a Telegram execution turn waited about ${Math.round(quickFirstStatusGap.longestGapMs / 1000)}s without a first visible status update (threshold ${Math.round(quickFirstStatusGap.thresholdMs / 1000)}s).`
-        : "BEAI live evidence or report text suggests Telegram-driven work did not send a quick first visible status before deeper checks.",
+      `BEAI live evidence in the current evidence window shows a Telegram execution turn waited about ${Math.round(quickFirstStatusGap.longestGapMs / 1000)}s without a first visible status update (threshold ${Math.round(quickFirstStatusGap.thresholdMs / 1000)}s, window ${Math.round(quickFirstStatusGap.evidenceWindowMs / 1000)}s).`,
+      "beai",
+      "speed-contract",
+      "Keep the work in-progress/unverified and separate first visible status from slower deep checks. Any automatic first-status sender is an approval-gated external message feature."
+    ));
+  } else if (quickFirstStatusGap.historicalDetected) {
+    issues.push(issue(
+      "review",
+      "beai-historical-quick-first-status-gap",
+      `Historical BEAI live evidence contains a quick-first-status gap of about ${Math.round(quickFirstStatusGap.historicalLongestGapMs / 1000)}s, but it is outside the current evidence window (${Math.round(quickFirstStatusGap.evidenceWindowMs / 1000)}s). Treat it as a regression signal, not current failure proof.`,
+      "beai",
+      "speed-contract",
+      "Keep this as regression evidence and only escalate if a fresh first-status gap appears in the current evidence window."
+    ));
+  } else if (includesAny(combinedText, [/telegram quick first status missing/i, /quick_first_status_contract_observed[\s\S]{0,300}missing/i])) {
+    issues.push(issue(
+      "approval_required",
+      "beai-quick-first-status-missing",
+      "Supplemental report text suggests Telegram-driven work did not send a quick first visible status before deeper checks.",
       "beai",
       "speed-contract",
       "Keep the work in-progress/unverified and separate first visible status from slower deep checks. Any automatic first-status sender is an approval-gated external message feature."
@@ -1785,11 +1865,17 @@ function buildSpeedReliability(checks) {
     quickFirstStatus: {
       status: quickFirstStatus.detected ? "gap_observed" : quickFirstStatus.openedCount ? "contract_open" : "not_observed",
       thresholdMs: quickFirstStatus.thresholdMs,
+      evidenceWindowMs: quickFirstStatus.evidenceWindowMs,
       openedCount: quickFirstStatus.openedCount,
       missingCount: quickFirstStatus.missingCount,
       longestGapMs: quickFirstStatus.longestGapMs,
+      historicalMissingCount: quickFirstStatus.historicalMissingCount,
+      historicalLongestGapMs: quickFirstStatus.historicalLongestGapMs,
+      latestEventAgeMs: quickFirstStatus.latestEventAgeMs,
       userMeaning: quickFirstStatus.detected
         ? "작업 시작 후 첫 진행 신호가 늦어 사용자가 멈춤처럼 느낄 수 있습니다."
+        : quickFirstStatus.historicalDetected
+          ? "과거 evidence에는 첫 진행 신호 공백이 있었지만 현재 evidence window 안의 장애로는 보지 않습니다."
         : "최근 evidence에서 첫 진행 신호 공백 문제는 확인되지 않았습니다."
     },
     phaseTiming: {
@@ -1804,9 +1890,14 @@ function buildSpeedReliability(checks) {
     visibleProgress: {
       status: visibleProgress.detected ? "gap_observed" : "not_observed",
       thresholdMs: visibleProgress.thresholdMs,
+      evidenceWindowMs: visibleProgress.evidenceWindowMs,
       longestGapMs: visibleProgress.longestGapMs,
+      historicalLongestGapMs: visibleProgress.historicalLongestGapMs,
+      latestEventAgeMs: visibleProgress.latestEventAgeMs,
       userMeaning: visibleProgress.detected
         ? "긴 작업 중 Telegram visible progress 공백이 감지되었습니다."
+        : visibleProgress.historicalDetected
+          ? "과거 evidence에는 긴 작업 진행 공백이 있었지만 현재 evidence window 안의 장애로는 보지 않습니다."
         : "최근 evidence에서 긴 작업 진행 공백 문제는 확인되지 않았습니다."
     }
   };

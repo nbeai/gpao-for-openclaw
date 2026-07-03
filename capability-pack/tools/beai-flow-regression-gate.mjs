@@ -23,11 +23,25 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  node tools/beai-flow-regression-gate.mjs [--root <capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
+  node tools/beai-flow-regression-gate.mjs [--root <repo-root|capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
 
 This helper performs read-only package-wide Flow State regression checks.
 It does not write memory, change OpenClaw config, register cron/hooks/agents, send messages, package releases, or restart Gateway.
 `;
+}
+
+function isFile(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
+function resolveCapabilityRoot(inputRoot) {
+  const root = path.resolve(inputRoot || ".");
+  if (isFile(path.join(root, "capability-pack.json"))) return root;
+  const nested = path.join(root, "capability-pack");
+  if (isFile(path.join(nested, "capability-pack.json"))) return nested;
+  const scriptRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  if (isFile(path.join(scriptRoot, "capability-pack.json"))) return scriptRoot;
+  return root;
 }
 
 function readText(root, relativePath) {
@@ -168,6 +182,17 @@ const CHECKS = [
     failEvidence: "stale repeated-footer sanitizer is missing."
   },
   {
+    id: "field-readiness-session-split-no-reference-footer",
+    lane: "field-readiness",
+    regression: "repeated_footer_instruction",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /참고할 기준은\s*\$\{closureHandle\}입니다\./,
+    mode: "absent",
+    description: "Session split approval reply must not append a separate reference footer.",
+    passEvidence: "session split approval reply does not append closureHandle as a reference footer.",
+    failEvidence: "session split approval reply still appends closureHandle as a reference footer."
+  },
+  {
     id: "field-readiness-visible-delivery-boundary",
     lane: "field-readiness",
     regression: "completion_overclaim",
@@ -288,6 +313,86 @@ const CHECKS = [
     failEvidence: "Current request anchor protection is missing."
   },
   {
+    id: "human-companion-quality-user-reality-frame",
+    lane: "perceived-quality",
+    regression: "human_companion_quality_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /userRealityFrame/,
+    description: "Runtime preserves user reality before interpretation.",
+    passEvidence: "userRealityFrame is present.",
+    failEvidence: "userRealityFrame is missing."
+  },
+  {
+    id: "human-companion-quality-burden-reducer",
+    lane: "perceived-quality",
+    regression: "human_companion_quality_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /burdenReducer/,
+    description: "Runtime has an explicit burden reduction frame.",
+    passEvidence: "burdenReducer is present.",
+    failEvidence: "burdenReducer is missing."
+  },
+  {
+    id: "human-companion-quality-asset-ledger",
+    lane: "perceived-quality",
+    regression: "stale_context_takeover",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /conversationAssetLedger/,
+    description: "Runtime keeps conversation assets separate from unaccepted assistant interpretations.",
+    passEvidence: "conversationAssetLedger is present.",
+    failEvidence: "conversationAssetLedger is missing."
+  },
+  {
+    id: "human-companion-quality-artifact-scene-model",
+    lane: "perceived-quality",
+    regression: "artifact_delay",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /artifactSceneModel/,
+    description: "Runtime carries artifact scene fit, not only artifact-first timing.",
+    passEvidence: "artifactSceneModel is present.",
+    failEvidence: "artifactSceneModel is missing."
+  },
+  {
+    id: "human-companion-quality-recovery-frame",
+    lane: "perceived-quality",
+    regression: "misread_recovery",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /recoveryFrame/,
+    description: "Runtime carries a recovery frame for misread repair.",
+    passEvidence: "recoveryFrame is present.",
+    failEvidence: "recoveryFrame is missing."
+  },
+  {
+    id: "human-companion-quality-conversational-flow-core",
+    lane: "perceived-quality",
+    regression: "conversation_flow_naturalness",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /conversationalFlowCore/,
+    description: "Runtime tracks conversational flow as intent, state, and situation, not generic context stuffing.",
+    passEvidence: "conversationalFlowCore is present.",
+    failEvidence: "Conversational flow core is missing."
+  },
+  {
+    id: "human-companion-quality-flow-rendered",
+    lane: "perceived-quality",
+    regression: "conversation_flow_naturalness",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /conversational_flow_core:/,
+    description: "Prompt context renders the conversational flow core.",
+    passEvidence: "conversational_flow_core render section is present.",
+    failEvidence: "Conversational flow core is not rendered into prompt context."
+  },
+  {
+    id: "human-companion-contract-flow-naturalness",
+    lane: "release-checklist",
+    regression: "conversation_flow_naturalness",
+    file: "config/beai-human-companion-quality-contract.json",
+    pattern: /"conversation_flow_must_track_intent_state_and_situation":\s*true/,
+    description: "Human companion contract explicitly requires intent, state, and situation tracking.",
+    passEvidence: "Conversational flow naturalness rule is present.",
+    failEvidence: "Conversational flow naturalness rule is missing."
+  },
+  {
     id: "human-companion-quality-prior-context-boundary",
     lane: "perceived-quality",
     regression: "stale_context_takeover",
@@ -356,6 +461,26 @@ const CHECKS = [
     description: "BEAI Doctor emits a Flow State summary.",
     passEvidence: "Doctor flowSummary is present.",
     failEvidence: "Doctor flowSummary is missing."
+  },
+  {
+    id: "doctor-live-evidence-freshness-window",
+    lane: "field-readiness",
+    regression: "stale_context_takeover",
+    file: "tools/beai-doctor.js",
+    pattern: /BEAI_DOCTOR_LIVE_EVIDENCE_WINDOW_MS|liveEvidenceFreshnessWindowMs/,
+    description: "Doctor separates current live evidence from stale historical evidence.",
+    passEvidence: "Doctor has a configurable live evidence freshness window.",
+    failEvidence: "Doctor may treat stale live evidence as a current failure."
+  },
+  {
+    id: "doctor-historical-speed-gap-review-only",
+    lane: "field-readiness",
+    regression: "completion_overclaim",
+    file: "tools/beai-doctor.js",
+    pattern: /beai-historical-quick-first-status-gap|beai-historical-long-running-visible-progress-gap/,
+    description: "Doctor keeps historical speed/progress gaps as review signals, not current approval-required failures.",
+    passEvidence: "Doctor has historical speed/progress gap issue codes.",
+    failEvidence: "Doctor does not separate historical speed/progress gaps from current failures."
   },
   {
     id: "release-checklist-package-check-flow-evidence",
@@ -540,7 +665,7 @@ function main() {
   if (!["json", "md"].includes(options.format)) {
     throw new Error("--format must be json or md");
   }
-  const root = path.resolve(options.root);
+  const root = resolveCapabilityRoot(options.root);
   const report = buildReport(root);
   const rendered = options.format === "json"
     ? `${JSON.stringify(report, null, 2)}\n`

@@ -21,6 +21,16 @@ function fileExists(filePath) {
   return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
+function resolveCapabilityRoot(inputRoot) {
+  const root = path.resolve(inputRoot || ".");
+  if (fileExists(path.join(root, "capability-pack.json"))) return root;
+  const nested = path.join(root, "capability-pack");
+  if (fileExists(path.join(nested, "capability-pack.json"))) return nested;
+  const scriptRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  if (fileExists(path.join(scriptRoot, "capability-pack.json"))) return scriptRoot;
+  return root;
+}
+
 function checkPaths(root, paths) {
   return paths.map((relativePath) => {
     const absolutePath = path.join(root, relativePath);
@@ -172,9 +182,18 @@ function checkHumanCompanionQualityContract(root) {
     artifact_request_requires_usable_output_before_explanation: rules.artifact_request_requires_usable_output_before_explanation === true,
     uncertainty_must_be_separated_from_verified_state: rules.uncertainty_must_be_separated_from_verified_state === true,
     status_claim_must_not_exceed_evidence: rules.status_claim_must_not_exceed_evidence === true,
+    conversation_flow_must_track_intent_state_and_situation: rules.conversation_flow_must_track_intent_state_and_situation === true,
+    context_must_move_fluidly_without_mechanical_stuffing: rules.context_must_move_fluidly_without_mechanical_stuffing === true,
+    correction_signal_must_update_frame_without_defense: rules.correction_signal_must_update_frame_without_defense === true,
     runtime_symbol_profile: requiredRuntimeSymbols.includes("HumanCompanionQualityProfile"),
     runtime_symbol_builder: requiredRuntimeSymbols.includes("buildHumanCompanionQualityProfile"),
     runtime_symbol_turn_plan: requiredRuntimeSymbols.includes("humanCompanionQuality"),
+    runtime_symbol_user_reality_frame: requiredRuntimeSymbols.includes("userRealityFrame"),
+    runtime_symbol_burden_reducer: requiredRuntimeSymbols.includes("burdenReducer"),
+    runtime_symbol_conversation_asset_ledger: requiredRuntimeSymbols.includes("conversationAssetLedger"),
+    runtime_symbol_artifact_scene_model: requiredRuntimeSymbols.includes("artifactSceneModel"),
+    runtime_symbol_recovery_frame: requiredRuntimeSymbols.includes("recoveryFrame"),
+    runtime_symbol_conversational_flow_core: requiredRuntimeSymbols.includes("conversationalFlowCore"),
     gate_flow_regression: requiredGateCoverage.includes("beai-flow-regression-gate"),
     gate_user_scenario: requiredGateCoverage.includes("beai-user-scenario-audit"),
     gate_doctor_package_check: requiredGateCoverage.includes("beai-doctor-package-check"),
@@ -244,7 +263,7 @@ function renderMarkdown(report) {
 }
 
 function main() {
-  const root = path.resolve(argValue("--root", "."));
+  const root = resolveCapabilityRoot(argValue("--root", "."));
   const jsonOutput = path.resolve(argValue("--json-output", "docs/03-verification/generated/beai-doctor-package-check.json"));
   const markdownOutput = path.resolve(argValue("--markdown-output", "docs/03-verification/generated/beai-doctor-package-check.md"));
 
