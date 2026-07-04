@@ -150,6 +150,87 @@ function ledgerSummary(filePath, kind) {
   };
 }
 
+function buildWorkbenchStatus(capabilityRoot, manifest) {
+  const contractPath = "config/beai-workbench-essential-skills-contract.json";
+  const contract = readJson(path.join(capabilityRoot, contractPath));
+  const studios = Array.isArray(contract?.studios) ? contract.studios : [];
+  const studioFiles = studios.map((studio) => ({
+    id: studio.id,
+    name: studio.name,
+    path: studio.source,
+    exists: isFile(path.join(capabilityRoot, studio.source))
+  }));
+  const manifestEssential = manifest?.essentialSkills ?? null;
+  const candidateModulePresent = Array.isArray(manifest?.candidateModules)
+    ? manifest.candidateModules.some((item) => item.id === "beai-workbench-essential-skills")
+    : false;
+  const generatedAudit = latestGeneratedReport(capabilityRoot, "beai-workbench-skill-audit-verify.json");
+  const ready = Boolean(contract)
+    && studios.length === 5
+    && studioFiles.every((studio) => studio.exists)
+    && Boolean(manifestEssential)
+    && candidateModulePresent;
+  return {
+    status: ready ? "source_candidate" : "partial",
+    contract: {
+      path: contractPath,
+      exists: Boolean(contract),
+      schema: contract?.schema ?? null
+    },
+    manifestEssentialSkills: Boolean(manifestEssential),
+    candidateModulePresent,
+    defaultBoundary: manifestEssential?.defaultBoundary ?? contract?.boundaries?.default_status ?? "unknown",
+    studios: {
+      total: studios.length,
+      present: studioFiles.filter((studio) => studio.exists).length,
+      files: studioFiles
+    },
+    audit: generatedAudit
+  };
+}
+
+function buildExternalReachStatus(capabilityRoot, manifest) {
+  const contractPath = "config/beai-external-reach-contract.json";
+  const contract = readJson(path.join(capabilityRoot, contractPath));
+  const channels = Array.isArray(contract?.channels) ? contract.channels : [];
+  const publicChannels = channels.filter((channel) => channel.approvalRequired === false);
+  const approvalGatedChannels = channels.filter((channel) => channel.approvalRequired === true);
+  const manifestExternalReach = manifest?.externalReach ?? null;
+  const candidateModulePresent = Array.isArray(manifest?.candidateModules)
+    ? manifest.candidateModules.some((item) => item.id === "beai-external-reach-layer")
+    : false;
+  const generatedDoctor = latestGeneratedReport(capabilityRoot, "beai-external-reach-doctor-verify.json");
+  const ready = Boolean(contract)
+    && channels.length >= 7
+    && Boolean(manifestExternalReach)
+    && candidateModulePresent
+    && isFile(path.join(capabilityRoot, "tools/beai-external-reach-doctor.mjs"))
+    && isFile(path.join(capabilityRoot, "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md"));
+  return {
+    status: ready ? "source_candidate" : "partial",
+    contract: {
+      path: contractPath,
+      exists: Boolean(contract),
+      schema: contract?.schema ?? null
+    },
+    manifestExternalReach: Boolean(manifestExternalReach),
+    candidateModulePresent,
+    defaultBoundary: manifestExternalReach?.defaultBoundary ?? "unknown",
+    channels: {
+      total: channels.length,
+      publicReadOnly: publicChannels.map((channel) => channel.id),
+      approvalGated: approvalGatedChannels.map((channel) => channel.id),
+      statuses: channels.map((channel) => ({
+        id: channel.id,
+        defaultStatus: channel.defaultStatus,
+        approvalRequired: channel.approvalRequired,
+        risk: channel.risk
+      }))
+    },
+    doctor: generatedDoctor
+  };
+}
+
 function buildStateLedgers(capabilityRoot, stateRootOption) {
   const fallbackRoot = path.join(capabilityRoot, "state/beai");
   const knownExternalRoot = "/Users/jyp/Developer/BEAI/beai-capability-pack/state/beai";
@@ -193,13 +274,16 @@ function buildReport(options) {
   const liveOpenclawPlugin = readJson(path.join(liveRuntimeRoot, "openclaw.plugin.json"));
   const archives = listPackageArchives(repoRoot);
   const state = buildStateLedgers(capabilityRoot, options.stateRoot);
+  const workbench = buildWorkbenchStatus(capabilityRoot, manifest);
+  const externalReach = buildExternalReachStatus(capabilityRoot, manifest);
   const verification = {
     packageVerify: latestGeneratedReport(capabilityRoot, "beai-package-verify.json"),
     doctorPackageCheck: latestGeneratedReport(capabilityRoot, "beai-doctor-package-check-verify.json"),
     flowRegression: latestGeneratedReport(capabilityRoot, "beai-flow-regression-gate-verify.json"),
     userScenarioAudit: latestGeneratedReport(capabilityRoot, "beai-user-scenario-audit-verify.json"),
     organicFlowAudit: latestGeneratedReport(capabilityRoot, "beai-organic-flow-audit-verify.json"),
-    packageTruthCheck: latestGeneratedReport(capabilityRoot, "beai-package-truth-check-verify.json")
+    packageTruthCheck: latestGeneratedReport(capabilityRoot, "beai-package-truth-check-verify.json"),
+    externalReachDoctor: latestGeneratedReport(capabilityRoot, "beai-external-reach-doctor-verify.json")
   };
   const verificationValues = Object.values(verification);
   const failedVerification = verificationValues.filter((item) => item.exists && !["pass", "ready"].includes(item.status));
@@ -254,6 +338,8 @@ function buildReport(options) {
         status: item.status ?? "unknown"
       })) : []
     },
+    workbench,
+    externalReach,
     state,
     verification,
     boundaries: {
@@ -278,6 +364,8 @@ function buildReport(options) {
     issues: [
       ...failedVerification.map((item) => `${item.path}: ${item.status}`),
       ...missingVerification.map((item) => `${item}: missing`),
+      ...(workbench.status === "source_candidate" ? [] : ["workbench essential skills: partial"]),
+      ...(externalReach.status === "source_candidate" ? [] : ["external reach layer: partial"]),
       ...(state.missing.length ? [`missing state ledgers: ${state.missing.join(", ")}`] : []),
       ...(state.blockers.length ? [`blocked state ledgers: ${state.blockers.join(", ")}`] : [])
     ],
@@ -323,6 +411,28 @@ function renderMarkdown(report) {
   for (const ledger of report.state.ledgers) {
     lines.push(`- ${ledger.exists ? "PRESENT" : "MISSING"}: ${ledger.kind} (${ledger.status}, count=${ledger.count})`);
   }
+  lines.push("");
+  lines.push("## Workbench Essential Skills");
+  lines.push("");
+  lines.push(`- status: ${report.workbench.status}`);
+  lines.push(`- contract: ${report.workbench.contract.exists ? "present" : "missing"} (${report.workbench.contract.path})`);
+  lines.push(`- manifest essentialSkills: ${report.workbench.manifestEssentialSkills ? "present" : "missing"}`);
+  lines.push(`- candidate module: ${report.workbench.candidateModulePresent ? "present" : "missing"}`);
+  lines.push(`- studios: ${report.workbench.studios.present}/${report.workbench.studios.total}`);
+  lines.push(`- default boundary: ${report.workbench.defaultBoundary}`);
+  lines.push(`- audit: ${report.workbench.audit.exists ? report.workbench.audit.status : "missing"} (${report.workbench.audit.path})`);
+  lines.push("");
+  lines.push("## External Reach Layer");
+  lines.push("");
+  lines.push(`- status: ${report.externalReach.status}`);
+  lines.push(`- contract: ${report.externalReach.contract.exists ? "present" : "missing"} (${report.externalReach.contract.path})`);
+  lines.push(`- manifest externalReach: ${report.externalReach.manifestExternalReach ? "present" : "missing"}`);
+  lines.push(`- candidate module: ${report.externalReach.candidateModulePresent ? "present" : "missing"}`);
+  lines.push(`- channels: ${report.externalReach.channels.total}`);
+  lines.push(`- public read-only: ${report.externalReach.channels.publicReadOnly.join(", ") || "none"}`);
+  lines.push(`- approval-gated: ${report.externalReach.channels.approvalGated.join(", ") || "none"}`);
+  lines.push(`- default boundary: ${report.externalReach.defaultBoundary}`);
+  lines.push(`- doctor: ${report.externalReach.doctor.exists ? report.externalReach.doctor.status : "missing"} (${report.externalReach.doctor.path})`);
   lines.push("");
   lines.push("## Verification");
   lines.push("");

@@ -1,6 +1,6 @@
 {
   "id": "beai-capability-pack",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "status": "internal-team-release-candidate",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [
@@ -24,7 +24,9 @@
     "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
     "frictionAwareGatePolicy": "Use docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md and config/beai-friction-aware-gate-contract.json so BEAI preserves speed and comfort by default, performs quiet checks without interrupting the user, asks approval only at real risk transitions, verifies after action before completion claims, and refuses high-liability automation.",
     "controlCenterPolicy": "Use docs/BEAI-CONTROL-CENTER-v0.1-ko.md, config/beai-control-center-contract.json, and tools/beai-control-center.mjs to expose BEAI Package source, live, package, release, workflow, automation, memory, delivery, and verification state as one read-only status surface without mutating OpenClaw or overclaiming completion.",
-    "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks."
+    "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks.",
+    "workbenchEssentialSkillsPolicy": "Use docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md, config/beai-workbench-essential-skills-contract.json, and tools/beai-workbench-skill-audit.mjs to define BEAI Workbench Essential Skills as human-centered, artifact-native source-candidate studios with pattern libraries, quality gates, and approval boundaries. These skills are not cron, agent, live, or release states by default.",
+    "externalReachPolicy": "Use docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md, config/beai-external-reach-contract.json, and tools/beai-external-reach-doctor.mjs to define BEAI External Reach Layer as a read-only, evidence-aware connector contract for public web, GitHub, YouTube, RSS, and approval-gated social channels. Public network checks are optional evidence; account, cookie, login, paid API, external send, cron/agent activation, durable memory, and public release actions remain separate approval boundaries."
   },
   "skills": [
     {
@@ -116,6 +118,81 @@
         "memory approval",
         "public publishing",
         "release readiness declaration"
+      ]
+    },
+    {
+      "id": "beai-visual-design-studio",
+      "label": "BEAI Visual Design Studio",
+      "source": "skills/beai-visual-design-studio/SKILL.md",
+      "status": "source-candidate-in-v0.2.5",
+      "purpose": "Design visually polished, brand-consistent layouts, visual directions, image prompts, and visual QA with explicit aesthetic quality and approval boundaries.",
+      "notActivated": [
+        "cron or hook registration",
+        "agent promotion",
+        "durable memory promotion",
+        "external send",
+        "public publishing",
+        "live runtime mutation"
+      ]
+    },
+    {
+      "id": "beai-presentation-studio",
+      "label": "BEAI Presentation Studio",
+      "source": "skills/beai-presentation-studio/SKILL.md",
+      "status": "source-candidate-in-v0.2.5",
+      "purpose": "Turn ideas into slide narratives, visual motifs, speaker notes, and presentation QA without overclaiming generated or rendered status.",
+      "notActivated": [
+        "cron or hook registration",
+        "agent promotion",
+        "durable memory promotion",
+        "external send",
+        "public publishing",
+        "live runtime mutation"
+      ]
+    },
+    {
+      "id": "beai-document-craft-studio",
+      "label": "BEAI Document Craft Studio",
+      "source": "skills/beai-document-craft-studio/SKILL.md",
+      "status": "source-candidate-in-v0.2.5",
+      "purpose": "Create reader-centered proposals, reports, manuals, meeting notes, and decision documents with structure, reader tests, and format boundaries.",
+      "notActivated": [
+        "cron or hook registration",
+        "agent promotion",
+        "durable memory promotion",
+        "external send",
+        "public publishing",
+        "live runtime mutation"
+      ]
+    },
+    {
+      "id": "beai-research-evidence-studio",
+      "label": "BEAI Research Evidence Studio",
+      "source": "skills/beai-research-evidence-studio/SKILL.md",
+      "status": "source-candidate-in-v0.2.5",
+      "purpose": "Build source-grounded research, evidence packs, claim checks, and decision briefs with claim/fact/inference separation.",
+      "notActivated": [
+        "cron or hook registration",
+        "agent promotion",
+        "durable memory promotion",
+        "external send",
+        "public publishing",
+        "live runtime mutation"
+      ]
+    },
+    {
+      "id": "beai-data-insight-lab",
+      "label": "BEAI Data Insight Lab",
+      "source": "skills/beai-data-insight-lab/SKILL.md",
+      "status": "source-candidate-in-v0.2.5",
+      "purpose": "Analyze CSV/XLSX data, statistics, charts, formula integrity, and decision implications with reproducibility and statistical boundaries.",
+      "notActivated": [
+        "cron or hook registration",
+        "agent promotion",
+        "durable memory promotion",
+        "external send",
+        "public publishing",
+        "live runtime mutation"
       ]
     }
   ],
@@ -546,6 +623,90 @@
         "external sends by the package check helper",
         "public release publishing"
       ]
+    },
+    {
+      "id": "beai-workbench-essential-skills",
+      "label": "BEAI Workbench Essential Skills",
+      "status": "source-candidate",
+      "target": "BEAI Package for OpenClaw v0.2.5 candidate",
+      "docs": [
+        "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md",
+        "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md",
+        "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md",
+        "docs/RELEASE-NOTES-v0.2.5-ko.md"
+      ],
+      "configs": [
+        "config/beai-workbench-essential-skills-contract.json"
+      ],
+      "skills": [
+        "skills/beai-visual-design-studio/SKILL.md",
+        "skills/beai-presentation-studio/SKILL.md",
+        "skills/beai-document-craft-studio/SKILL.md",
+        "skills/beai-research-evidence-studio/SKILL.md",
+        "skills/beai-data-insight-lab/SKILL.md"
+      ],
+      "tools": [
+        "tools/beai-workbench-skill-audit.mjs"
+      ],
+      "scope": [
+        "Visual Design Studio",
+        "Presentation Studio",
+        "Document Craft Studio",
+        "Research Evidence Studio",
+        "Data Insight Lab",
+        "artifact-specific quality gates",
+        "approval boundaries",
+        "read-only source-candidate audit"
+      ],
+      "excluded": [
+        "live runtime apply",
+        "Gateway restart",
+        "cron/hook/agent activation",
+        "durable memory promotion",
+        "external send",
+        "public release publishing"
+      ]
+    },
+    {
+      "id": "beai-external-reach-layer",
+      "label": "BEAI External Reach Layer",
+      "status": "source-candidate",
+      "target": "BEAI Package for OpenClaw v0.2.5 candidate",
+      "docs": [
+        "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+        "docs/RELEASE-NOTES-v0.2.5-ko.md"
+      ],
+      "configs": [
+        "config/beai-external-reach-contract.json"
+      ],
+      "tools": [
+        "tools/beai-external-reach-doctor.mjs"
+      ],
+      "scope": [
+        "public web connector status",
+        "GitHub connector status",
+        "YouTube metadata/transcript boundary",
+        "RSS/Atom connector status",
+        "X/Twitter approval boundary",
+        "Reddit approval and rate-limit boundary",
+        "Instagram/Facebook unsafe-without-approval boundary",
+        "source registry fields",
+        "read-only static doctor",
+        "optional read-only live check"
+      ],
+      "excluded": [
+        "dependency installation",
+        "account login",
+        "browser cookie use",
+        "session cookie read",
+        "paid API key use",
+        "external post or send",
+        "live runtime apply",
+        "Gateway restart",
+        "cron/hook/agent activation",
+        "durable memory promotion",
+        "public release publishing"
+      ]
     }
   ],
   "agents": [
@@ -576,15 +737,56 @@
   ],
   "upgradePolicy": {
     "existingInstallers": "If v0.1.1 is already installed, update the existing BEAI skills in place and add only beai-development-steward as the new skill.",
-      "doNotDuplicate": [
-        "beai-release-verifier",
-        "beai-session-handoff",
-        "beai-memory-curator-review",
-        "beai-knowledge-loop",
-        "beai-doctor",
-        "beai-korean-natural-writing",
-        "beai-starter-agent-alpha"
-      ],
+    "doNotDuplicate": [
+      "beai-release-verifier",
+      "beai-session-handoff",
+      "beai-memory-curator-review",
+      "beai-knowledge-loop",
+      "beai-doctor",
+      "beai-korean-natural-writing",
+      "beai-starter-agent-alpha"
+    ],
     "applyMode": "Use Skill Workshop or the local OpenClaw safe skill-apply procedure. Do not modify BEAI Layer core, gateway, broad automation, or durable memory settings."
+  },
+  "essentialSkills": {
+    "id": "beai-workbench-essential-skills",
+    "label": "BEAI Workbench Essential Skills",
+    "status": "source-candidate",
+    "contract": "config/beai-workbench-essential-skills-contract.json",
+    "auditTool": "tools/beai-workbench-skill-audit.mjs",
+    "docs": [
+      "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md",
+      "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md",
+      "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md",
+      "docs/RELEASE-NOTES-v0.2.5-ko.md"
+    ],
+    "studios": [
+      "beai-visual-design-studio",
+      "beai-presentation-studio",
+      "beai-document-craft-studio",
+      "beai-research-evidence-studio",
+      "beai-data-insight-lab"
+    ],
+    "defaultBoundary": "source-candidate only; not live-applied, not automated, not released"
+  },
+  "externalReach": {
+    "id": "beai-external-reach-layer",
+    "label": "BEAI External Reach Layer",
+    "status": "source-candidate",
+    "contract": "config/beai-external-reach-contract.json",
+    "doctorTool": "tools/beai-external-reach-doctor.mjs",
+    "doc": "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+    "publicLiveCheckChannels": [
+      "public_web",
+      "github",
+      "youtube",
+      "rss"
+    ],
+    "approvalGatedChannels": [
+      "x_twitter",
+      "reddit",
+      "social_meta"
+    ],
+    "defaultBoundary": "source-candidate only; read-only by default; account, cookie, login, paid API, external send, automation, memory, release, and live apply require separate approval"
   }
 }

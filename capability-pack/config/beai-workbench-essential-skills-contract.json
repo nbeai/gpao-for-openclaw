@@ -1,0 +1,316 @@
+{
+  "schema": "beai.workbench_essential_skills_contract.v0_1",
+  "version": "0.1",
+  "status": "source-candidate",
+  "purpose": "Define BEAI Workbench Essential Skills as human-centered, artifact-native work studios with reusable patterns, quality gates, and approval boundaries.",
+  "rules": {
+    "workbench_skills_are_human_centered_delegation": true,
+    "studio_skills_must_preserve_user_agency": true,
+    "studio_skills_must_separate_draft_generated_checked_and_approval_states": true,
+    "quality_gates_must_be_artifact_specific": true,
+    "visual_design_must_include_aesthetic_quality": true,
+    "research_must_separate_claim_fact_inference": true,
+    "data_analysis_must_expose_statistical_boundaries": true,
+    "patterns_are_not_agents_or_cron_by_default": true,
+    "studio_skills_must_include_handoff_state": true,
+    "external_send_publish_memory_agent_cron_require_separate_approval": true,
+    "completion_claims_must_not_exceed_evidence": true
+  },
+  "required_docs": [
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md",
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md",
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md"
+  ],
+  "required_tool": "tools/beai-workbench-skill-audit.mjs",
+  "required_skill_sections": [
+    "Role",
+    "When To Use",
+    "Inputs",
+    "Workflow",
+    "Pattern Library",
+    "Output Contract",
+    "Quality Gate",
+    "Handoff State",
+    "Approval Boundary",
+    "What Not To Claim",
+    "User-Facing Summary Style"
+  ],
+  "state_labels": [
+    "draft",
+    "structured",
+    "artifact_generated",
+    "render_checked",
+    "evidence_checked",
+    "formula_checked",
+    "visual_checked",
+    "reader_checked",
+    "handoff_ready",
+    "client_ready_candidate",
+    "approval_required"
+  ],
+  "artifact_types": [
+    "markdown",
+    "docx",
+    "pdf",
+    "pptx",
+    "xlsx",
+    "csv",
+    "image",
+    "web_screen",
+    "source_registry",
+    "evidence_matrix",
+    "handoff_brief"
+  ],
+  "quality_gates": {
+    "visual": [
+      "aesthetic_quality",
+      "brand_consistency",
+      "typography_fit",
+      "layout_balance",
+      "readability",
+      "visual_qa_required_before_design_completion_claim"
+    ],
+    "presentation": [
+      "single_message_per_slide",
+      "visual_element_per_slide",
+      "narrative_flow",
+      "slide_render_qa",
+      "speaker_notes_fit"
+    ],
+    "document": [
+      "reader_profile",
+      "structure_fit",
+      "claim_evidence_separation",
+      "format_render_check",
+      "reader_test"
+    ],
+    "research": [
+      "source_registry",
+      "recency_check",
+      "claim_fact_inference_split",
+      "counter_evidence_check",
+      "evidence_strength_label"
+    ],
+    "data": [
+      "data_profile",
+      "cleaning_log",
+      "formula_or_calculation_check",
+      "statistical_boundary",
+      "chart_honesty"
+    ]
+  },
+  "approval_boundaries": [
+    "external_send",
+    "public_publish",
+    "release_zip_creation",
+    "github_release_or_tag",
+    "live_runtime_apply",
+    "gateway_restart",
+    "cron_hook_agent_activation",
+    "durable_memory_promotion",
+    "destructive_file_change"
+  ],
+  "forbidden_claims_without_evidence": [
+    "완성했습니다",
+    "검증됐습니다",
+    "제출 가능합니다",
+    "live 적용됐습니다",
+    "자동화됐습니다",
+    "agent로 승격됐습니다",
+    "published",
+    "released",
+    "production-ready"
+  ],
+  "studios": [
+    {
+      "id": "beai-visual-design-studio",
+      "label": "BEAI Visual Design Studio",
+      "domain": "visual-design",
+      "source": "skills/beai-visual-design-studio/SKILL.md",
+      "status": "source-candidate",
+      "triggers": [
+        "visual design direction",
+        "brand-consistent layout",
+        "landing/card/banner/thumbnail/poster design",
+        "moodboard",
+        "image prompt",
+        "visual QA"
+      ],
+      "patterns": [
+        "extract_brand_tokens",
+        "create_visual_direction",
+        "create_moodboard_brief",
+        "critique_visual_layout",
+        "pair_typography",
+        "build_palette_system",
+        "second_pass_visual_polish",
+        "avoid_ai_default_fingerprint",
+        "build_editable_asset_brief",
+        "handoff_visual_decisions"
+      ],
+      "outputs": [
+        "visual direction",
+        "brand token brief",
+        "layout critique",
+        "image prompt",
+        "visual QA report"
+      ],
+      "qualityGates": [
+        "visual"
+      ]
+    },
+    {
+      "id": "beai-presentation-studio",
+      "label": "BEAI Presentation Studio",
+      "domain": "presentation",
+      "source": "skills/beai-presentation-studio/SKILL.md",
+      "status": "source-candidate",
+      "triggers": [
+        "deck",
+        "slides",
+        "PPT",
+        "presentation narrative",
+        "speaker notes",
+        "slide QA"
+      ],
+      "patterns": [
+        "find_deck_thesis",
+        "build_slide_narrative",
+        "create_visual_motif",
+        "audit_text_only_slides",
+        "render_slide_qa",
+        "tighten_speaker_notes",
+        "build_slide_asset_plan",
+        "create_presenter_handoff",
+        "audit_slide_transition_logic"
+      ],
+      "outputs": [
+        "deck outline",
+        "slide-by-slide plan",
+        "visual motif brief",
+        "speaker notes",
+        "slide QA report"
+      ],
+      "qualityGates": [
+        "presentation",
+        "visual"
+      ]
+    },
+    {
+      "id": "beai-document-craft-studio",
+      "label": "BEAI Document Craft Studio",
+      "domain": "document-craft",
+      "source": "skills/beai-document-craft-studio/SKILL.md",
+      "status": "source-candidate",
+      "triggers": [
+        "proposal",
+        "report",
+        "manual",
+        "meeting notes",
+        "decision doc",
+        "reader test"
+      ],
+      "patterns": [
+        "capture_context_dump",
+        "build_reader_profile",
+        "create_document_scaffold",
+        "draft_section_with_options",
+        "run_reader_test",
+        "format_submission_version",
+        "create_review_packet",
+        "track_open_questions",
+        "handoff_document_decisions"
+      ],
+      "outputs": [
+        "document scaffold",
+        "draft sections",
+        "reader test",
+        "submission candidate",
+        "format notes"
+      ],
+      "qualityGates": [
+        "document"
+      ]
+    },
+    {
+      "id": "beai-research-evidence-studio",
+      "label": "BEAI Research Evidence Studio",
+      "domain": "research-evidence",
+      "source": "skills/beai-research-evidence-studio/SKILL.md",
+      "status": "source-candidate",
+      "triggers": [
+        "research",
+        "source-grounded answer",
+        "market or competitor scan",
+        "paper review",
+        "claim check",
+        "source pack"
+      ],
+      "patterns": [
+        "build_source_registry",
+        "separate_claim_fact_inference",
+        "check_recency",
+        "find_counter_evidence",
+        "grade_evidence_strength",
+        "create_decision_source_pack",
+        "map_source_disagreement",
+        "quote_or_paraphrase_safely",
+        "handoff_research_assumptions"
+      ],
+      "outputs": [
+        "source registry",
+        "evidence matrix",
+        "claim map",
+        "counter-evidence brief",
+        "decision source pack"
+      ],
+      "qualityGates": [
+        "research"
+      ]
+    },
+    {
+      "id": "beai-data-insight-lab",
+      "label": "BEAI Data Insight Lab",
+      "domain": "data-insight",
+      "source": "skills/beai-data-insight-lab/SKILL.md",
+      "status": "source-candidate",
+      "triggers": [
+        "CSV",
+        "XLSX",
+        "spreadsheet analysis",
+        "statistics",
+        "chart",
+        "data insight"
+      ],
+      "patterns": [
+        "profile_dataset",
+        "create_cleaning_log",
+        "audit_formula_integrity",
+        "choose_honest_chart",
+        "separate_correlation_from_causation",
+        "summarize_decision_implication",
+        "build_reproducibility_notes",
+        "stress_test_interpretation",
+        "handoff_analysis_assumptions"
+      ],
+      "outputs": [
+        "data profile",
+        "cleaning log",
+        "analysis summary",
+        "chart recommendation",
+        "decision implication"
+      ],
+      "qualityGates": [
+        "data"
+      ]
+    }
+  ],
+  "doctor_issue_codes": [
+    "beai-workbench-contract-missing",
+    "beai-workbench-skill-missing",
+    "beai-workbench-skill-section-missing",
+    "beai-workbench-quality-gate-missing",
+    "beai-workbench-approval-boundary-missing",
+    "beai-workbench-completion-overclaimed"
+  ]
+}

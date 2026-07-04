@@ -1,0 +1,220 @@
+{
+  "schema": "beai.external_reach_contract.v0_1",
+  "version": "0.1",
+  "status": "source-candidate",
+  "purpose": "Define BEAI External Reach Layer as a read-only, evidence-aware connector contract for public web, GitHub, YouTube, RSS, and approval-gated social channels.",
+  "rules": {
+    "external_reach_is_read_only_by_default": true,
+    "public_channels_may_be_checked_without_account": true,
+    "account_cookie_or_login_channels_require_separate_approval": true,
+    "source_registry_must_record_access_method": true,
+    "source_registry_must_record_fetched_at": true,
+    "source_registry_must_record_freshness": true,
+    "source_registry_must_record_backend_status": true,
+    "research_outputs_must_separate_claim_fact_inference": true,
+    "fallback_routing_must_not_hide_source_limits": true,
+    "completion_claims_must_not_exceed_connector_evidence": true,
+    "network_live_checks_are_optional_and_read_only": true,
+    "doctor_must_not_install_dependencies_or_mutate_accounts": true
+  },
+  "required_doc": "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+  "required_tool": "tools/beai-external-reach-doctor.mjs",
+  "required_statuses": [
+    "available",
+    "limited",
+    "needs_login",
+    "blocked",
+    "unsafe_without_approval",
+    "not_checked"
+  ],
+  "public_live_check_channels": [
+    "public_web",
+    "github",
+    "youtube",
+    "rss"
+  ],
+  "channels": [
+    {
+      "id": "public_web",
+      "label": "Public Web",
+      "defaultStatus": "available",
+      "accessMethod": "anonymous_http_fetch",
+      "risk": "low",
+      "approvalRequired": false,
+      "allowedEvidence": [
+        "url",
+        "fetched_at",
+        "http_status",
+        "title_or_text_presence",
+        "freshness_note"
+      ],
+      "fallbacks": [
+        "alternate_public_url",
+        "search_result_source",
+        "manual_user_provided_excerpt"
+      ]
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "defaultStatus": "available",
+      "accessMethod": "anonymous_http_or_api_fetch",
+      "risk": "low",
+      "approvalRequired": false,
+      "allowedEvidence": [
+        "repo_or_raw_url",
+        "fetched_at",
+        "license_or_release_signal",
+        "commit_or_release_date_when_available"
+      ],
+      "fallbacks": [
+        "raw_githubusercontent",
+        "repository_page",
+        "release_atom_feed"
+      ]
+    },
+    {
+      "id": "youtube",
+      "label": "YouTube",
+      "defaultStatus": "limited",
+      "accessMethod": "public_metadata_or_transcript_when_available",
+      "risk": "medium",
+      "approvalRequired": false,
+      "allowedEvidence": [
+        "video_url",
+        "metadata_status",
+        "transcript_status",
+        "fetched_at",
+        "limitations"
+      ],
+      "fallbacks": [
+        "public_oembed_metadata",
+        "user_provided_transcript",
+        "manual_summary_marked_unverified"
+      ]
+    },
+    {
+      "id": "rss",
+      "label": "RSS/Atom",
+      "defaultStatus": "available",
+      "accessMethod": "anonymous_feed_fetch",
+      "risk": "low",
+      "approvalRequired": false,
+      "allowedEvidence": [
+        "feed_url",
+        "entry_count",
+        "latest_entry_date",
+        "fetched_at"
+      ],
+      "fallbacks": [
+        "alternate_feed",
+        "site_news_page",
+        "manual_source_registry_entry"
+      ]
+    },
+    {
+      "id": "x_twitter",
+      "label": "X/Twitter",
+      "defaultStatus": "needs_login",
+      "accessMethod": "account_or_cookie_dependent",
+      "risk": "high",
+      "approvalRequired": true,
+      "allowedEvidence": [
+        "approval_state",
+        "login_required",
+        "public_preview_available",
+        "limitations"
+      ],
+      "fallbacks": [
+        "official_embedded_public_page",
+        "user_provided_text",
+        "third_party_quote_marked_unverified"
+      ]
+    },
+    {
+      "id": "reddit",
+      "label": "Reddit",
+      "defaultStatus": "limited",
+      "accessMethod": "public_json_or_login_dependent",
+      "risk": "medium",
+      "approvalRequired": true,
+      "allowedEvidence": [
+        "approval_state",
+        "public_json_status",
+        "login_or_rate_limit_status",
+        "limitations"
+      ],
+      "fallbacks": [
+        "public_json_endpoint",
+        "old_reddit_public_page",
+        "user_provided_excerpt"
+      ]
+    },
+    {
+      "id": "social_meta",
+      "label": "Instagram/Facebook",
+      "defaultStatus": "unsafe_without_approval",
+      "accessMethod": "account_cookie_or_browser_session_dependent",
+      "risk": "high",
+      "approvalRequired": true,
+      "allowedEvidence": [
+        "approval_state",
+        "blocked_by_default",
+        "login_required",
+        "limitations"
+      ],
+      "fallbacks": [
+        "official_public_page_if_available",
+        "user_provided_screenshot_or_text",
+        "defer_until_approved"
+      ]
+    }
+  ],
+  "source_registry_fields": [
+    "source_id",
+    "channel",
+    "url",
+    "access_method",
+    "backend",
+    "backend_status",
+    "fetched_at",
+    "freshness",
+    "requires_login",
+    "approval_state",
+    "evidence_strength",
+    "claim_fact_inference_boundary",
+    "limitations"
+  ],
+  "doctor_issue_codes": [
+    "beai-external-reach-contract-missing",
+    "beai-external-reach-tool-missing",
+    "beai-external-reach-doc-missing",
+    "beai-external-reach-channel-missing",
+    "beai-external-reach-approval-boundary-missing",
+    "beai-external-reach-source-registry-incomplete",
+    "beai-external-reach-social-channel-overclaimed",
+    "beai-external-reach-live-check-failed",
+    "beai-external-reach-network-check-not-run"
+  ],
+  "approval_boundaries": [
+    "account_login",
+    "browser_cookie_use",
+    "session_cookie_read",
+    "paid_api_key",
+    "external_post_or_reply",
+    "customer_or_private_data_access",
+    "cron_hook_agent_activation",
+    "durable_memory_promotion",
+    "public_release_claim"
+  ],
+  "forbidden_claims_without_evidence": [
+    "모든 채널을 읽을 수 있습니다",
+    "X를 바로 분석할 수 있습니다",
+    "Reddit을 바로 읽었습니다",
+    "로그인 없이 충분합니다",
+    "무료로 항상 됩니다",
+    "verified",
+    "production-ready",
+    "fully connected"
+  ]
+}

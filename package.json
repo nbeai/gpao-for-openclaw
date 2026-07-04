@@ -2,7 +2,7 @@
   "name": "beai-package-for-openclaw",
   "private": true,
   "scripts": {
-    "test": "node capability-pack/tools/beai-control-center.test.mjs && node capability-pack/tools/beai-control-center-guided-first-workflow.test.mjs",
+    "test": "node capability-pack/tools/beai-control-center.test.mjs && node capability-pack/tools/beai-control-center-guided-first-workflow.test.mjs && node capability-pack/tools/beai-workbench-skill-audit.test.mjs && node capability-pack/tools/beai-external-reach-doctor.test.mjs",
     "verify": "node capability-pack/tools/beai-package-verify.mjs --root ."
   }
 }

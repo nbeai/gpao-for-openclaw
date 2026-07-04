@@ -139,6 +139,19 @@ function buildReport(root) {
   const controlCenterContract = "config/beai-control-center-contract.json";
   const controlCenterDoc = "docs/BEAI-CONTROL-CENTER-v0.1-ko.md";
   const controlCenterTool = "tools/beai-control-center.mjs";
+  const workbenchContract = "config/beai-workbench-essential-skills-contract.json";
+  const workbenchContractDoc = "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md";
+  const workbenchResearchDossier = "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md";
+  const workbenchDevelopmentPlan = "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md";
+  const workbenchAuditTool = "tools/beai-workbench-skill-audit.mjs";
+  const externalReachContract = "config/beai-external-reach-contract.json";
+  const externalReachDoc = "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md";
+  const externalReachDoctor = "tools/beai-external-reach-doctor.mjs";
+  const visualDesignSkill = "skills/beai-visual-design-studio/SKILL.md";
+  const presentationSkill = "skills/beai-presentation-studio/SKILL.md";
+  const documentCraftSkill = "skills/beai-document-craft-studio/SKILL.md";
+  const researchEvidenceSkill = "skills/beai-research-evidence-studio/SKILL.md";
+  const dataInsightSkill = "skills/beai-data-insight-lab/SKILL.md";
   const contractDoc = "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md";
   const doctor = "tools/beai-doctor.js";
   const flowGate = "tools/beai-flow-regression-gate.mjs";
@@ -154,6 +167,8 @@ function buildReport(root) {
   const actionSemanticsQualityContract = readJson(root, actionSemanticsContract);
   const frictionAwareGateQualityContract = readJson(root, frictionAwareGateContract);
   const controlCenterQualityContract = readJson(root, controlCenterContract);
+  const workbenchQualityContract = readJson(root, workbenchContract);
+  const externalReachQualityContract = readJson(root, externalReachContract);
   const runtimeFiles = compareRuntimeFiles(packageJson, packageDistJson);
 
   const rules = deliveryContract?.rules || {};
@@ -166,6 +181,11 @@ function buildReport(root) {
   const controlCenterOutputs = Array.isArray(controlCenterQualityContract?.required_outputs)
     ? controlCenterQualityContract.required_outputs
     : [];
+  const workbenchRules = workbenchQualityContract?.rules || {};
+  const workbenchStudios = Array.isArray(workbenchQualityContract?.studios) ? workbenchQualityContract.studios : [];
+  const externalReachRules = externalReachQualityContract?.rules || {};
+  const externalReachChannels = Array.isArray(externalReachQualityContract?.channels) ? externalReachQualityContract.channels : [];
+  const externalReachChannelIds = new Set(externalReachChannels.map((channel) => channel.id));
   const humanCompanionRuntimeSymbols = Array.isArray(humanCompanionQualityContract?.required_runtime_symbols)
     ? humanCompanionQualityContract.required_runtime_symbols
     : [];
@@ -181,6 +201,14 @@ function buildReport(root) {
   const forbiddenOperationalMarkers = Array.isArray(operationalContract?.forbidden_raw_markers) ? operationalContract.forbidden_raw_markers : [];
   const skills = Array.isArray(manifest?.skills) ? manifest.skills : [];
   const knowledgeLoopSkill = skills.find((skill) => skill.id === "beai-knowledge-loop");
+  const workbenchSkillIds = [
+    "beai-visual-design-studio",
+    "beai-presentation-studio",
+    "beai-document-craft-studio",
+    "beai-research-evidence-studio",
+    "beai-data-insight-lab"
+  ];
+  const manifestSkillIds = new Set(skills.map((skill) => skill.id));
 
   const scenarios = [
     buildScenario({
@@ -462,6 +490,109 @@ function buildReport(root) {
         makeCheck("control-center-flow-gate", "Flow regression gate covers Control Center regressions.", fileContains(files, root, flowGate, /control_center_state_confusion/) && fileContains(files, root, flowGate, /control_center_mutation_risk/), "Flow gate has Control Center regression checks.", "P1")
       ],
       recommendation: "Keep v0.1 as a read-only status board. Add approval-shaped actions only after source/live/package/release, workflow/automation, memory, delivery, and verification ledgers are consistently visible."
+    }),
+    buildScenario({
+      id: "S23-workbench-essential-skills-source-candidate",
+      title: "Workbench Essential Skills가 단순 문서가 아니라 source candidate 구조로 잡혔는가",
+      userRisk: "핵심 작업 스킬을 말로만 정의하면 실제 패키지에서는 라우팅, 계약, 감사, 상태 표시가 분리되어 품질을 유지하지 못한다.",
+      checks: [
+        makeCheck("workbench-contract-parses", "Workbench contract parses.", Boolean(workbenchQualityContract), "Workbench contract JSON parses.", "P0"),
+        makeCheck("workbench-five-studios", "Workbench contract lists five studios.", workbenchStudios.length === 5, `studio count=${workbenchStudios.length}`, "P0"),
+        makeCheck("workbench-docs-present", "Workbench dossier, plan, and contract docs exist.", isFile(path.join(root, workbenchResearchDossier)) && isFile(path.join(root, workbenchDevelopmentPlan)) && isFile(path.join(root, workbenchContractDoc)), "Required Workbench docs are present.", "P1"),
+        makeCheck("workbench-skills-in-manifest", "Five Workbench skills are listed in manifest.", workbenchSkillIds.every((id) => manifestSkillIds.has(id)), "Manifest contains all Workbench skill ids.", "P0"),
+        makeCheck("workbench-essential-skills-manifest", "Manifest has essentialSkills source candidate section.", manifest?.essentialSkills?.id === "beai-workbench-essential-skills" && manifest?.essentialSkills?.status === "source-candidate", `essentialSkills status=${manifest?.essentialSkills?.status || "missing"}`, "P0"),
+        makeCheck("workbench-audit-tool-present", "Workbench read-only audit tool exists.", isFile(path.join(root, workbenchAuditTool)), "Audit tool file exists.", "P0"),
+        makeCheck("workbench-package-verify-wired", "Package verify runs Workbench skill audit.", fileContains(files, root, "tools/beai-package-verify.mjs", /beai-workbench-skill-audit\.mjs/), "Package verify includes Workbench audit.", "P1")
+      ],
+      recommendation: "Keep Workbench as a source candidate until contract, skill files, audit, Doctor, Control Center, and user scenario evidence all pass locally."
+    }),
+    buildScenario({
+      id: "S24-visual-design-aesthetic-quality",
+      title: "디자인 스킬이 정확성뿐 아니라 미감과 시각 완성도를 1차 품질로 다루는가",
+      userRisk: "기능적으로 맞지만 못생긴 결과물은 실제 업무에서 쓰이지 않고, 사용자는 BEAI가 디자인 감각을 갖추지 못했다고 느낀다.",
+      checks: [
+        makeCheck("visual-skill-present", "Visual Design Studio skill exists.", isFile(path.join(root, visualDesignSkill)), "Visual Design Studio SKILL.md exists.", "P0"),
+        makeCheck("visual-aesthetic-rule", "Contract requires aesthetic quality for design.", workbenchRules.visual_design_must_include_aesthetic_quality === true, "visual design aesthetic rule is true.", "P0"),
+        makeCheck("visual-polish-pattern", "Visual skill has visual polish and critique patterns.", fileContains(files, root, visualDesignSkill, /second_pass_visual_polish/) && fileContains(files, root, visualDesignSkill, /critique_visual_layout/), "Visual polish and critique patterns are present.", "P0"),
+        makeCheck("visual-taste-language", "Visual skill explicitly checks whether the output looks good.", fileContains(files, root, visualDesignSkill, /보기 좋은가/) && fileContains(files, root, visualDesignSkill, /타이포그래피/) && fileContains(files, root, visualDesignSkill, /색상/), "Aesthetic, typography, and color checks are present.", "P0"),
+        makeCheck("visual-no-overclaim", "Visual skill forbids claiming production-ready design without visual QA.", fileContains(files, root, visualDesignSkill, /Do not say production-ready|production-ready/) && fileContains(files, root, visualDesignSkill, /visual QA/), "Visual overclaim boundary is present.", "P1")
+      ],
+      recommendation: "Keep visual taste as an explicit gate: beautiful, readable, branded, editable, and medium-fit before calling a design client-ready."
+    }),
+    buildScenario({
+      id: "S25-research-evidence-boundary",
+      title: "리서치 스킬이 출처 요약이 아니라 판단 가능한 근거 바닥을 만드는가",
+      userRisk: "검색 결과를 그럴듯하게 요약하면 사용자는 최신성, 반대 근거, 주장/추론 경계를 놓치고 잘못된 판단을 할 수 있다.",
+      checks: [
+        makeCheck("research-skill-present", "Research Evidence Studio skill exists.", isFile(path.join(root, researchEvidenceSkill)), "Research Evidence Studio SKILL.md exists.", "P0"),
+        makeCheck("research-claim-fact-inference", "Research skill separates claim, fact, and inference.", fileContains(files, root, researchEvidenceSkill, /claim\/fact\/inference|claim, fact, inference/), "Claim/fact/inference separation is present.", "P0"),
+        makeCheck("research-counter-evidence", "Research skill requires counter-evidence.", fileContains(files, root, researchEvidenceSkill, /counter-evidence|counter evidence/i), "Counter-evidence requirement is present.", "P0"),
+        makeCheck("research-source-registry", "Research skill builds a source registry.", fileContains(files, root, researchEvidenceSkill, /source registry/), "Source registry is present.", "P0"),
+        makeCheck("research-evidence-strength", "Research skill grades evidence strength and unresolved checks.", fileContains(files, root, researchEvidenceSkill, /evidence strength/) && fileContains(files, root, researchEvidenceSkill, /unresolved checks/), "Evidence strength and unresolved checks are present.", "P1")
+      ],
+      recommendation: "Require source registry, recency, counter-evidence, and claim/fact/inference separation before a research result influences decisions."
+    }),
+    buildScenario({
+      id: "S26-data-insight-statistical-boundary",
+      title: "데이터 분석 스킬이 차트 생성보다 재현성과 통계 한계를 먼저 지키는가",
+      userRisk: "그럴듯한 차트와 수치가 계산 오류, 결측치, 상관/인과 혼동, 과장된 해석을 숨기면 의사결정 위험이 커진다.",
+      checks: [
+        makeCheck("data-skill-present", "Data Insight Lab skill exists.", isFile(path.join(root, dataInsightSkill)), "Data Insight Lab SKILL.md exists.", "P0"),
+        makeCheck("data-formula-integrity", "Data skill audits formulas and recalculation.", fileContains(files, root, dataInsightSkill, /audit_formula_integrity/) && fileContains(files, root, dataInsightSkill, /recalculation|recalc/i), "Formula integrity and recalculation checks are present.", "P0"),
+        makeCheck("data-cleaning-log", "Data skill requires a cleaning log.", fileContains(files, root, dataInsightSkill, /cleaning log/), "Cleaning log requirement is present.", "P0"),
+        makeCheck("data-correlation-causation", "Data skill separates correlation and causation.", fileContains(files, root, dataInsightSkill, /correlation/) && fileContains(files, root, dataInsightSkill, /causation/), "Correlation/causation boundary is present.", "P0"),
+        makeCheck("data-statistical-boundary", "Data skill requires statistical limitation boundary.", fileContains(files, root, dataInsightSkill, /statistical boundary|statistical limitation|statistical proof/i), "Statistical boundary is present.", "P1")
+      ],
+      recommendation: "Treat data work as reproducible judgment support: profile, clean, verify formulas, state limits, then visualize."
+    }),
+    buildScenario({
+      id: "S27-presentation-document-artifact-gates",
+      title: "발표자료와 문서 스킬이 텍스트 초안이 아니라 실제 산출물 품질 게이트를 갖는가",
+      userRisk: "PPT나 문서가 내용상 맞아도 화면, 렌더링, 독자 흐름, 제출 형식이 깨지면 사용자는 바로 쓸 수 없다.",
+      checks: [
+        makeCheck("presentation-skill-present", "Presentation Studio skill exists.", isFile(path.join(root, presentationSkill)), "Presentation Studio SKILL.md exists.", "P0"),
+        makeCheck("document-skill-present", "Document Craft Studio skill exists.", isFile(path.join(root, documentCraftSkill)), "Document Craft Studio SKILL.md exists.", "P0"),
+        makeCheck("presentation-render-qa", "Presentation skill requires render or screenshot QA.", fileContains(files, root, presentationSkill, /render|screenshot/i) && fileContains(files, root, presentationSkill, /QA/), "Presentation render/screenshot QA is present.", "P0"),
+        makeCheck("presentation-not-text-only", "Presentation skill forbids calling text-only outlines finished slides.", fileContains(files, root, presentationSkill, /text-only outline/) && fileContains(files, root, presentationSkill, /finished deck/), "Text-only deck boundary is present.", "P1"),
+        makeCheck("document-reader-test", "Document skill requires reader test and structure.", fileContains(files, root, documentCraftSkill, /reader_test/) && fileContains(files, root, documentCraftSkill, /structure/), "Reader test and structure are present.", "P0"),
+        makeCheck("document-submission-boundary", "Document skill separates draft from submitted/approved document.", fileContains(files, root, documentCraftSkill, /submitted|approved/i) && fileContains(files, root, documentCraftSkill, /separate approval|Requires separate approval/), "Submission boundary is present.", "P1")
+      ],
+      recommendation: "Keep PPT and document work artifact-shaped: story, layout, render/readability QA, format boundary, and human approval before external use."
+    }),
+    buildScenario({
+      id: "S28-workbench-handoff-pattern-depth",
+      title: "Workbench Studio가 다음 사람이나 도구가 이어받을 수 있는 handoff-ready 패턴을 갖는가",
+      userRisk: "산출물이 좋아 보여도 의사결정, 가정, 자산 계획, 검증 상태가 남지 않으면 다음 세션이나 사람이 이어받지 못해 실제 업무 자산이 되기 어렵다.",
+      checks: [
+        makeCheck("workbench-handoff-rule", "Workbench contract requires handoff state.", workbenchRules.studio_skills_must_include_handoff_state === true, "handoff state rule is true.", "P0"),
+        makeCheck("workbench-required-section-handoff", "Handoff State is a required skill section.", Array.isArray(workbenchQualityContract?.required_skill_sections) && workbenchQualityContract.required_skill_sections.includes("Handoff State"), "Handoff State section is required.", "P0"),
+        makeCheck("workbench-round4-dossier", "Research dossier includes Round 4 external pattern review.", fileContains(files, root, workbenchResearchDossier, /Round 4\. Community-adopted skill libraries and handoff patterns/), "Round 4 dossier section exists.", "P1"),
+        makeCheck("workbench-pattern-depth", "Every Studio has at least nine contract patterns.", workbenchStudios.length === 5 && workbenchStudios.every((studio) => Array.isArray(studio.patterns) && studio.patterns.length >= 9), "All five studios have at least nine patterns.", "P0"),
+        makeCheck("visual-handoff-section", "Visual skill has Handoff State.", fileContains(files, root, visualDesignSkill, /^## Handoff State$/m), "Visual Handoff State exists.", "P0"),
+        makeCheck("presentation-handoff-section", "Presentation skill has Handoff State.", fileContains(files, root, presentationSkill, /^## Handoff State$/m), "Presentation Handoff State exists.", "P0"),
+        makeCheck("document-handoff-section", "Document skill has Handoff State.", fileContains(files, root, documentCraftSkill, /^## Handoff State$/m), "Document Handoff State exists.", "P0"),
+        makeCheck("research-handoff-section", "Research skill has Handoff State.", fileContains(files, root, researchEvidenceSkill, /^## Handoff State$/m), "Research Handoff State exists.", "P0"),
+        makeCheck("data-handoff-section", "Data skill has Handoff State.", fileContains(files, root, dataInsightSkill, /^## Handoff State$/m), "Data Handoff State exists.", "P0")
+      ],
+      recommendation: "Treat handoff readiness as a BEAI differentiator: every Studio must leave decisions, assumptions, QA state, and next checks in a form that a human or later tool can continue."
+    }),
+    buildScenario({
+      id: "S29-external-reach-layer-source-candidate",
+      title: "External Reach Layer가 외부 채널 접근을 만능으로 과장하지 않고 검증 가능한 계층으로 잡혔는가",
+      userRisk: "외부 URL, X, Reddit, YouTube, GitHub를 모두 바로 읽을 수 있다고 과장하면 사용자는 계정/쿠키/로그인/정책 제한과 출처 검증 상태를 놓친다.",
+      checks: [
+        makeCheck("external-reach-contract-parses", "External Reach contract parses.", Boolean(externalReachQualityContract), "External Reach contract JSON parses.", "P0"),
+        makeCheck("external-reach-doc-present", "External Reach Korean doc exists.", isFile(path.join(root, externalReachDoc)), "External Reach doc is present.", "P1"),
+        makeCheck("external-reach-doctor-present", "External Reach read-only doctor exists.", isFile(path.join(root, externalReachDoctor)), "External Reach doctor file exists.", "P0"),
+        makeCheck("external-reach-package-verify-wired", "Package verify runs External Reach doctor.", fileContains(files, root, "tools/beai-package-verify.mjs", /beai-external-reach-doctor\.mjs/), "Package verify includes External Reach doctor.", "P1"),
+        makeCheck("external-reach-control-center-wired", "Control Center reports External Reach status.", fileContains(files, root, controlCenterTool, /externalReach/), "Control Center has External Reach section.", "P1"),
+        makeCheck("external-reach-readonly-rule", "External Reach is read-only by default.", externalReachRules.external_reach_is_read_only_by_default === true, "read-only default rule is true.", "P0"),
+        makeCheck("external-reach-public-channels", "Public web, GitHub, YouTube, and RSS are modeled.", ["public_web", "github", "youtube", "rss"].every((id) => externalReachChannelIds.has(id)), "Public channels are present.", "P0"),
+        makeCheck("external-reach-social-approval-gate", "X, Reddit, and Meta-family channels are approval-gated.", externalReachChannels.filter((channel) => ["x_twitter", "reddit", "social_meta"].includes(channel.id)).every((channel) => channel.approvalRequired === true), "Social/account-dependent channels are approval-gated.", "P0"),
+        makeCheck("external-reach-source-registry", "External Reach contract defines source registry fields.", Array.isArray(externalReachQualityContract?.source_registry_fields) && externalReachQualityContract.source_registry_fields.includes("backend_status") && externalReachQualityContract.source_registry_fields.includes("approval_state") && externalReachQualityContract.source_registry_fields.includes("limitations"), "Source registry includes backend status, approval state, and limitations.", "P0"),
+        makeCheck("research-studio-external-reach", "Research Evidence Studio references External Reach registry and approval boundary.", fileContains(files, root, researchEvidenceSkill, /External Reach/) && fileContains(files, root, researchEvidenceSkill, /account login|browser cookie/i), "Research Studio includes External Reach workflow and approval boundary.", "P0")
+      ],
+      recommendation: "Keep External Reach as read-only, source-registry-first infrastructure. Public channels can be checked quickly; account or cookie-dependent channels stay behind approval."
     })
   ];
 

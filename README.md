@@ -84,6 +84,8 @@ Included:
 - Korean Natural AI Writing Standard v1.0
 - Friction-Aware Gate contract
 - BEAI Control Center read-only status command
+- BEAI Workbench Essential Skills source-candidate studios
+- BEAI External Reach Layer read-only connector contract and doctor
 - public documentation and examples
 
 Excluded:
@@ -94,6 +96,7 @@ Excluded:
 - packaged internal zip files
 - local cron stores
 - local Telegram identifiers
+- account logins, browser cookies, or paid API keys for social-channel access
 - Gateway config mutation
 - public release publishing automation
 
@@ -239,9 +242,13 @@ cd capability-pack
 node --check tools/beai-doctor.js
 node --check tools/beai-doctor-package-check.mjs
 node --check tools/beai-user-scenario-audit.mjs
+node --check tools/beai-workbench-skill-audit.mjs
+node --check tools/beai-external-reach-doctor.mjs
 node tools/beai-doctor-package-check.mjs
 node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
 node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
+node tools/beai-workbench-skill-audit.mjs --root . --format md --output docs/03-verification/generated/beai-workbench-skill-audit.md --stdout
+node tools/beai-external-reach-doctor.mjs --root . --format md --output docs/03-verification/generated/beai-external-reach-doctor.md --stdout
 ```
 
 Expected:
@@ -251,6 +258,8 @@ Expected:
 - BEAI Doctor reports the capability pack as package-ready for controlled alpha review
 - BEAI 5 Flow regression checks pass before making user-experience or release-readiness claims
 - BEAI user-scenario audit separates pass, partial, and fail states before user-experience claims
+- Workbench Essential Skills source-candidate audit reports 5/5 studios ready
+- External Reach static doctor reports public channels, source registry fields, and approval-gated social/account boundaries ready
 
 ## Public Release Status
 

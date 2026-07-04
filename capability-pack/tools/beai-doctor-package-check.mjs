@@ -288,6 +288,131 @@ function checkControlCenterContract(root) {
   };
 }
 
+function checkWorkbenchEssentialSkillsContract(root) {
+  const configPath = path.join(root, "config/beai-workbench-essential-skills-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract?.rules || {};
+  const studios = Array.isArray(contract?.studios) ? contract.studios : [];
+  const stateLabels = Array.isArray(contract?.state_labels) ? contract.state_labels : [];
+  const issueCodes = Array.isArray(contract?.doctor_issue_codes) ? contract.doctor_issue_codes : [];
+  const checks = {
+    config_exists: true,
+    human_centered_delegation: rules.workbench_skills_are_human_centered_delegation === true,
+    preserves_user_agency: rules.studio_skills_must_preserve_user_agency === true,
+    separates_workbench_states: rules.studio_skills_must_separate_draft_generated_checked_and_approval_states === true,
+    artifact_specific_quality_gates: rules.quality_gates_must_be_artifact_specific === true,
+    visual_design_includes_aesthetics: rules.visual_design_must_include_aesthetic_quality === true,
+    research_claim_fact_inference_split: rules.research_must_separate_claim_fact_inference === true,
+    data_statistical_boundaries: rules.data_analysis_must_expose_statistical_boundaries === true,
+    patterns_not_agents_or_cron: rules.patterns_are_not_agents_or_cron_by_default === true,
+    approval_boundary_rule: rules.external_send_publish_memory_agent_cron_require_separate_approval === true,
+    completion_claim_evidence_rule: rules.completion_claims_must_not_exceed_evidence === true,
+    required_tool: contract.required_tool === "tools/beai-workbench-skill-audit.mjs",
+    studio_count: studios.length === 5,
+    visual_studio: studios.some((studio) => studio.id === "beai-visual-design-studio"),
+    presentation_studio: studios.some((studio) => studio.id === "beai-presentation-studio"),
+    document_studio: studios.some((studio) => studio.id === "beai-document-craft-studio"),
+    research_studio: studios.some((studio) => studio.id === "beai-research-evidence-studio"),
+    data_studio: studios.some((studio) => studio.id === "beai-data-insight-lab"),
+    state_draft: stateLabels.includes("draft"),
+    state_artifact_generated: stateLabels.includes("artifact_generated"),
+    state_visual_checked: stateLabels.includes("visual_checked"),
+    state_evidence_checked: stateLabels.includes("evidence_checked"),
+    state_formula_checked: stateLabels.includes("formula_checked"),
+    state_client_ready_candidate: stateLabels.includes("client_ready_candidate"),
+    state_approval_required: stateLabels.includes("approval_required"),
+    doctor_detects_contract_missing: issueCodes.includes("beai-workbench-contract-missing"),
+    doctor_detects_skill_missing: issueCodes.includes("beai-workbench-skill-missing"),
+    doctor_detects_section_missing: issueCodes.includes("beai-workbench-skill-section-missing"),
+    doctor_detects_quality_gate_missing: issueCodes.includes("beai-workbench-quality-gate-missing"),
+    doctor_detects_approval_boundary_missing: issueCodes.includes("beai-workbench-approval-boundary-missing"),
+    doctor_detects_completion_overclaimed: issueCodes.includes("beai-workbench-completion-overclaimed")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
+function checkExternalReachContract(root) {
+  const configPath = path.join(root, "config/beai-external-reach-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract?.rules || {};
+  const channels = Array.isArray(contract?.channels) ? contract.channels : [];
+  const statuses = Array.isArray(contract?.required_statuses) ? contract.required_statuses : [];
+  const registryFields = Array.isArray(contract?.source_registry_fields) ? contract.source_registry_fields : [];
+  const issueCodes = Array.isArray(contract?.doctor_issue_codes) ? contract.doctor_issue_codes : [];
+  const channelIds = channels.map((channel) => channel.id);
+  const checks = {
+    config_exists: true,
+    read_only_by_default: rules.external_reach_is_read_only_by_default === true,
+    public_channels_without_account: rules.public_channels_may_be_checked_without_account === true,
+    login_cookie_channels_require_approval: rules.account_cookie_or_login_channels_require_separate_approval === true,
+    source_registry_access_method: rules.source_registry_must_record_access_method === true,
+    source_registry_fetched_at: rules.source_registry_must_record_fetched_at === true,
+    source_registry_freshness: rules.source_registry_must_record_freshness === true,
+    source_registry_backend_status: rules.source_registry_must_record_backend_status === true,
+    claim_fact_inference_split: rules.research_outputs_must_separate_claim_fact_inference === true,
+    fallback_limits_visible: rules.fallback_routing_must_not_hide_source_limits === true,
+    completion_claim_boundary: rules.completion_claims_must_not_exceed_connector_evidence === true,
+    live_checks_optional_read_only: rules.network_live_checks_are_optional_and_read_only === true,
+    no_dependency_or_account_mutation: rules.doctor_must_not_install_dependencies_or_mutate_accounts === true,
+    required_tool: contract.required_tool === "tools/beai-external-reach-doctor.mjs",
+    required_doc: contract.required_doc === "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+    channel_public_web: channelIds.includes("public_web"),
+    channel_github: channelIds.includes("github"),
+    channel_youtube: channelIds.includes("youtube"),
+    channel_rss: channelIds.includes("rss"),
+    channel_x_twitter: channelIds.includes("x_twitter"),
+    channel_reddit: channelIds.includes("reddit"),
+    channel_social_meta: channelIds.includes("social_meta"),
+    status_available: statuses.includes("available"),
+    status_limited: statuses.includes("limited"),
+    status_needs_login: statuses.includes("needs_login"),
+    status_blocked: statuses.includes("blocked"),
+    status_unsafe_without_approval: statuses.includes("unsafe_without_approval"),
+    status_not_checked: statuses.includes("not_checked"),
+    registry_channel: registryFields.includes("channel"),
+    registry_access_method: registryFields.includes("access_method"),
+    registry_backend_status: registryFields.includes("backend_status"),
+    registry_fetched_at: registryFields.includes("fetched_at"),
+    registry_freshness: registryFields.includes("freshness"),
+    registry_approval_state: registryFields.includes("approval_state"),
+    registry_evidence_strength: registryFields.includes("evidence_strength"),
+    registry_limitations: registryFields.includes("limitations"),
+    social_channels_approval_gated: channels
+      .filter((channel) => ["x_twitter", "reddit", "social_meta"].includes(channel.id))
+      .every((channel) => channel.approvalRequired === true),
+    doctor_detects_contract_missing: issueCodes.includes("beai-external-reach-contract-missing"),
+    doctor_detects_tool_missing: issueCodes.includes("beai-external-reach-tool-missing"),
+    doctor_detects_doc_missing: issueCodes.includes("beai-external-reach-doc-missing"),
+    doctor_detects_channel_missing: issueCodes.includes("beai-external-reach-channel-missing"),
+    doctor_detects_approval_boundary_missing: issueCodes.includes("beai-external-reach-approval-boundary-missing"),
+    doctor_detects_social_overclaim: issueCodes.includes("beai-external-reach-social-channel-overclaimed"),
+    doctor_detects_live_check_failed: issueCodes.includes("beai-external-reach-live-check-failed")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
 function renderMarkdown(report) {
   const lines = [];
   lines.push("# BEAI Doctor Package Check");
@@ -305,6 +430,8 @@ function renderMarkdown(report) {
   lines.push(`- human_companion_quality_contract_status: ${report.human_companion_quality_contract_status}`);
   lines.push(`- friction_aware_gate_contract_status: ${report.friction_aware_gate_contract_status}`);
   lines.push(`- control_center_contract_status: ${report.control_center_contract_status}`);
+  lines.push(`- workbench_essential_skills_contract_status: ${report.workbench_essential_skills_contract_status}`);
+  lines.push(`- external_reach_contract_status: ${report.external_reach_contract_status}`);
   lines.push(`- trust_gate_status_count: ${report.trust_gate_status_count}`);
   lines.push(`- ledger_entry_count: ${report.ledger_entry_count}`);
   lines.push(`- package_status: ${report.package_status}`);
@@ -344,6 +471,18 @@ function renderMarkdown(report) {
   lines.push("## Control Center Contract");
   lines.push("");
   for (const [key, value] of Object.entries(report.control_center_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## Workbench Essential Skills Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.workbench_essential_skills_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## External Reach Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.external_reach_contract_checks || {})) {
     lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
   }
   lines.push("");
@@ -393,10 +532,23 @@ function main() {
     "state/beai/agent-trust-ledger.json",
     "tools/beai-doctor-package-check.mjs",
     "tools/beai-control-center.mjs",
+    "tools/beai-workbench-skill-audit.mjs",
     "tools/beai-operational-notification-gate.mjs",
     "tools/beai-organic-flow-audit.mjs",
     "docs/BEAI-CONTROL-CENTER-v0.1-ko.md",
-    "docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md"
+    "docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md",
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md",
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md",
+    "docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md",
+    "config/beai-workbench-essential-skills-contract.json",
+    "skills/beai-visual-design-studio/SKILL.md",
+    "skills/beai-presentation-studio/SKILL.md",
+    "skills/beai-document-craft-studio/SKILL.md",
+    "skills/beai-research-evidence-studio/SKILL.md",
+    "skills/beai-data-insight-lab/SKILL.md",
+    "docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+    "config/beai-external-reach-contract.json",
+    "tools/beai-external-reach-doctor.mjs"
   ]);
 
   const manifestHasDoctor = Array.isArray(manifest.skills)
@@ -408,9 +560,11 @@ function main() {
   const humanCompanionQualityContract = checkHumanCompanionQualityContract(root);
   const frictionAwareGateContract = checkFrictionAwareGateContract(root);
   const controlCenterContract = checkControlCenterContract(root);
+  const workbenchEssentialSkillsContract = checkWorkbenchEssentialSkillsContract(root);
+  const externalReachContract = checkExternalReachContract(root);
 
   const requiredFileStatus = statusFor(requiredFiles);
-  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready" && operationalNotificationContract.status === "ready" && humanCompanionQualityContract.status === "ready" && frictionAwareGateContract.status === "ready" && controlCenterContract.status === "ready"
+  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready" && operationalNotificationContract.status === "ready" && humanCompanionQualityContract.status === "ready" && frictionAwareGateContract.status === "ready" && controlCenterContract.status === "ready" && workbenchEssentialSkillsContract.status === "ready" && externalReachContract.status === "ready"
     ? "ready"
     : "partial";
 
@@ -431,6 +585,10 @@ function main() {
     friction_aware_gate_contract_checks: frictionAwareGateContract.checks,
     control_center_contract_status: controlCenterContract.status,
     control_center_contract_checks: controlCenterContract.checks,
+    workbench_essential_skills_contract_status: workbenchEssentialSkillsContract.status,
+    workbench_essential_skills_contract_checks: workbenchEssentialSkillsContract.checks,
+    external_reach_contract_status: externalReachContract.status,
+    external_reach_contract_checks: externalReachContract.checks,
     trust_gate_status_count: Array.isArray(trustGate.statuses) ? trustGate.statuses.length : 0,
     ledger_entry_count: Array.isArray(ledger.entries) ? ledger.entries.length : 0,
     package_status: packageStatus,

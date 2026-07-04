@@ -1,4 +1,4 @@
-# BEAI Capability Pack v0.2.4
+# BEAI Capability Pack v0.2.5
 
 BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
 
@@ -33,6 +33,8 @@ This package contains planning-ready definitions for:
 - BEAI Action Semantics and Recovery Claim Contract (diagnose/report/mitigate/repair/verify/prevent separation and recovery claim evidence gate)
 - BEAI Friction-Aware Gate Contract (fast by default, quiet checks where possible, approval only at risk transitions, and verification before completion claims)
 - BEAI Control Center Contract (read-only source/live/package/release/workflow/automation/memory/verification status surface)
+- BEAI Workbench Essential Skills (Visual Design, Presentation, Document Craft, Research Evidence, and Data Insight source-candidate studios)
+- BEAI External Reach Layer (read-only public web/GitHub/YouTube/RSS connector contract with approval-gated social/account boundaries)
 - Capability routing rules
 
 ## BEAI Korean Natural Writing Direction
@@ -306,6 +308,7 @@ node tools/beai-control-center.mjs --root . --format md --stdout
 Expected:
 
 - source, live, package, release, workflow, automation, memory, and verification states are visible in one read-only report
+- Workbench Essential Skills and External Reach Layer source-candidate status are visible without being overclaimed as live automation
 - workflow candidates are not reported as active automations
 - release zip, live runtime reinstall, Gateway restart, cron/agent activation, memory promotion, external send, and public publishing remain separate approval boundaries
 
@@ -389,10 +392,24 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `tools/beai-doctor-package-check.mjs`
 - `tools/beai-operational-notification-gate.mjs`
 - `tools/beai-control-center.mjs`
+- `tools/beai-workbench-skill-audit.mjs`
+- `tools/beai-external-reach-doctor.mjs`
 - `config/beai-knowledge-loop-external-sources.json`
 - `config/beai-trust-gate-statuses.json`
 - `config/beai-connector-onboarding-checklist.json`
 - `config/beai-operational-notification-contract.json`
+- `config/beai-workbench-essential-skills-contract.json`
+- `config/beai-external-reach-contract.json`
+- `docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md`
+- `docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md`
+- `docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md`
+- `docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md`
+- `docs/RELEASE-NOTES-v0.2.5-ko.md`
+- `skills/beai-visual-design-studio/SKILL.md`
+- `skills/beai-presentation-studio/SKILL.md`
+- `skills/beai-document-craft-studio/SKILL.md`
+- `skills/beai-research-evidence-studio/SKILL.md`
+- `skills/beai-data-insight-lab/SKILL.md`
 - `state/beai/agent-trust-ledger.json`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip`
 - `packages/beai-capability-pack-v0.2.0-knowledge-loop-20260630.zip.sha256`
