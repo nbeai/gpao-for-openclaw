@@ -1,6 +1,6 @@
 {
   "id": "beai-capability-pack",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "status": "internal-team-release-candidate",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [
@@ -19,11 +19,14 @@
     "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the top-level BEAI Package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
     "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target.",
     "humanCompanionQualityPolicy": "Use docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md and config/beai-human-companion-quality-contract.json to translate BEAI 5's perceived intelligence into product behavior: current-request anchoring, cognitive load reduction, user agency preservation, long-context stability, trust repair, and usable next movement. This is a runtime quality contract, not a fixed warmth or empathy style.",
+    "goalFitAuditPolicy": "Use docs/BEAI-PACKAGE-GOAL-FIT-AUDIT-20260705-ko.md to judge whether BEAI Package structure, runtime behavior, scenario evidence, Control Center, Module Map, Workbench, External Reach, release boundaries, and live evidence are aligned with the top user goal: AI that understands intent, preserves flow, carries session continuity, and reduces correction burden without adding needless friction.",
+    "conversationFlowReviewPolicy": "Use docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md, config/beai-conversation-flow-review-loop.json, and tools/beai-conversation-flow-review-check.mjs as a manual-first, review-only loop for turning real conversation-flow breaks into improvement candidates. It must not monitor all sessions, score every message, write memory, activate cron/agents/hooks, mutate live runtime, send external messages, create release zips, or publish without separate approval.",
     "actionSemanticsPolicy": "Use docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md and config/beai-action-semantics-contract.json so BEAI cannot call reports, warning suppression, prompt rules, or partial diagnostics a repair. Recovery claims require reproduced or observed failure, identified cause, changed failing path, and same-condition re-verification.",
     "koreanNaturalWritingPolicy": "Use docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md and skills/beai-korean-natural-writing-skill.md for Korean user-facing output, status wording, public copy, release wording, Telegram visible-delivery wording, Knowledge Loop/Doctor explanation clarity, app copy, error messages, and presentation scripts. Preserve meaning first; then improve Korean order, medium fit, uncertainty boundaries, and action clarity.",
     "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
     "frictionAwareGatePolicy": "Use docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md and config/beai-friction-aware-gate-contract.json so BEAI preserves speed and comfort by default, performs quiet checks without interrupting the user, asks approval only at real risk transitions, verifies after action before completion claims, and refuses high-liability automation.",
     "controlCenterPolicy": "Use docs/BEAI-CONTROL-CENTER-v0.1-ko.md, config/beai-control-center-contract.json, and tools/beai-control-center.mjs to expose BEAI Package source, live, package, release, workflow, automation, memory, delivery, and verification state as one read-only status surface without mutating OpenClaw or overclaiming completion.",
+    "packageModuleMapPolicy": "Use docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md, config/beai-package-module-map.json, and tools/beai-package-map-check.mjs as the concrete BEAI Package component map for explanation, separate module inspection, cross-module dependency reasoning, and improvement planning. The map is read-only evidence and does not install, publish, restart, send, write memory, or activate automation.",
     "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks.",
     "workbenchEssentialSkillsPolicy": "Use docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md, config/beai-workbench-essential-skills-contract.json, and tools/beai-workbench-skill-audit.mjs to define BEAI Workbench Essential Skills as human-centered, artifact-native source-candidate studios with pattern libraries, quality gates, and approval boundaries. These skills are not cron, agent, live, or release states by default.",
     "externalReachPolicy": "Use docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md, config/beai-external-reach-contract.json, and tools/beai-external-reach-doctor.mjs to define BEAI External Reach Layer as a read-only, evidence-aware connector contract for public web, GitHub, YouTube, RSS, and approval-gated social channels. Public network checks are optional evidence; account, cookie, login, paid API, external send, cron/agent activation, durable memory, and public release actions remain separate approval boundaries."
@@ -293,6 +296,70 @@
       ]
     },
     {
+      "id": "beai-package-goal-fit-audit",
+      "label": "BEAI Package Goal-Fit Audit",
+      "status": "local-precision-audit",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-PACKAGE-GOAL-FIT-AUDIT-20260705-ko.md"
+      ],
+      "scope": [
+        "AI 말귀 목표",
+        "current request and intent understanding",
+        "session continuity and context flow",
+        "runtime, Control Center, Module Map, Workbench, External Reach, release boundary alignment",
+        "remaining fix and reinforcement priorities"
+      ],
+      "evidence": [
+        "npm test pass",
+        "npm run verify pass",
+        "flow regression gate 64/64 pass",
+        "user scenario audit 29/29 pass",
+        "organic flow audit 14/14 pass",
+        "Control Center status review with source/live/runtime aligned",
+        "audit separates package-internal evidence from live Telegram roundtrip and public release evidence"
+      ]
+    },
+    {
+      "id": "beai-conversation-flow-review-loop",
+      "label": "BEAI Conversation Flow Review Loop",
+      "status": "manual-first-review-only",
+      "target": "BEAI Package for OpenClaw",
+      "docs": [
+        "docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-conversation-flow-review-loop.json"
+      ],
+      "tools": [
+        "tools/beai-conversation-flow-review-check.mjs"
+      ],
+      "scope": [
+        "real conversation-flow regression signal classification",
+        "current request drift, context takeover, intent misread, status overclaim, ceremony overload, silence gap, correction loop, handoff loss, and internal label leak candidates",
+        "manual-first candidate records",
+        "fixture, scenario, contract, Control Center, and package verify reinforcement paths",
+        "automation boundary separation"
+      ],
+      "evidence": [
+        "review loop config is package-readable",
+        "review loop document defines manual-first and review-only boundaries",
+        "beai-conversation-flow-review-check.mjs verifies config, document, manifest, module map, and automation boundary presence",
+        "package verify runs conversation-flow-review-check"
+      ],
+      "excluded": [
+        "all-session automatic monitoring",
+        "message scoring",
+        "cron, hook, or agent activation",
+        "durable memory promotion",
+        "live runtime mutation",
+        "Gateway restart",
+        "external send",
+        "release zip creation",
+        "GitHub release"
+      ]
+    },
+    {
       "id": "beai-action-semantics-recovery-claim-contract",
       "label": "BEAI Action Semantics and Recovery Claim Contract",
       "status": "package-regression-gate",
@@ -403,6 +470,34 @@
         "package verify runs the control center read-only status command",
         "flow regression gate includes control center state and mutation checks",
         "user scenario audit includes S22 control center read-only status"
+      ]
+    },
+    {
+      "id": "beai-package-module-map",
+      "label": "BEAI Package Module Map",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw component explanation and improvement planning",
+      "docs": [
+        "docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-package-module-map.json"
+      ],
+      "tools": [
+        "tools/beai-package-map-check.mjs"
+      ],
+      "scope": [
+        "concrete package component inventory",
+        "top-level domain and submodule mapping",
+        "module owner domain, user value, primary files, dependencies, verification coverage, and improvement axes",
+        "manifest skill and candidate-module coverage checks",
+        "Control Center visibility for map status"
+      ],
+      "evidence": [
+        "beai-package-map-check.mjs emits beai.package_map_check.v0_1 status",
+        "module map contains 10 domains and at least 30 modules",
+        "package verify runs package-map-check",
+        "Control Center reports packageMap status"
       ]
     },
     {

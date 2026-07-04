@@ -1,0 +1,177 @@
+{
+  "schema": "beai.conversation_flow_review_loop.v0_1",
+  "status": "manual_first_review_only",
+  "purpose": "Capture conversation-flow regression signals as review candidates so BEAI Package can improve intent understanding, session continuity, and correction burden without adding automatic surveillance or user-facing noise.",
+  "review_principles": [
+    "Observe only meaningful flow breaks, correction signals, handoff losses, status overclaims, or user burden signals.",
+    "Do not score every message or interrupt normal conversation with internal evaluation.",
+    "Keep observations as improvement candidates until repeated evidence justifies fixture, scenario, contract, runtime, or Control Center reinforcement.",
+    "Never treat a review candidate as a completed repair, live runtime change, cron registration, agent promotion, memory promotion, or release action."
+  ],
+  "activation_points": [
+    {
+      "id": "user_reports_flow_problem",
+      "label": "User reports conversation flow problem",
+      "default_action": "review_candidate"
+    },
+    {
+      "id": "correction_signal",
+      "label": "User corrects intent, frame, status, or scope",
+      "default_action": "review_candidate"
+    },
+    {
+      "id": "session_handoff_or_compaction",
+      "label": "Session handoff, context compaction, or restart creates continuity risk",
+      "default_action": "handoff_review"
+    },
+    {
+      "id": "long_running_work_closeout",
+      "label": "Long-running work finishes or reports progress",
+      "default_action": "delivery_and_status_review"
+    },
+    {
+      "id": "manual_goal_fit_audit",
+      "label": "Manual goal-fit audit or Control Center review asks whether BEAI still follows the user goal",
+      "default_action": "goal_fit_review"
+    }
+  ],
+  "issue_types": [
+    {
+      "id": "current_request_drift",
+      "label": "Current request drift",
+      "description": "The assistant answers an older or broader task instead of the user's current request.",
+      "candidate_targets": [
+        "runtime fixture",
+        "human companion quality contract",
+        "user scenario audit"
+      ]
+    },
+    {
+      "id": "context_takeover",
+      "label": "Context takeover",
+      "description": "Prior context, memory, or handoff material overrides the current turn instead of supporting it.",
+      "candidate_targets": [
+        "session handoff",
+        "runtime fixture",
+        "continuity judgment"
+      ]
+    },
+    {
+      "id": "intent_misread",
+      "label": "Intent misread",
+      "description": "The assistant mistakes a question, execution request, correction, approval, or pause signal.",
+      "candidate_targets": [
+        "runtime fixture",
+        "flow regression gate",
+        "user scenario audit"
+      ]
+    },
+    {
+      "id": "status_overclaim",
+      "label": "Status overclaim",
+      "description": "The assistant mixes attempted, drafted, applied, verified, sent, delivered, packaged, released, or repaired states.",
+      "candidate_targets": [
+        "action semantics contract",
+        "Telegram delivery contract",
+        "package verify"
+      ]
+    },
+    {
+      "id": "ceremony_overload",
+      "label": "Ceremony overload",
+      "description": "The assistant adds unnecessary planning, approval language, recap, or options when the user needs direct movement.",
+      "candidate_targets": [
+        "friction aware gate",
+        "human companion quality contract",
+        "runtime fixture"
+      ]
+    },
+    {
+      "id": "silence_gap",
+      "label": "Silence gap",
+      "description": "Long-running work leaves the user without progress, boundary, or delivery status.",
+      "candidate_targets": [
+        "Telegram live evidence",
+        "Control Center",
+        "operational notification contract"
+      ]
+    },
+    {
+      "id": "correction_loop",
+      "label": "Correction loop",
+      "description": "The user must repeatedly correct the same frame, tone, scope, or status boundary.",
+      "candidate_targets": [
+        "knowledge loop review candidate",
+        "runtime fixture",
+        "scenario follow-up aggregation"
+      ]
+    },
+    {
+      "id": "handoff_loss",
+      "label": "Handoff loss",
+      "description": "After compaction or session transition, the assistant loses why the work exists, what was decided, or what the next action is.",
+      "candidate_targets": [
+        "session handoff",
+        "Control Center",
+        "runtime fixture"
+      ]
+    },
+    {
+      "id": "internal_label_leak",
+      "label": "Internal label leak",
+      "description": "Internal overlays, debug labels, closure handles, or tool summaries show up as user-facing answer text.",
+      "candidate_targets": [
+        "runtime fixture",
+        "Korean natural writing standard",
+        "flow regression gate"
+      ]
+    }
+  ],
+  "candidate_record_required_fields": [
+    "observed_at",
+    "surface",
+    "session_scope",
+    "user_current_request",
+    "expected_flow",
+    "observed_flow_break",
+    "issue_type",
+    "evidence_excerpt_or_pointer",
+    "impact_on_user",
+    "likely_package_target",
+    "suggested_reinforcement",
+    "automation_boundary",
+    "promotion_status"
+  ],
+  "promotion_rules": {
+    "default_status": "review_candidate",
+    "minimum_manual_observations_before_package_change": 2,
+    "minimum_successful_manual_reviews_before_automation_candidate": 3,
+    "allowed_next_steps": [
+      "document only",
+      "add runtime fixture",
+      "add user scenario",
+      "add flow regression case",
+      "add Control Center read-only signal",
+      "update contract language",
+      "create Skill Workshop proposal"
+    ],
+    "not_allowed_without_explicit_approval": [
+      "cron registration",
+      "agent promotion",
+      "Gateway hook registration",
+      "durable memory promotion",
+      "live runtime mutation",
+      "external message send",
+      "release zip creation",
+      "GitHub release"
+    ]
+  },
+  "read_only_boundaries": {
+    "no_external_send": true,
+    "no_gateway_restart": true,
+    "no_cron_or_agent_mutation": true,
+    "no_memory_write": true,
+    "no_live_runtime_mutation": true,
+    "no_release_publish": true
+  }
+}

@@ -1,0 +1,968 @@
+{
+  "schema": "beai.package_module_map.v0_1",
+  "package": "BEAI Package for OpenClaw",
+  "purpose": "Give BEAI Package a concrete module map for explanation, inspection, dependency reasoning, verification coverage, and future improvement planning.",
+  "version_basis": {
+    "capability_pack": "0.2.6",
+    "runtime": "0.6.20"
+  },
+  "map_rules": [
+    "A module is a concrete package function, tool, skill, contract, ledger, runtime part, or distribution artifact family.",
+    "Every module must have an owner_domain, user_value, primary_files, dependencies, and verification coverage.",
+    "Conceptual philosophy belongs in docs, but the map tracks developed package components.",
+    "The map is read-only evidence by default; it does not install, restart, publish, send, write memory, or activate automation."
+  ],
+  "domains": [
+    {
+      "id": "runtime_layer",
+      "label": "Runtime Layer",
+      "user_label_ko": "런타임 계층",
+      "purpose": "Make BEAI behavior run inside OpenClaw as a plugin and runtime core.",
+      "modules": [
+        {
+          "id": "beai-runtime-plugin",
+          "label": "BEAI Runtime Plugin",
+          "type": "plugin",
+          "status": "live-aligned",
+          "user_value": "OpenClaw 안에서 비아이식 판단, 상태 언어, 승인 경계, 응답 게이트가 실제로 작동하게 합니다.",
+          "primary_files": [
+            "plugin/beai-runtime/openclaw.plugin.json",
+            "plugin/beai-runtime/package.json",
+            "plugin/beai-runtime/src/index.ts",
+            "plugin/beai-runtime/src/runtime-core.ts",
+            "plugin/beai-runtime/runtime/beai-runtime-lib.cjs"
+          ],
+          "depends_on": [
+            "human-companion-quality-contract",
+            "action-semantics-contract",
+            "friction-aware-gate-contract"
+          ],
+          "verified_by": [
+            "runtime-build",
+            "runtime-syntax-test",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "runtime clarity",
+            "less false completion",
+            "better user-facing state separation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "control_and_state",
+      "label": "Control and State Center",
+      "user_label_ko": "컨트롤·상태 계층",
+      "purpose": "Show package state, operating ledgers, blockers, and next safe action without mutating the system.",
+      "modules": [
+        {
+          "id": "beai-control-center",
+          "aliases": [
+            "beai-control-center-contract"
+          ],
+          "label": "BEAI Control Center",
+          "type": "read-only status tool",
+          "status": "package-regression-gate",
+          "user_value": "비아이패키지의 source, live, package, release, workflow, automation, memory, verification 상태를 한 번에 보여줍니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-control-center.mjs",
+            "capability-pack/config/beai-control-center-contract.json",
+            "capability-pack/docs/BEAI-CONTROL-CENTER-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "package-manifest",
+            "state-ledgers",
+            "verification-reports"
+          ],
+          "verified_by": [
+            "beai-control-center-test",
+            "control-center-readonly-status",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "component visibility",
+            "cross-module dependency reasoning",
+            "next-action clarity"
+          ]
+        },
+        {
+          "id": "state-ledgers",
+          "label": "BEAI State Ledgers",
+          "type": "state ledger family",
+          "status": "present",
+          "user_value": "워크플로우 후보, 자동화 후보, 승격 보류, 기억 후보, 신뢰 장부를 서로 섞지 않게 분리합니다.",
+          "primary_files": [
+            "state/beai/workflow-card.json",
+            "state/beai/workflow-state-ledger.json",
+            "state/beai/manual-run-evidence-ledger.json",
+            "state/beai/promotion-gate.json",
+            "state/beai/automation-registry.json",
+            "state/beai/memory-candidates.json",
+            "state/beai/agent-trust-ledger.json"
+          ],
+          "depends_on": [
+            "beai-control-center"
+          ],
+          "verified_by": [
+            "control-center-readonly-status"
+          ],
+          "improvement_axes": [
+            "promotion safety",
+            "automation readiness",
+            "memory approval separation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "doctor_and_repair",
+      "label": "Doctor and Repair Planning",
+      "user_label_ko": "진단·복구 계획 계층",
+      "purpose": "Diagnose BEAI-on-OpenClaw reliability and separate diagnosis, mitigation, repair, and verification.",
+      "modules": [
+        {
+          "id": "beai-doctor",
+          "aliases": [
+            "beai-doctor-runtime-trust-upgrade"
+          ],
+          "label": "BEAI Doctor",
+          "type": "diagnosis tool and skill",
+          "status": "packaged-runtime-diagnosis-upgrade",
+          "user_value": "텔레그램, 게이트웨이, 런타임, 스킬, 패키지 상태를 진단하고 복구 주장 전에 필요한 증거를 분리합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-doctor.js",
+            "capability-pack/skills/beai-doctor/SKILL.md",
+            "capability-pack/docs/BEAI-DOCTOR-PACKAGE-INTEGRATION-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "trust-gate-statuses",
+            "telegram-delivery-contract",
+            "beai-doctor-package-check"
+          ],
+          "verified_by": [
+            "doctor-help-usage-only",
+            "doctor-package-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "post-install reliability",
+            "Telegram/Gateway diagnosis",
+            "repair claim discipline"
+          ]
+        },
+        {
+          "id": "wake-guard-installer",
+          "label": "Wake Guard LaunchAgent Installer",
+          "type": "local helper",
+          "status": "packaged-helper",
+          "user_value": "노트북 sleep/wake 이후 텔레그램/게이트웨이 사용성 회복을 돕기 위한 로컬 보조 설치 경로입니다.",
+          "primary_files": [
+            "capability-pack/tools/install-wake-guard-launchagent.js"
+          ],
+          "depends_on": [
+            "beai-doctor"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "wake recovery",
+            "local reliability"
+          ]
+        },
+        {
+          "id": "beai-doctor-package-check",
+          "label": "BEAI Doctor Package Check",
+          "type": "package diagnosis verifier",
+          "status": "ready",
+          "user_value": "BEAI Doctor가 의존하는 필수 파일, 계약, 문서, 도구가 패키지에 갖춰졌는지 확인합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-doctor-package-check.mjs"
+          ],
+          "depends_on": [
+            "beai-doctor",
+            "trust-gate-statuses",
+            "telegram-delivery-contract"
+          ],
+          "verified_by": [
+            "doctor-package-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "doctor readiness",
+            "package integrity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verification_gates",
+      "label": "Verification Gates",
+      "user_label_ko": "검증 계층",
+      "purpose": "Keep package claims, behavior, user scenarios, and release readiness evidence-based.",
+      "modules": [
+        {
+          "id": "beai-package-verify",
+          "label": "BEAI Package Verify",
+          "type": "verification orchestrator",
+          "status": "pass",
+          "user_value": "테스트, 런타임 빌드, 보안 audit, 닥터 점검, 흐름 회귀, 시나리오, 패키지 진실성 검사를 한 번에 실행합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-package-verify.mjs",
+            "package.json"
+          ],
+          "depends_on": [
+            "beai-control-center",
+            "beai-doctor",
+            "beai-package-truth-check",
+            "beai-package-map-check"
+          ],
+          "verified_by": [
+            "npm run verify"
+          ],
+          "improvement_axes": [
+            "release confidence",
+            "claim accuracy",
+            "regression prevention"
+          ]
+        },
+        {
+          "id": "beai-package-map-check",
+          "aliases": [
+            "beai-package-module-map"
+          ],
+          "label": "BEAI Package Map Check",
+          "type": "module map verifier",
+          "status": "source-candidate",
+          "user_value": "비아이패키지 기능 지도가 실제 파일과 검증 커버리지를 갖추고 있는지 확인합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-package-map-check.mjs",
+            "capability-pack/config/beai-package-module-map.json",
+            "capability-pack/docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "package-manifest"
+          ],
+          "verified_by": [
+            "package-map-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "component inventory",
+            "dependency mapping",
+            "inspection planning"
+          ]
+        },
+        {
+          "id": "beai-package-goal-fit-audit",
+          "label": "BEAI Package Goal-Fit Audit",
+          "type": "goal-fit audit document",
+          "status": "local-precision-audit",
+          "user_value": "비아이패키지가 말귀, 흐름, 세션 연속성 목표에 맞게 구조화되고 검증되는지 정밀 점검합니다.",
+          "primary_files": [
+            "capability-pack/docs/BEAI-PACKAGE-GOAL-FIT-AUDIT-20260705-ko.md",
+            "capability-pack/capability-pack.json",
+            "capability-pack/README.md"
+          ],
+          "depends_on": [
+            "beai-flow-regression-gate",
+            "beai-user-scenario-audit",
+            "beai-organic-flow-audit",
+            "beai-control-center"
+          ],
+          "verified_by": [
+            "npm test",
+            "beai-package-verify",
+            "control-center-readonly-status"
+          ],
+          "improvement_axes": [
+            "top goal alignment",
+            "conversation fixture priorities",
+            "live evidence separation"
+          ]
+        },
+        {
+          "id": "beai-conversation-flow-review-loop",
+          "label": "BEAI Conversation Flow Review Loop",
+          "type": "conversation quality review loop",
+          "status": "manual-first-review-only",
+          "user_value": "실제 대화에서 말귀, 흐름, 세션 연속성이 어긋난 순간을 개선 후보로 남기고 반복 신호만 fixture, scenario, contract 보강으로 연결합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-conversation-flow-review-loop.json",
+            "capability-pack/docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md",
+            "capability-pack/tools/beai-conversation-flow-review-check.mjs"
+          ],
+          "depends_on": [
+            "beai-package-goal-fit-audit",
+            "beai-user-scenario-audit",
+            "beai-flow-regression-gate",
+            "human-companion-quality-contract"
+          ],
+          "verified_by": [
+            "conversation-flow-review-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "current request anchoring",
+            "session continuity",
+            "correction burden reduction",
+            "runtime fixture reinforcement"
+          ]
+        },
+        {
+          "id": "beai-flow-regression-gate",
+          "aliases": [
+            "beai-5-flow-engine-development-plan"
+          ],
+          "label": "BEAI Flow Regression Gate",
+          "type": "regression verifier",
+          "status": "pass",
+          "user_value": "응답 흐름, 상태 표현, 승인/검증 경계가 다시 무너지지 않는지 확인합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-flow-regression-gate.mjs",
+            "capability-pack/docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "runtime-core",
+            "human-companion-quality-contract",
+            "action-semantics-contract",
+            "friction-aware-gate-contract"
+          ],
+          "verified_by": [
+            "flow-regression-gate",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "conversation reliability",
+            "state boundary stability"
+          ]
+        },
+        {
+          "id": "beai-user-scenario-audit",
+          "label": "BEAI User Scenario Audit",
+          "type": "scenario verifier",
+          "status": "pass",
+          "user_value": "사용자가 실제로 겪는 장면에서 패키지가 쓸모 있게 작동하는지 점검합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-user-scenario-audit.mjs",
+            "capability-pack/docs/BEAI-PACKAGE-USER-SCENARIO-AUDIT-20260702-ko.md"
+          ],
+          "depends_on": [
+            "beai-flow-regression-gate",
+            "beai-control-center",
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "user-scenario-audit",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "human usefulness",
+            "non-developer clarity"
+          ]
+        },
+        {
+          "id": "beai-organic-flow-audit",
+          "aliases": [
+            "beai-package-organic-flow-audit"
+          ],
+          "label": "BEAI Package Organic Flow Audit",
+          "type": "cohesion verifier",
+          "status": "pass",
+          "user_value": "런타임, 스킬, 도구, 증거, 사용자 표현, 배포 경계가 따로 노는지 하나의 흐름으로 작동하는지 확인합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-organic-flow-audit.mjs",
+            "capability-pack/docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "beai-runtime-plugin",
+            "beai-control-center",
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "organic-flow-audit",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "package cohesion",
+            "cross-module flow"
+          ]
+        },
+        {
+          "id": "beai-package-truth-check",
+          "label": "BEAI Package Truth Check",
+          "type": "claim verifier",
+          "status": "pass",
+          "user_value": "README, manifest, runtime, 릴리스 설명이 오래된 주장이나 과장된 상태를 담지 않게 확인합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-package-truth-check.mjs"
+          ],
+          "depends_on": [
+            "package-manifest",
+            "release-package-system"
+          ],
+          "verified_by": [
+            "package-truth-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "public explanation accuracy",
+            "release truth"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "knowledge_loop",
+      "label": "Knowledge Loop",
+      "user_label_ko": "지식 루프 계층",
+      "purpose": "Turn work records and external signals into bounded review-first knowledge assets.",
+      "modules": [
+        {
+          "id": "beai-knowledge-loop",
+          "label": "BEAI Knowledge Loop",
+          "type": "knowledge workflow",
+          "status": "draft-candidate",
+          "user_value": "작업 기록, 외부 신호, 기억 후보를 바로 장기 기억으로 확정하지 않고 검토 가능한 지식 자산으로 정리합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-knowledge-loop.mjs",
+            "capability-pack/tools/beai-knowledge-loop-report-only.mjs",
+            "capability-pack/tools/beai-knowledge-loop-external-connector.mjs",
+            "capability-pack/tools/beai-knowledge-loop-memory-append.mjs",
+            "capability-pack/skills/beai-knowledge-loop-skill.md",
+            "capability-pack/docs/BEAI-KNOWLEDGE-LOOP-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "memory-candidates-ledger",
+            "operational-notification-contract"
+          ],
+          "verified_by": [
+            "doctor-package-check",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "learning continuity",
+            "memory safety",
+            "review-first knowledge"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "workbench_studios",
+      "label": "Workbench Studios",
+      "user_label_ko": "워크벤치 스튜디오 계층",
+      "purpose": "Provide artifact-native specialist skills for high-value work outputs.",
+      "modules": [
+        {
+          "id": "beai-workbench-essential-skills",
+          "label": "BEAI Workbench Essential Skills",
+          "type": "studio pack",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "디자인, 발표, 문서, 리서치, 데이터 분석을 각각 품질 기준이 있는 전문 작업 스튜디오로 나눕니다.",
+          "primary_files": [
+            "capability-pack/config/beai-workbench-essential-skills-contract.json",
+            "capability-pack/docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md",
+            "capability-pack/tools/beai-workbench-skill-audit.mjs"
+          ],
+          "depends_on": [
+            "beai-workbench-skill-audit"
+          ],
+          "verified_by": [
+            "workbench-skill-audit",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "artifact quality",
+            "handoff readiness",
+            "studio routing"
+          ]
+        },
+        {
+          "id": "beai-workbench-skill-audit",
+          "label": "BEAI Workbench Skill Audit",
+          "type": "studio verifier",
+          "status": "ready",
+          "user_value": "5개 Workbench Studio가 필수 구조, 품질 기준, handoff state, pattern depth를 갖췄는지 검사합니다.",
+          "primary_files": [
+            "capability-pack/tools/beai-workbench-skill-audit.mjs",
+            "capability-pack/tools/beai-workbench-skill-audit.test.mjs"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "workbench-skill-audit",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "studio readiness",
+            "quality gate coverage"
+          ]
+        },
+        {
+          "id": "beai-visual-design-studio",
+          "label": "BEAI Visual Design Studio",
+          "type": "skill",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "시각 디자인, 미감, 구도, 색상, 타이포그래피, 브랜드 감도를 품질 기준으로 다룹니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-visual-design-studio/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "workbench-skill-audit"
+          ],
+          "improvement_axes": [
+            "aesthetic quality",
+            "visual QA"
+          ]
+        },
+        {
+          "id": "beai-presentation-studio",
+          "label": "BEAI Presentation Studio",
+          "type": "skill",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "발표자료의 이야기 구조, 슬라이드 흐름, 시각 품질, 발표자 노트를 다룹니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-presentation-studio/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "workbench-skill-audit"
+          ],
+          "improvement_axes": [
+            "deck quality",
+            "render/visual QA"
+          ]
+        },
+        {
+          "id": "beai-document-craft-studio",
+          "label": "BEAI Document Craft Studio",
+          "type": "skill",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "제안서, 보고서, 매뉴얼, 회의록 같은 문서를 독자 기준으로 구조화합니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-document-craft-studio/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "workbench-skill-audit"
+          ],
+          "improvement_axes": [
+            "reader usefulness",
+            "document structure"
+          ]
+        },
+        {
+          "id": "beai-research-evidence-studio",
+          "label": "BEAI Research Evidence Studio",
+          "type": "skill",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "출처, 사실, 주장, 추정, 반대 근거, 근거 강도를 분리해 리서치를 만듭니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-research-evidence-studio/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills",
+            "beai-external-reach-layer"
+          ],
+          "verified_by": [
+            "workbench-skill-audit",
+            "external-reach-doctor"
+          ],
+          "improvement_axes": [
+            "source quality",
+            "evidence reasoning"
+          ]
+        },
+        {
+          "id": "beai-data-insight-lab",
+          "label": "BEAI Data Insight Lab",
+          "type": "skill",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "CSV/XLSX, 통계, 차트, 결측/이상치, 상관/인과 한계, 분석 재현성을 다룹니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-data-insight-lab/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-workbench-essential-skills"
+          ],
+          "verified_by": [
+            "workbench-skill-audit"
+          ],
+          "improvement_axes": [
+            "data reliability",
+            "statistical boundaries"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "external_reach",
+      "label": "External Reach",
+      "user_label_ko": "외부 자료 연결 계층",
+      "purpose": "Define safe read-only external source access and approval-gated social channels.",
+      "modules": [
+        {
+          "id": "beai-external-reach-layer",
+          "label": "BEAI External Reach Layer",
+          "type": "connector contract",
+          "status": "source-candidate-in-v0.2.5",
+          "user_value": "웹, GitHub, YouTube, RSS를 근거 기반으로 읽고 X/Reddit/Meta 계열은 승인 경계로 분리합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-external-reach-contract.json",
+            "capability-pack/docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md",
+            "capability-pack/tools/beai-external-reach-doctor.mjs"
+          ],
+          "depends_on": [
+            "beai-research-evidence-studio"
+          ],
+          "verified_by": [
+            "external-reach-doctor",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "external evidence",
+            "connector risk boundary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "operating_skills",
+      "label": "Operating Skills",
+      "user_label_ko": "운영 스킬 계층",
+      "purpose": "Provide reusable operating behaviors for development, release, handoff, memory, diagnosis, and Korean output quality.",
+      "modules": [
+        {
+          "id": "beai-development-steward",
+          "aliases": [
+            "beai-package-development-principles"
+          ],
+          "label": "BEAI Development Steward",
+          "type": "skill",
+          "status": "new-in-v0.2.0",
+          "user_value": "개발, 검증, 릴리스, 승인 경계, 사용자 보고를 안전하고 가볍게 관리합니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-development-steward/SKILL.md"
+          ],
+          "depends_on": [
+            "beai-package-verify",
+            "release-package-system"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "development discipline",
+            "non-developer clarity"
+          ]
+        },
+        {
+          "id": "beai-release-verifier",
+          "label": "BEAI Release Verifier",
+          "type": "skill",
+          "status": "live-applied",
+          "user_value": "릴리스, zip, 버전, 배포 주장, 검증 증거를 분리해 확인합니다.",
+          "primary_files": [
+            "capability-pack/skills/release-verifier-skill.md"
+          ],
+          "depends_on": [
+            "release-package-system",
+            "beai-package-verify"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "release hygiene",
+            "version truth"
+          ]
+        },
+        {
+          "id": "beai-session-handoff",
+          "label": "BEAI Session Handoff",
+          "type": "skill",
+          "status": "live-applied",
+          "user_value": "긴 작업을 다음 세션이 이어받을 수 있게 요약과 상태 경계를 남깁니다.",
+          "primary_files": [
+            "capability-pack/skills/session-handoff-skill.md"
+          ],
+          "depends_on": [
+            "beai-knowledge-loop"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "continuity",
+            "handoff clarity"
+          ]
+        },
+        {
+          "id": "beai-memory-curator-review",
+          "label": "BEAI Memory Curator Review",
+          "type": "skill",
+          "status": "live-applied",
+          "user_value": "기억으로 남길 것과 남기지 않을 것을 검토 중심으로 분리합니다.",
+          "primary_files": [
+            "capability-pack/skills/memory-curator-review-skill.md"
+          ],
+          "depends_on": [
+            "beai-knowledge-loop",
+            "memory-candidates-ledger"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "memory quality",
+            "privacy boundary"
+          ]
+        },
+        {
+          "id": "beai-korean-natural-writing",
+          "aliases": [
+            "beai-korean-natural-ai-writing-standard"
+          ],
+          "label": "BEAI Korean Natural Writing",
+          "type": "skill",
+          "status": "canonical-v1.0-package-language-skill",
+          "user_value": "한국어 답변, 보고, 릴리스 노트, 오류 메시지가 자연스럽고 상태 경계를 분명히 하도록 합니다.",
+          "primary_files": [
+            "capability-pack/skills/beai-korean-natural-writing-skill.md",
+            "capability-pack/docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md"
+          ],
+          "depends_on": [
+            "telegram-delivery-contract",
+            "human-companion-quality-contract"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "Korean quality",
+            "user-facing clarity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contracts_and_policies",
+      "label": "Contracts and Policies",
+      "user_label_ko": "계약·정책 계층",
+      "purpose": "Turn product principles into inspectable runtime and package contracts.",
+      "modules": [
+        {
+          "id": "human-companion-quality-contract",
+          "aliases": [
+            "beai-human-companion-quality-contract"
+          ],
+          "label": "Human Companion Quality Contract",
+          "type": "contract",
+          "status": "package-regression-gate",
+          "user_value": "사용자가 덜 헷갈리고 판단권을 유지하도록 응답 품질 기준을 잡습니다.",
+          "primary_files": [
+            "capability-pack/config/beai-human-companion-quality-contract.json",
+            "capability-pack/docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "runtime-core"
+          ],
+          "verified_by": [
+            "flow-regression-gate",
+            "user-scenario-audit"
+          ],
+          "improvement_axes": [
+            "user understanding",
+            "trust repair"
+          ]
+        },
+        {
+          "id": "action-semantics-contract",
+          "aliases": [
+            "beai-action-semantics-recovery-claim-contract"
+          ],
+          "label": "Action Semantics Contract",
+          "type": "contract",
+          "status": "package-regression-gate",
+          "user_value": "보고, 완화, 복구, 검증, 예방을 섞어 말하지 않게 합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-action-semantics-contract.json",
+            "capability-pack/docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "runtime-core"
+          ],
+          "verified_by": [
+            "flow-regression-gate",
+            "user-scenario-audit"
+          ],
+          "improvement_axes": [
+            "completion honesty",
+            "repair discipline"
+          ]
+        },
+        {
+          "id": "friction-aware-gate-contract",
+          "aliases": [
+            "beai-friction-aware-gate-contract"
+          ],
+          "label": "Friction-Aware Gate Contract",
+          "type": "contract",
+          "status": "package-regression-gate",
+          "user_value": "필요한 순간에만 승인·검증을 요구해 속도감과 안전성을 같이 지킵니다.",
+          "primary_files": [
+            "capability-pack/config/beai-friction-aware-gate-contract.json",
+            "capability-pack/docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "runtime-core"
+          ],
+          "verified_by": [
+            "flow-regression-gate"
+          ],
+          "improvement_axes": [
+            "low friction",
+            "right-sized approval"
+          ]
+        },
+        {
+          "id": "telegram-delivery-contract",
+          "label": "Telegram Delivery Contract",
+          "type": "contract",
+          "status": "package-regression-gate",
+          "user_value": "내부 답변과 실제 텔레그램 전달을 구분하고 messageId 증거를 요구합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-telegram-delivery-contract.json",
+            "capability-pack/docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "beai-doctor",
+            "beai-korean-natural-writing"
+          ],
+          "verified_by": [
+            "doctor-package-check",
+            "user-scenario-audit"
+          ],
+          "improvement_axes": [
+            "visible delivery",
+            "Telegram reliability"
+          ]
+        },
+        {
+          "id": "operational-notification-contract",
+          "aliases": [
+            "beai-operational-notification-contract"
+          ],
+          "label": "Operational Notification Contract",
+          "type": "contract",
+          "status": "package-regression-gate",
+          "user_value": "watchdog, heartbeat, dry-run 신호가 사용자에게 불필요한 소음으로 보이지 않게 합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-operational-notification-contract.json",
+            "capability-pack/docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md",
+            "capability-pack/tools/beai-operational-notification-gate.mjs"
+          ],
+          "depends_on": [
+            "beai-knowledge-loop"
+          ],
+          "verified_by": [
+            "operational-notification-gate",
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "notification usefulness",
+            "less operational noise"
+          ]
+        },
+        {
+          "id": "trust-gate-statuses",
+          "label": "BEAI Trust Gate Statuses",
+          "type": "status vocabulary",
+          "status": "package-readable",
+          "user_value": "ready, partial, unverified, blocked, needs_approval 같은 상태 단어를 패키지 전반에서 일관되게 쓰게 합니다.",
+          "primary_files": [
+            "capability-pack/config/beai-trust-gate-statuses.json",
+            "capability-pack/docs/BEAI-TRUST-GATE-v0.1-ko.md"
+          ],
+          "depends_on": [
+            "beai-doctor"
+          ],
+          "verified_by": [
+            "doctor-package-check"
+          ],
+          "improvement_axes": [
+            "state vocabulary",
+            "completion boundary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "distribution_release",
+      "label": "Distribution and Release",
+      "user_label_ko": "배포·릴리스 계층",
+      "purpose": "Make the package installable, versioned, checkable, and explainable as a release artifact.",
+      "modules": [
+        {
+          "id": "package-manifest",
+          "aliases": [
+            "beai-package-development-principles"
+          ],
+          "label": "Capability Pack Manifest",
+          "type": "manifest",
+          "status": "internal-team-release-candidate",
+          "user_value": "패키지 버전, 스킬, 후보 모듈, 정책, 배포 경계를 한 곳에 기록합니다.",
+          "primary_files": [
+            "capability-pack/capability-pack.json"
+          ],
+          "depends_on": [
+            "all-package-modules"
+          ],
+          "verified_by": [
+            "beai-package-verify",
+            "beai-package-map-check"
+          ],
+          "improvement_axes": [
+            "package inventory",
+            "release consistency"
+          ]
+        },
+        {
+          "id": "release-package-system",
+          "label": "Release Package System",
+          "type": "distribution artifact family",
+          "status": "zip-candidate-present",
+          "user_value": "clean zip, sha256, release notes, GitHub release asset로 패키지를 배포 가능한 형태로 묶습니다.",
+          "primary_files": [
+            "capability-pack/docs/RELEASE-NOTES-v0.2.6-ko.md"
+          ],
+          "release_artifacts": [
+            "packages/beai-package-for-openclaw-v0.2.6-runtime-v0.6.20-20260705-0046-clean.zip",
+            "packages/beai-package-for-openclaw-v0.2.6-runtime-v0.6.20-20260705-0046-clean.zip.sha256"
+          ],
+          "depends_on": [
+            "beai-package-verify",
+            "beai-package-truth-check"
+          ],
+          "verified_by": [
+            "beai-package-verify"
+          ],
+          "improvement_axes": [
+            "distribution trust",
+            "version alignment"
+          ]
+        }
+      ]
+    }
+  ]
+}

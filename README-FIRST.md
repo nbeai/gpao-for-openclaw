@@ -33,7 +33,7 @@ If the ClawHub package is not visible yet, use the manual ZIP path.
 Unzip the package and install the runtime plugin from the local folder:
 
 ```bash
-unzip beai-package-for-openclaw-v0.2.4-runtime-v0.6.20-*.zip
+unzip beai-package-for-openclaw-v0.2.6-runtime-v0.6.20-*.zip
 cd beai-package-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime

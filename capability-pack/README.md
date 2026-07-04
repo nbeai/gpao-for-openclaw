@@ -1,4 +1,4 @@
-# BEAI Capability Pack v0.2.5
+# BEAI Capability Pack v0.2.6
 
 BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
 
@@ -29,6 +29,8 @@ This package contains planning-ready definitions for:
 - BEAI Korean Natural Writing Skill (v1.0 Korean response, docs, release, app-copy, presentation, and public-copy standard)
 - BEAI Operational Notification Contract (watchdog, heartbeat, cron dry-run, and Knowledge Loop candidate user-action framing)
 - BEAI Human Companion Quality Contract (current-request anchoring, cognitive load reduction, user agency, long-context stability, and trust recovery)
+- BEAI Package Goal-Fit Audit (말귀, 흐름, 세션 연속성 목표에 대한 구조/기능/검증/보강 지점 정밀 감사)
+- BEAI Conversation Flow Review Loop (실제 대화 흐름 문제를 review-only 개선 후보로 모아 fixture/scenario/contract 보강으로 연결하는 수동 품질 루프)
 - BEAI Organic Flow Audit (runtime, hooks, skills, tools, evidence, Korean wording, and release-boundary cohesion)
 - BEAI Action Semantics and Recovery Claim Contract (diagnose/report/mitigate/repair/verify/prevent separation and recovery claim evidence gate)
 - BEAI Friction-Aware Gate Contract (fast by default, quiet checks where possible, approval only at risk transitions, and verification before completion claims)
@@ -75,6 +77,39 @@ The runtime-facing minimum rule is:
 자동 칭찬, 번역투, 추상 명사, 과장된 완료 표현을 피한다.
 매체에 맞게 채팅, 문서, 발표, SNS, 앱 화면, 오류 메시지의 호흡을 바꾼다.
 ```
+
+## BEAI Goal-Fit Audit Direction
+
+BEAI Package's top goal is not only to contain many capabilities. It must make AI feel like it understands the user's intent, keeps conversational flow, preserves session continuity, and reduces the user's correction burden without turning every request into heavy ceremony.
+
+The package-level audit for that goal is:
+
+- `docs/BEAI-PACKAGE-GOAL-FIT-AUDIT-20260705-ko.md`
+
+Current audit stance:
+
+- Package-internal structure is aligned with the goal.
+- `npm test`, `npm run verify`, flow regression gate, user scenario audit, organic flow audit, and Control Center checks pass locally.
+- This proves package-internal alignment, not universal live user success.
+- The next reinforcement priorities are runtime conversation fixtures, scenario follow-up aggregation, Telegram live experience signals, and Module Map goal-fit coverage.
+
+## BEAI Conversation Flow Review Loop Direction
+
+BEAI Package should improve from real conversation-flow evidence, but it should not turn every session into heavy surveillance or every reply into an internal evaluation report.
+
+The package-level review loop for this direction is:
+
+- `docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md`
+- `config/beai-conversation-flow-review-loop.json`
+- `tools/beai-conversation-flow-review-check.mjs`
+
+Current stance:
+
+- The loop is manual-first and review-only.
+- It captures meaningful flow breaks such as current request drift, context takeover, intent misread, status overclaim, ceremony overload, silence gaps, correction loops, handoff loss, and internal label leaks.
+- It stores these as improvement candidates, not as completed repairs or automatic memory.
+- Repeated signals can become runtime fixtures, scenario audit cases, contract wording, or Control Center read-only signals.
+- Cron, agent, hook, durable memory promotion, live runtime mutation, external send, release zip creation, and GitHub release remain separate approval boundaries.
 
 ## BEAI Knowledge Loop Direction
 
@@ -335,6 +370,9 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md`
 - `docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md`
 - `docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md`
+- `docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md`
+- `config/beai-conversation-flow-review-loop.json`
+- `tools/beai-conversation-flow-review-check.mjs`
 - `tools/beai-doctor.js`
 - `tools/install-wake-guard-launchagent.js`
 - `agents/beai-starter-agent-alpha.md`
@@ -405,6 +443,7 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md`
 - `docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md`
 - `docs/RELEASE-NOTES-v0.2.5-ko.md`
+- `docs/RELEASE-NOTES-v0.2.6-ko.md`
 - `skills/beai-visual-design-studio/SKILL.md`
 - `skills/beai-presentation-studio/SKILL.md`
 - `skills/beai-document-craft-studio/SKILL.md`

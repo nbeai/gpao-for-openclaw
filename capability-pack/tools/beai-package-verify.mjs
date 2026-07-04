@@ -114,6 +114,8 @@ const commands = [
   ["capability-pack/tools/beai-operational-notification-gate.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-organic-flow-audit.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-control-center.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/beai-package-map-check.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/beai-conversation-flow-review-check.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-workbench-skill-audit.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--stdout"]
 ];
@@ -131,6 +133,8 @@ for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
     () => run("node", ["tools/beai-operational-notification-gate.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-operational-notification-gate-verify.json")], { id: "operational-notification-gate", cwd: capabilityRoot, timeout: 60000 }),
     () => run("node", ["tools/beai-organic-flow-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-organic-flow-audit-verify.json")], { id: "organic-flow-audit", cwd: capabilityRoot, timeout: 60000 }),
     () => run("node", ["tools/beai-control-center.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-control-center-verify.json")], { id: "control-center-readonly-status", cwd: capabilityRoot, timeout: 60000 }),
+    () => run("node", ["tools/beai-package-map-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-package-map-check-verify.json")], { id: "package-map-check", cwd: capabilityRoot, timeout: 60000 }),
+    () => run("node", ["tools/beai-conversation-flow-review-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-conversation-flow-review-check-verify.json")], { id: "conversation-flow-review-check", cwd: capabilityRoot, timeout: 60000 }),
     () => run("node", ["tools/beai-workbench-skill-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-workbench-skill-audit-verify.json")], { id: "workbench-skill-audit", cwd: capabilityRoot, timeout: 60000 }),
     () => run("node", ["tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-external-reach-doctor-verify.json")], { id: "external-reach-doctor", cwd: capabilityRoot, timeout: 60000 }),
     () => run("node", ["-e", rootResolutionScript], { id: "capability-tools-root-resolution", cwd: root, timeout: 120000 }),
@@ -168,6 +172,8 @@ for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
       "beai-operational-notification-gate-verify.json",
       "beai-organic-flow-audit-verify.json",
       "beai-control-center-verify.json",
+      "beai-package-map-check-verify.json",
+      "beai-conversation-flow-review-check-verify.json",
       "beai-workbench-skill-audit-verify.json",
       "beai-external-reach-doctor-verify.json",
       "beai-doctor-package-check-root-resolution.json",

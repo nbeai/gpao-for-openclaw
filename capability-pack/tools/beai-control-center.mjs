@@ -231,6 +231,83 @@ function buildExternalReachStatus(capabilityRoot, manifest) {
   };
 }
 
+function buildPackageMapStatus(capabilityRoot, manifest) {
+  const mapPath = "config/beai-package-module-map.json";
+  const docPath = "docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md";
+  const map = readJson(path.join(capabilityRoot, mapPath));
+  const domains = Array.isArray(map?.domains) ? map.domains : [];
+  const modules = domains.flatMap((domain) => Array.isArray(domain.modules) ? domain.modules : []);
+  const generatedCheck = latestGeneratedReport(capabilityRoot, "beai-package-map-check-verify.json");
+  const manifestCandidatePresent = Array.isArray(manifest?.candidateModules)
+    ? manifest.candidateModules.some((item) => item.id === "beai-package-module-map")
+    : false;
+  const ready = Boolean(map)
+    && map.schema === "beai.package_module_map.v0_1"
+    && domains.length >= 10
+    && modules.length >= 30
+    && isFile(path.join(capabilityRoot, docPath))
+    && isFile(path.join(capabilityRoot, "tools/beai-package-map-check.mjs"));
+  return {
+    status: ready ? "ready" : "partial",
+    map: {
+      path: mapPath,
+      exists: Boolean(map),
+      schema: map?.schema ?? null,
+      domains: domains.length,
+      modules: modules.length
+    },
+    doc: {
+      path: docPath,
+      exists: isFile(path.join(capabilityRoot, docPath))
+    },
+    manifestCandidatePresent,
+    check: generatedCheck
+  };
+}
+
+function buildConversationFlowReviewStatus(capabilityRoot, manifest) {
+  const configPath = "config/beai-conversation-flow-review-loop.json";
+  const docPath = "docs/BEAI-CONVERSATION-FLOW-REVIEW-LOOP-v0.1-ko.md";
+  const toolPath = "tools/beai-conversation-flow-review-check.mjs";
+  const config = readJson(path.join(capabilityRoot, configPath));
+  const issueTypes = Array.isArray(config?.issue_types) ? config.issue_types : [];
+  const candidateFields = Array.isArray(config?.candidate_record_required_fields) ? config.candidate_record_required_fields : [];
+  const manifestCandidatePresent = Array.isArray(manifest?.candidateModules)
+    ? manifest.candidateModules.some((item) => item.id === "beai-conversation-flow-review-loop")
+    : false;
+  const generatedCheck = latestGeneratedReport(capabilityRoot, "beai-conversation-flow-review-check-verify.json");
+  const ready = Boolean(config)
+    && config.schema === "beai.conversation_flow_review_loop.v0_1"
+    && config.status === "manual_first_review_only"
+    && issueTypes.length >= 8
+    && candidateFields.length >= 10
+    && manifestCandidatePresent
+    && isFile(path.join(capabilityRoot, docPath))
+    && isFile(path.join(capabilityRoot, toolPath));
+  return {
+    status: ready ? "manual_first_review_only" : "partial",
+    config: {
+      path: configPath,
+      exists: Boolean(config),
+      schema: config?.schema ?? null
+    },
+    doc: {
+      path: docPath,
+      exists: isFile(path.join(capabilityRoot, docPath))
+    },
+    tool: {
+      path: toolPath,
+      exists: isFile(path.join(capabilityRoot, toolPath))
+    },
+    manifestCandidatePresent,
+    issueTypes: issueTypes.length,
+    candidateRecordRequiredFields: candidateFields.length,
+    minimumManualReviewsBeforeAutomationCandidate: config?.promotion_rules?.minimum_successful_manual_reviews_before_automation_candidate ?? null,
+    defaultBoundary: "review-only; not automated, not live-applied, not memory-promoted, not released",
+    check: generatedCheck
+  };
+}
+
 function buildStateLedgers(capabilityRoot, stateRootOption) {
   const fallbackRoot = path.join(capabilityRoot, "state/beai");
   const knownExternalRoot = "/Users/jyp/Developer/BEAI/beai-capability-pack/state/beai";
@@ -276,6 +353,8 @@ function buildReport(options) {
   const state = buildStateLedgers(capabilityRoot, options.stateRoot);
   const workbench = buildWorkbenchStatus(capabilityRoot, manifest);
   const externalReach = buildExternalReachStatus(capabilityRoot, manifest);
+  const packageMap = buildPackageMapStatus(capabilityRoot, manifest);
+  const conversationFlowReview = buildConversationFlowReviewStatus(capabilityRoot, manifest);
   const verification = {
     packageVerify: latestGeneratedReport(capabilityRoot, "beai-package-verify.json"),
     doctorPackageCheck: latestGeneratedReport(capabilityRoot, "beai-doctor-package-check-verify.json"),
@@ -283,6 +362,8 @@ function buildReport(options) {
     userScenarioAudit: latestGeneratedReport(capabilityRoot, "beai-user-scenario-audit-verify.json"),
     organicFlowAudit: latestGeneratedReport(capabilityRoot, "beai-organic-flow-audit-verify.json"),
     packageTruthCheck: latestGeneratedReport(capabilityRoot, "beai-package-truth-check-verify.json"),
+    packageMapCheck: latestGeneratedReport(capabilityRoot, "beai-package-map-check-verify.json"),
+    conversationFlowReviewCheck: latestGeneratedReport(capabilityRoot, "beai-conversation-flow-review-check-verify.json"),
     externalReachDoctor: latestGeneratedReport(capabilityRoot, "beai-external-reach-doctor-verify.json")
   };
   const verificationValues = Object.values(verification);
@@ -338,6 +419,8 @@ function buildReport(options) {
         status: item.status ?? "unknown"
       })) : []
     },
+    packageMap,
+    conversationFlowReview,
     workbench,
     externalReach,
     state,
@@ -364,6 +447,8 @@ function buildReport(options) {
     issues: [
       ...failedVerification.map((item) => `${item.path}: ${item.status}`),
       ...missingVerification.map((item) => `${item}: missing`),
+      ...(packageMap.status === "ready" ? [] : ["package module map: partial"]),
+      ...(conversationFlowReview.status === "manual_first_review_only" ? [] : ["conversation flow review loop: partial"]),
       ...(workbench.status === "source_candidate" ? [] : ["workbench essential skills: partial"]),
       ...(externalReach.status === "source_candidate" ? [] : ["external reach layer: partial"]),
       ...(state.missing.length ? [`missing state ledgers: ${state.missing.join(", ")}`] : []),
@@ -411,6 +496,27 @@ function renderMarkdown(report) {
   for (const ledger of report.state.ledgers) {
     lines.push(`- ${ledger.exists ? "PRESENT" : "MISSING"}: ${ledger.kind} (${ledger.status}, count=${ledger.count})`);
   }
+  lines.push("");
+  lines.push("## Package Module Map");
+  lines.push("");
+  lines.push(`- status: ${report.packageMap.status}`);
+  lines.push(`- map: ${report.packageMap.map.exists ? "present" : "missing"} (${report.packageMap.map.path})`);
+  lines.push(`- domains: ${report.packageMap.map.domains}`);
+  lines.push(`- modules: ${report.packageMap.map.modules}`);
+  lines.push(`- doc: ${report.packageMap.doc.exists ? "present" : "missing"} (${report.packageMap.doc.path})`);
+  lines.push(`- check: ${report.packageMap.check.exists ? report.packageMap.check.status : "missing"} (${report.packageMap.check.path})`);
+  lines.push("");
+  lines.push("## Conversation Flow Review Loop");
+  lines.push("");
+  lines.push(`- status: ${report.conversationFlowReview.status}`);
+  lines.push(`- config: ${report.conversationFlowReview.config.exists ? "present" : "missing"} (${report.conversationFlowReview.config.path})`);
+  lines.push(`- doc: ${report.conversationFlowReview.doc.exists ? "present" : "missing"} (${report.conversationFlowReview.doc.path})`);
+  lines.push(`- tool: ${report.conversationFlowReview.tool.exists ? "present" : "missing"} (${report.conversationFlowReview.tool.path})`);
+  lines.push(`- issue types: ${report.conversationFlowReview.issueTypes}`);
+  lines.push(`- candidate record fields: ${report.conversationFlowReview.candidateRecordRequiredFields}`);
+  lines.push(`- manual reviews before automation candidate: ${report.conversationFlowReview.minimumManualReviewsBeforeAutomationCandidate}`);
+  lines.push(`- default boundary: ${report.conversationFlowReview.defaultBoundary}`);
+  lines.push(`- check: ${report.conversationFlowReview.check.exists ? report.conversationFlowReview.check.status : "missing"} (${report.conversationFlowReview.check.path})`);
   lines.push("");
   lines.push("## Workbench Essential Skills");
   lines.push("");
