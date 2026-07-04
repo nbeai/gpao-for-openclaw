@@ -1,6 +1,6 @@
-# BEAI Runtime v0.6.19
+# BEAI Runtime v0.6.20
 
-Dist-only runtime package for the BEAI Package for OpenClaw v0.2.3 public staging release candidate.
+Dist-only runtime package for the BEAI Package for OpenClaw v0.2.4 public staging release candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
@@ -33,10 +33,10 @@ openclaw.plugin.json
 ## Included Guide
 
 ```text
-RELEASE-NOTES-v0.6.19-ko.md
+RELEASE-NOTES-v0.6.20-ko.md
 ```
 
-This candidate includes only the runtime files needed by OpenClaw and the v0.6.19 release note.
+This candidate includes only the runtime files needed by OpenClaw and the v0.6.20 release note.
 
 The final verification ledger remains in the development workspace:
 
@@ -100,6 +100,7 @@ openclaw hooks
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
 - Adds v0.6.17 Telegram Delivery Ledger so generated Telegram replies, send attempts, delivery confirmations, messageId absence, restart pending-scan requirements, and resend idempotency are tracked separately from internal final-answer generation.
 - Adds v0.6.19 action-semantics hardening so diagnosis, report, mitigation, repair, verification, and prevention stay separated from user-visible completion claims.
+- Adds v0.6.20 Friction-Aware Gate so drafts, thinking, read-only checks, and candidate work stay fast by default; quiet checks avoid interrupting the user; real risk transitions require approval; and post-action verification prevents completion overclaim.
 - Requires recovery claims to carry failure-path observation, cause, changed path, and same-condition re-verification evidence.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Separates memory candidates, agreement assets, project state, and discarded context.
@@ -152,7 +153,7 @@ Memory candidates are not accepted memories. Agreement assets are not promoted a
 ## Package Status
 
 ```text
-BEAI Runtime v0.6.19
+BEAI Runtime v0.6.20
 Public Staging Release Candidate
 ```
 

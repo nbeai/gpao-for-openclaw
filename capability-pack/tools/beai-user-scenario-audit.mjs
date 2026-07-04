@@ -134,6 +134,11 @@ function buildReport(root) {
   const humanCompanionDoc = "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md";
   const actionSemanticsContract = "config/beai-action-semantics-contract.json";
   const actionSemanticsDoc = "docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md";
+  const frictionAwareGateContract = "config/beai-friction-aware-gate-contract.json";
+  const frictionAwareGateDoc = "docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md";
+  const controlCenterContract = "config/beai-control-center-contract.json";
+  const controlCenterDoc = "docs/BEAI-CONTROL-CENTER-v0.1-ko.md";
+  const controlCenterTool = "tools/beai-control-center.mjs";
   const contractDoc = "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md";
   const doctor = "tools/beai-doctor.js";
   const flowGate = "tools/beai-flow-regression-gate.mjs";
@@ -147,12 +152,20 @@ function buildReport(root) {
   const operationalContract = readJson(root, operationalNotificationContract);
   const humanCompanionQualityContract = readJson(root, humanCompanionContract);
   const actionSemanticsQualityContract = readJson(root, actionSemanticsContract);
+  const frictionAwareGateQualityContract = readJson(root, frictionAwareGateContract);
+  const controlCenterQualityContract = readJson(root, controlCenterContract);
   const runtimeFiles = compareRuntimeFiles(packageJson, packageDistJson);
 
   const rules = deliveryContract?.rules || {};
   const issueCodes = Array.isArray(deliveryContract?.doctor_issue_codes) ? deliveryContract.doctor_issue_codes : [];
   const operationalRules = operationalContract?.rules || {};
   const humanCompanionRules = humanCompanionQualityContract?.rules || {};
+  const frictionAwareRules = frictionAwareGateQualityContract?.rules || {};
+  const frictionAwareLanes = frictionAwareGateQualityContract?.lanes || {};
+  const controlCenterRules = controlCenterQualityContract?.rules || {};
+  const controlCenterOutputs = Array.isArray(controlCenterQualityContract?.required_outputs)
+    ? controlCenterQualityContract.required_outputs
+    : [];
   const humanCompanionRuntimeSymbols = Array.isArray(humanCompanionQualityContract?.required_runtime_symbols)
     ? humanCompanionQualityContract.required_runtime_symbols
     : [];
@@ -412,6 +425,43 @@ function buildReport(root) {
         makeCheck("flow-gate-covers-action-semantics", "Flow regression gate covers semantic action mismatch.", fileContains(files, root, flowGate, /semantic_action_mismatch/), "Flow gate has semantic action mismatch lane.", "P1")
       ],
       recommendation: "When user wording names an action, classify the actual performed action first. Only call it recovery after failing path change and same-condition re-verification; otherwise label it diagnosis, report, mitigation, prevention, partial action, or pending verification."
+    }),
+    buildScenario({
+      id: "S21-friction-aware-gate",
+      title: "안전장치가 사용자 속도감과 쾌적함을 과하게 떨어뜨리지 않는가",
+      userRisk: "검증과 승인 철학을 모든 요청에 빡빡하게 적용하면 사용자는 AI에게 원하는 빠른 초안, 몰입감, 대화 리듬을 잃고 BEAI를 피곤한 절차로 느낀다.",
+      checks: [
+        makeCheck("friction-aware-contract-parses", "Friction-aware gate contract parses.", Boolean(frictionAwareGateQualityContract), "Friction-aware gate contract JSON parses.", "P0"),
+        makeCheck("fast-lane-default", "Drafts and thinking default to fast lane.", frictionAwareRules.default_to_fast_lane_for_drafts_and_thinking === true && Boolean(frictionAwareLanes.fast_lane), "fast_lane rule and lane exist.", "P0"),
+        makeCheck("quiet-checks-do-not-interrupt", "Quiet checks do not interrupt user flow.", frictionAwareRules.quiet_checks_should_not_interrupt_user_flow === true && Boolean(frictionAwareLanes.quiet_check), "quiet_check rule and lane exist.", "P0"),
+        makeCheck("approval-only-at-risk-transition", "Approval is required only at real risk transitions.", frictionAwareRules.approval_required_only_at_risk_transition === true && Boolean(frictionAwareLanes.approval_gate), "approval gate rule and lane exist.", "P0"),
+        makeCheck("post-action-verification-before-completion", "Post-action verification prevents completion overclaim.", frictionAwareRules.post_action_verification_prevents_completion_overclaim === true && Boolean(frictionAwareLanes.post_action_verify), "post_action_verify rule and lane exist.", "P0"),
+        makeCheck("high-liability-not-automated", "High-liability actions are not automated.", frictionAwareRules.do_not_automate_high_liability_actions === true && Boolean(frictionAwareLanes.do_not_automate), "do_not_automate rule and lane exist.", "P0"),
+        makeCheck("runtime-friction-lane-type", "Runtime includes FrictionGateLane.", fileContains(files, root, runtimeCore, /FrictionGateLane/), "FrictionGateLane exists in runtime core.", "P0"),
+        makeCheck("runtime-friction-builder", "Runtime builds the friction-aware gate from current-turn signals.", fileContains(files, root, runtimeCore, /buildFrictionAwareGateProfile/), "buildFrictionAwareGateProfile exists.", "P0"),
+        makeCheck("runtime-friction-render", "Runtime prompt context renders friction-aware gate guidance.", fileContains(files, root, runtimeCore, /friction_aware_gate:/), "friction_aware_gate overlay section exists.", "P1"),
+        makeCheck("friction-doc-clutch-language", "Korean document preserves the clutch-not-brake UX principle.", fileContains(files, root, frictionAwareGateDoc, /BEAI는 브레이크가 아니라 클러치/), "Clutch UX principle is documented.", "P1"),
+        makeCheck("flow-gate-covers-friction", "Flow regression gate covers friction-aware gate regressions.", fileContains(files, root, flowGate, /friction-aware-gate-overlay-rendered/) && fileContains(files, root, flowGate, /friction-aware-gate-config-present/), "Flow gate has friction-aware checks.", "P1")
+      ],
+      recommendation: "Default to speed for drafts, thinking, and read-only work. Raise friction only for external effects, destructive or durable state changes, repeated automation, high-liability domains, and completion claims that need evidence."
+    }),
+    buildScenario({
+      id: "S22-control-center-readonly-status",
+      title: "BEAI 구성요소 상태를 한곳에서 보되 관제판이 실행 권한을 넘지 않는가",
+      userRisk: "구성요소가 많아질수록 source, verified, packaged, live, delivered, active automation 상태가 섞이면 사용자는 무엇을 믿어도 되는지 다시 추적해야 한다. 반대로 관제판이 곧바로 실행 버튼이 되면 승인 경계가 흐려진다.",
+      checks: [
+        makeCheck("control-center-contract-parses", "Control Center contract parses.", Boolean(controlCenterQualityContract), "Control Center contract JSON parses.", "P0"),
+        makeCheck("control-center-readonly-default", "Control Center is read-only by default.", controlCenterRules.control_center_is_read_only_by_default === true, "Read-only default rule is true.", "P0"),
+        makeCheck("control-center-state-separation", "Source, live, package, and release states must be separated.", controlCenterRules.source_live_package_release_states_must_be_separated === true, "State separation rule is true.", "P0"),
+        makeCheck("control-center-candidates-not-active", "Workflow candidates are not reported as active automation.", controlCenterRules.workflow_candidates_must_not_be_reported_as_active_automation === true, "Candidate/active automation rule is true.", "P0"),
+        makeCheck("control-center-tool-present", "Control Center status command exists.", fileContains(files, root, controlCenterTool, /schema:\s*"beai\.control_center\.v0_1"/), "Control Center tool emits v0.1 schema.", "P0"),
+        makeCheck("control-center-tool-non-actions", "Control Center tool declares non-actions for live and external effects.", fileContains(files, root, controlCenterTool, /no Gateway restart/) && fileContains(files, root, controlCenterTool, /no Telegram send/) && fileContains(files, root, controlCenterTool, /no durable memory write/), "Non-action boundaries are present.", "P0"),
+        makeCheck("control-center-required-outputs", "Control Center required outputs include versions, ledgers, verification, approval boundaries, and next action.", controlCenterOutputs.includes("runtime source version") && controlCenterOutputs.includes("runtime live version") && controlCenterOutputs.includes("state ledgers") && controlCenterOutputs.includes("verification reports") && controlCenterOutputs.includes("approval boundaries") && controlCenterOutputs.includes("next safe action"), "Required output set is present.", "P1"),
+        makeCheck("control-center-doc-readonly", "Control Center Korean doc says v0.1 is read-only.", fileContains(files, root, controlCenterDoc, /보기 전용 관제판/) && fileContains(files, root, controlCenterDoc, /실행 버튼을 만들지 않는다/), "Read-only purpose is documented.", "P1"),
+        makeCheck("control-center-package-verify", "Package verify runs Control Center status.", fileContains(files, root, "tools/beai-package-verify.mjs", /beai-control-center\.mjs/), "Package verify includes Control Center.", "P1"),
+        makeCheck("control-center-flow-gate", "Flow regression gate covers Control Center regressions.", fileContains(files, root, flowGate, /control_center_state_confusion/) && fileContains(files, root, flowGate, /control_center_mutation_risk/), "Flow gate has Control Center regression checks.", "P1")
+      ],
+      recommendation: "Keep v0.1 as a read-only status board. Add approval-shaped actions only after source/live/package/release, workflow/automation, memory, delivery, and verification ledgers are consistently visible."
     })
   ];
 

@@ -205,6 +205,89 @@ function checkHumanCompanionQualityContract(root) {
   };
 }
 
+function checkFrictionAwareGateContract(root) {
+  const configPath = path.join(root, "config/beai-friction-aware-gate-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract?.rules || {};
+  const lanes = contract?.lanes || {};
+  const issueCodes = Array.isArray(contract?.doctor_issue_codes) ? contract.doctor_issue_codes : [];
+  const checks = {
+    config_exists: true,
+    default_to_fast_lane_for_drafts_and_thinking: rules.default_to_fast_lane_for_drafts_and_thinking === true,
+    quiet_checks_should_not_interrupt_user_flow: rules.quiet_checks_should_not_interrupt_user_flow === true,
+    approval_required_only_at_risk_transition: rules.approval_required_only_at_risk_transition === true,
+    post_action_verification_prevents_completion_overclaim: rules.post_action_verification_prevents_completion_overclaim === true,
+    do_not_automate_high_liability_actions: rules.do_not_automate_high_liability_actions === true,
+    lane_fast: Boolean(lanes.fast_lane),
+    lane_quiet_check: Boolean(lanes.quiet_check),
+    lane_approval_gate: Boolean(lanes.approval_gate),
+    lane_post_action_verify: Boolean(lanes.post_action_verify),
+    lane_do_not_automate: Boolean(lanes.do_not_automate),
+    doctor_detects_fast_lane_overblocked: issueCodes.includes("beai-friction-fast-lane-overblocked"),
+    doctor_detects_underblocked_risk_transition: issueCodes.includes("beai-friction-risk-transition-underblocked"),
+    doctor_detects_completion_overclaimed: issueCodes.includes("beai-friction-completion-overclaimed")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
+function checkControlCenterContract(root) {
+  const configPath = path.join(root, "config/beai-control-center-contract.json");
+  if (!fileExists(configPath)) {
+    return {
+      status: "partial",
+      checks: {
+        config_exists: false
+      }
+    };
+  }
+  const contract = readJson(configPath);
+  const rules = contract?.rules || {};
+  const requiredOutputs = Array.isArray(contract?.required_outputs) ? contract.required_outputs : [];
+  const issueCodes = Array.isArray(contract?.doctor_issue_codes) ? contract.doctor_issue_codes : [];
+  const checks = {
+    config_exists: true,
+    control_center_is_read_only_by_default: rules.control_center_is_read_only_by_default === true,
+    source_live_package_release_states_must_be_separated: rules.source_live_package_release_states_must_be_separated === true,
+    verification_reports_are_evidence_not_completion_by_themselves: rules.verification_reports_are_evidence_not_completion_by_themselves === true,
+    workflow_candidates_must_not_be_reported_as_active_automation: rules.workflow_candidates_must_not_be_reported_as_active_automation === true,
+    missing_or_stale_ledgers_must_be_visible: rules.missing_or_stale_ledgers_must_be_visible === true,
+    next_safe_action_must_preserve_approval_boundaries: rules.next_safe_action_must_preserve_approval_boundaries === true,
+    live_runtime_reinstall_requires_separate_approval: rules.live_runtime_reinstall_requires_separate_approval === true,
+    release_zip_creation_requires_separate_approval: rules.release_zip_creation_requires_separate_approval === true,
+    cron_agent_memory_external_send_mutation_requires_separate_approval: rules.cron_agent_memory_external_send_mutation_requires_separate_approval === true,
+    required_tool: contract.required_tool === "tools/beai-control-center.mjs",
+    required_doc: contract.required_doc === "docs/BEAI-CONTROL-CENTER-v0.1-ko.md",
+    output_package_capability_version: requiredOutputs.includes("package capability version"),
+    output_runtime_source_version: requiredOutputs.includes("runtime source version"),
+    output_runtime_live_version: requiredOutputs.includes("runtime live version"),
+    output_latest_release_archive: requiredOutputs.includes("latest release archive"),
+    output_state_ledgers: requiredOutputs.includes("state ledgers"),
+    output_verification_reports: requiredOutputs.includes("verification reports"),
+    output_approval_boundaries: requiredOutputs.includes("approval boundaries"),
+    output_next_safe_action: requiredOutputs.includes("next safe action"),
+    doctor_detects_contract_missing: issueCodes.includes("beai-control-center-contract-missing"),
+    doctor_detects_tool_missing: issueCodes.includes("beai-control-center-tool-missing"),
+    doctor_detects_doc_missing: issueCodes.includes("beai-control-center-doc-missing"),
+    doctor_detects_live_overclaim: issueCodes.includes("beai-control-center-overclaims-live-state"),
+    doctor_detects_automation_candidate_overclaim: issueCodes.includes("beai-control-center-automation-candidate-overclaimed")
+  };
+  return {
+    status: Object.values(checks).every(Boolean) ? "ready" : "partial",
+    checks
+  };
+}
+
 function renderMarkdown(report) {
   const lines = [];
   lines.push("# BEAI Doctor Package Check");
@@ -220,6 +303,8 @@ function renderMarkdown(report) {
   lines.push(`- telegram_delivery_contract_status: ${report.telegram_delivery_contract_status}`);
   lines.push(`- operational_notification_contract_status: ${report.operational_notification_contract_status}`);
   lines.push(`- human_companion_quality_contract_status: ${report.human_companion_quality_contract_status}`);
+  lines.push(`- friction_aware_gate_contract_status: ${report.friction_aware_gate_contract_status}`);
+  lines.push(`- control_center_contract_status: ${report.control_center_contract_status}`);
   lines.push(`- trust_gate_status_count: ${report.trust_gate_status_count}`);
   lines.push(`- ledger_entry_count: ${report.ledger_entry_count}`);
   lines.push(`- package_status: ${report.package_status}`);
@@ -247,6 +332,18 @@ function renderMarkdown(report) {
   lines.push("## Human Companion Quality Contract");
   lines.push("");
   for (const [key, value] of Object.entries(report.human_companion_quality_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## Friction-Aware Gate Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.friction_aware_gate_contract_checks || {})) {
+    lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
+  }
+  lines.push("");
+  lines.push("## Control Center Contract");
+  lines.push("");
+  for (const [key, value] of Object.entries(report.control_center_contract_checks || {})) {
     lines.push(`- ${value ? "OK" : "MISSING"}: ${key}`);
   }
   lines.push("");
@@ -282,6 +379,7 @@ function main() {
     "docs/BEAI-TELEGRAM-DELIVERY-CONTRACT-v0.1-ko.md",
     "docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md",
     "docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md",
+    "docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md",
     "docs/BEAI-KNOWLEDGE-LOOP-AUTO-CAPTURE-NOT-AUTO-APPROVE-v0.1-ko.md",
     "docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md",
     "skills/beai-korean-natural-writing-skill.md",
@@ -290,10 +388,14 @@ function main() {
     "config/beai-telegram-delivery-contract.json",
     "config/beai-operational-notification-contract.json",
     "config/beai-human-companion-quality-contract.json",
+    "config/beai-friction-aware-gate-contract.json",
+    "config/beai-control-center-contract.json",
     "state/beai/agent-trust-ledger.json",
     "tools/beai-doctor-package-check.mjs",
+    "tools/beai-control-center.mjs",
     "tools/beai-operational-notification-gate.mjs",
     "tools/beai-organic-flow-audit.mjs",
+    "docs/BEAI-CONTROL-CENTER-v0.1-ko.md",
     "docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md"
   ]);
 
@@ -304,9 +406,11 @@ function main() {
   const telegramDeliveryContract = checkTelegramDeliveryContract(root);
   const operationalNotificationContract = checkOperationalNotificationContract(root);
   const humanCompanionQualityContract = checkHumanCompanionQualityContract(root);
+  const frictionAwareGateContract = checkFrictionAwareGateContract(root);
+  const controlCenterContract = checkControlCenterContract(root);
 
   const requiredFileStatus = statusFor(requiredFiles);
-  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready" && operationalNotificationContract.status === "ready" && humanCompanionQualityContract.status === "ready"
+  const packageStatus = manifestHasDoctor && manifestHasDoctorTrustModule && requiredFileStatus === "ready" && telegramDeliveryContract.status === "ready" && operationalNotificationContract.status === "ready" && humanCompanionQualityContract.status === "ready" && frictionAwareGateContract.status === "ready" && controlCenterContract.status === "ready"
     ? "ready"
     : "partial";
 
@@ -323,6 +427,10 @@ function main() {
     operational_notification_contract_checks: operationalNotificationContract.checks,
     human_companion_quality_contract_status: humanCompanionQualityContract.status,
     human_companion_quality_contract_checks: humanCompanionQualityContract.checks,
+    friction_aware_gate_contract_status: frictionAwareGateContract.status,
+    friction_aware_gate_contract_checks: frictionAwareGateContract.checks,
+    control_center_contract_status: controlCenterContract.status,
+    control_center_contract_checks: controlCenterContract.checks,
     trust_gate_status_count: Array.isArray(trustGate.statuses) ? trustGate.statuses.length : 0,
     ledger_entry_count: Array.isArray(ledger.entries) ? ledger.entries.length : 0,
     package_status: packageStatus,

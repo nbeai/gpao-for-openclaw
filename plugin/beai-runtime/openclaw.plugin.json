@@ -2,7 +2,7 @@
   "id": "beai-runtime",
   "name": "BEAI Runtime",
   "description": "BEAI Layer runtime for current-turn judgment, evidence-aware replies, memory candidates, session continuity, and workflow state ledgers.",
-  "version": "0.6.19",
+  "version": "0.6.20",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

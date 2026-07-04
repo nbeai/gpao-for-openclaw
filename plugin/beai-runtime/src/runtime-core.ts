@@ -290,7 +290,7 @@ export type HumanJourneyStage =
   | "expert_expansion";
 
 export type InputLevelCompanionProfile = {
-  version: "0.6.10" | "0.6.11" | "0.6.12" | "0.6.14" | "0.6.15" | "0.6.16" | "0.6.17" | "0.6.18" | "0.6.19";
+  version: "0.6.10" | "0.6.11" | "0.6.12" | "0.6.14" | "0.6.15" | "0.6.16" | "0.6.17" | "0.6.18" | "0.6.19" | "0.6.20";
   mode: "guide_only";
   inputMaturity: InputLevelMaturity;
   primaryNeed: InputLevelNeed;
@@ -597,6 +597,13 @@ export type ApprovalRiskTransition =
   | "beai_owned_reversible_change"
   | "high_risk_mutation";
 
+export type FrictionGateLane =
+  | "fast_lane"
+  | "quiet_check"
+  | "approval_gate"
+  | "post_action_verify"
+  | "do_not_automate";
+
 export type OperatingJudgmentInput = {
   currentInput: string;
   mode?: BeaiMode;
@@ -626,6 +633,14 @@ export type BeaiOperatingJudgmentReport = {
   approvalErgonomics: {
     level: ApprovalErgonomicsLevel;
     riskTransition: ApprovalRiskTransition;
+    frictionAwareGate: {
+      lane: FrictionGateLane;
+      interruptionPolicy: string;
+      userExperienceGoal: string;
+      gateReason: string;
+      silentChecks: string[];
+      approvalTriggers: string[];
+    };
     shouldAskUserNow: boolean;
     shouldProceedWithoutInterruption: boolean;
     afterActionReportRequired: boolean;
@@ -2729,7 +2744,7 @@ export function buildInputLevelCompanionProfile(input: {
   if (recommendedSkillFamilies.length > 0) guidance.push(`필요하면 ${recommendedSkillFamilies.join(", ")} 계열 스킬을 후보로 둡니다.`);
 
   return {
-    version: "0.6.19",
+    version: "0.6.20",
     mode: "guide_only",
     inputMaturity,
     primaryNeed,
@@ -4263,6 +4278,88 @@ function inferApprovalRecovery(text: string, level: ApprovalErgonomicsLevel): st
   return "실행 전 백업/롤백 가능성을 확인해야 함";
 }
 
+function hasDraftOrThinkingSignal(text: string): boolean {
+  return /(아이디어|브레인스토밍|brainstorm|초안|draft|문안|요약|정리|다듬|검토해|의견|분석|설명|비교|추천|판단|가능할까|어떻게|계획|plan|후보)/i.test(text);
+}
+
+function hasPostActionVerificationSignal(text: string): boolean {
+  return /(코드|code|테스트|test|빌드|build|패키지|package|zip|sha|checksum|manifest|매니페스트|버전|version|배포파일|release|messageId|전달|delivered|sent|telegram|텔레그램|검증|verify|verified)/i.test(text);
+}
+
+function hasDoNotAutomateSignal(text: string, risks: OperatingRiskFamily[]): boolean {
+  if (risks.includes("payment") || risks.includes("browser_submit")) return true;
+  return /(법률|의료|진단|투자|세무\s*판단|계약\s*확정|민감\s*개인정보|자동\s*환불|자동\s*결제|사용자\s*승인\s*없이.{0,20}(?:발송|게시|배포|결제|삭제))/i.test(text);
+}
+
+function buildFrictionAwareGateProfile(
+  input: OperatingJudgmentInput,
+  level: ApprovalErgonomicsLevel,
+  riskTransition: ApprovalRiskTransition,
+  risks: OperatingRiskFamily[]
+): BeaiOperatingJudgmentReport["approvalErgonomics"]["frictionAwareGate"] {
+  const text = String(input.currentInput || "");
+  const lowRiskPreparation = hasLowRiskPreparationSignal(text);
+  const draftOrThinking = hasDraftOrThinkingSignal(text);
+  const postActionVerification = hasPostActionVerificationSignal(text);
+  const doNotAutomate = hasDoNotAutomateSignal(text, risks);
+
+  let lane: FrictionGateLane = "fast_lane";
+  if (doNotAutomate) lane = "do_not_automate";
+  else if (level === "approval_required" || riskTransition === "high_risk_mutation") lane = "approval_gate";
+  else if (postActionVerification && !draftOrThinking) lane = "post_action_verify";
+  else if (lowRiskPreparation || postActionVerification) lane = "quiet_check";
+
+  const baseApprovalTriggers = [
+    "external send or public publish",
+    "delete, overwrite, permission, account, credential, or version mutation",
+    "payment, order, contract, legal, tax, medical, or sensitive personal data action",
+    "durable memory promotion, cron registration, agent promotion, or recurring automation"
+  ];
+
+  const policyByLane: Record<FrictionGateLane, { interruptionPolicy: string; userExperienceGoal: string; gateReason: string; silentChecks: string[]; approvalTriggers: string[] }> = {
+    fast_lane: {
+      interruptionPolicy: "do not stop the user; answer, draft, summarize, compare, or organize directly",
+      userExperienceGoal: "preserve speed and flow",
+      gateReason: "low externality, reversible output, or thinking/draft work",
+      silentChecks: ["keep assumptions bounded", "avoid overclaiming completion"],
+      approvalTriggers: baseApprovalTriggers
+    },
+    quiet_check: {
+      interruptionPolicy: "verify quietly and report only the useful boundary",
+      userExperienceGoal: "keep speed while reducing overconfidence",
+      gateReason: "read-only, dry-run, package/status check, research, or candidate work",
+      silentChecks: ["separate confirmed from unverified", "summarize remaining checks after the action"],
+      approvalTriggers: baseApprovalTriggers
+    },
+    approval_gate: {
+      interruptionPolicy: "pause only at the risk transition and ask a compact approval question",
+      userExperienceGoal: "avoid procedural theater while preserving user authority",
+      gateReason: "actual mutation with external, persistent, destructive, permission, or automation impact",
+      silentChecks: ["bundle same-purpose steps", "show action, impact, exclusion, rollback before asking"],
+      approvalTriggers: baseApprovalTriggers
+    },
+    post_action_verify: {
+      interruptionPolicy: "do the reversible work, then verify before claiming completion",
+      userExperienceGoal: "preserve execution momentum without fake completion",
+      gateReason: "work may be safe to perform but completion depends on evidence",
+      silentChecks: ["run available tests/checks", "do not call changed/sent/generated verified without evidence"],
+      approvalTriggers: baseApprovalTriggers
+    },
+    do_not_automate: {
+      interruptionPolicy: "do not auto-execute; provide draft, analysis, checklist, or approval-ready candidate only",
+      userExperienceGoal: "protect the user from irreversible or high-liability automation",
+      gateReason: "money, legal, medical, tax, sensitive data, browser submit, or user-voice external authority risk",
+      silentChecks: ["offer a reversible draft", "keep human decision ownership explicit"],
+      approvalTriggers: baseApprovalTriggers
+    }
+  };
+
+  return {
+    lane,
+    ...policyByLane[lane]
+  };
+}
+
 export function buildApprovalErgonomicsProfile(input: OperatingJudgmentInput, report: Pick<BeaiOperatingJudgmentReport, "risk" | "delegation">): BeaiOperatingJudgmentReport["approvalErgonomics"] {
   const text = String(input.currentInput || "");
   const risks = report.risk.families;
@@ -4294,10 +4391,12 @@ export function buildApprovalErgonomicsProfile(input: OperatingJudgmentInput, re
   const shouldProceedWithoutInterruption = level !== "approval_required";
   const afterActionReportRequired = level !== "approval_required" || (beaiOwnedScope && actualMutation);
   const action = inferApprovalActionSummary(text, risks);
+  const frictionAwareGate = buildFrictionAwareGateProfile(input, level, riskTransition, risks);
 
   return {
     level,
     riskTransition,
+    frictionAwareGate,
     shouldAskUserNow,
     shouldProceedWithoutInterruption,
     afterActionReportRequired,
@@ -5308,6 +5407,14 @@ export function renderPromptContext(plan: BeaiTurnPlan, companionProfile?: Compa
   lines.push("- mode: guide_only");
   lines.push(`- level: ${plan.operatingJudgment.approvalErgonomics.level}`);
   lines.push(`- risk_transition: ${plan.operatingJudgment.approvalErgonomics.riskTransition}`);
+  lines.push("friction_aware_gate:");
+  lines.push("- mode: guide_only");
+  lines.push(`- lane: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.lane}`);
+  lines.push(`- interruption_policy: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.interruptionPolicy}`);
+  lines.push(`- user_experience_goal: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.userExperienceGoal}`);
+  lines.push(`- gate_reason: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.gateReason}`);
+  lines.push(`- silent_checks: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.silentChecks.slice(0, 3).join(" | ")}`);
+  lines.push(`- approval_triggers: ${plan.operatingJudgment.approvalErgonomics.frictionAwareGate.approvalTriggers.slice(0, 4).join(" | ")}`);
   lines.push(`- ask_user_now: ${plan.operatingJudgment.approvalErgonomics.shouldAskUserNow ? "true" : "false"}`);
   lines.push(`- proceed_without_interruption: ${plan.operatingJudgment.approvalErgonomics.shouldProceedWithoutInterruption ? "true" : "false"}`);
   lines.push(`- after_action_report_required: ${plan.operatingJudgment.approvalErgonomics.afterActionReportRequired ? "true" : "false"}`);

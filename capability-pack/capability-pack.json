@@ -1,6 +1,6 @@
 {
   "id": "beai-capability-pack",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "status": "internal-team-release-candidate",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [
@@ -22,6 +22,8 @@
     "actionSemanticsPolicy": "Use docs/BEAI-ACTION-SEMANTICS-AND-RECOVERY-CLAIM-CONTRACT-v0.1-ko.md and config/beai-action-semantics-contract.json so BEAI cannot call reports, warning suppression, prompt rules, or partial diagnostics a repair. Recovery claims require reproduced or observed failure, identified cause, changed failing path, and same-condition re-verification.",
     "koreanNaturalWritingPolicy": "Use docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md and skills/beai-korean-natural-writing-skill.md for Korean user-facing output, status wording, public copy, release wording, Telegram visible-delivery wording, Knowledge Loop/Doctor explanation clarity, app copy, error messages, and presentation scripts. Preserve meaning first; then improve Korean order, medium fit, uncertainty boundaries, and action clarity.",
     "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
+    "frictionAwareGatePolicy": "Use docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md and config/beai-friction-aware-gate-contract.json so BEAI preserves speed and comfort by default, performs quiet checks without interrupting the user, asks approval only at real risk transitions, verifies after action before completion claims, and refuses high-liability automation.",
+    "controlCenterPolicy": "Use docs/BEAI-CONTROL-CENTER-v0.1-ko.md, config/beai-control-center-contract.json, and tools/beai-control-center.mjs to expose BEAI Package source, live, package, release, workflow, automation, memory, delivery, and verification state as one read-only status surface without mutating OpenClaw or overclaiming completion.",
     "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks."
   },
   "skills": [
@@ -269,6 +271,61 @@
         "visible operational notice examples include user action, assistant action, and not-yet boundary",
         "package verify runs the operational notification gate",
         "user scenario audit includes the operational notification action-frame scenario"
+      ]
+    },
+    {
+      "id": "beai-friction-aware-gate-contract",
+      "label": "BEAI Friction-Aware Gate Contract",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw and BEAI Runtime Layer",
+      "docs": [
+        "docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-friction-aware-gate-contract.json"
+      ],
+      "scope": [
+        "fast lane for drafts, summaries, thinking, read-only analysis, and candidates",
+        "quiet checks for research, dry-runs, package inspection, and status verification",
+        "compact approval only at external, irreversible, persistent, permission, version, automation, or live-runtime risk transitions",
+        "post-action verification before completion claims",
+        "do-not-automate lane for payment, browser submit, legal, medical, tax, sensitive data, and high-liability actions"
+      ],
+      "evidence": [
+        "FrictionGateLane is part of runtime-core",
+        "buildFrictionAwareGateProfile classifies current turn approval friction",
+        "runtime prompt context renders friction_aware_gate",
+        "flow regression gate includes friction_aware_gate checks",
+        "contract document and config are package-readable"
+      ]
+    },
+    {
+      "id": "beai-control-center-contract",
+      "label": "BEAI Control Center Contract",
+      "status": "package-regression-gate",
+      "target": "BEAI Package for OpenClaw operations visibility",
+      "docs": [
+        "docs/BEAI-CONTROL-CENTER-v0.1-ko.md"
+      ],
+      "configs": [
+        "config/beai-control-center-contract.json"
+      ],
+      "tools": [
+        "tools/beai-control-center.mjs"
+      ],
+      "scope": [
+        "read-only package operations status",
+        "source, live, package, release state separation",
+        "workflow, promotion, automation, memory, and agent trust ledgers",
+        "verification evidence visibility",
+        "approval boundary and next-safe-action reporting"
+      ],
+      "evidence": [
+        "beai-control-center.mjs emits beai.control_center.v0_1 status",
+        "doctor package check requires the control center contract, doc, and tool",
+        "package verify runs the control center read-only status command",
+        "flow regression gate includes control center state and mutation checks",
+        "user scenario audit includes S22 control center read-only status"
       ]
     },
     {

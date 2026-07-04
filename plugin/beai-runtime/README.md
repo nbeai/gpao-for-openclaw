@@ -1,6 +1,6 @@
 # BEAI Runtime
 
-OpenClaw runtime plugin for BEAI Layer v0.6.19.
+OpenClaw runtime plugin for BEAI Layer v0.6.20.
 
 BEAI Runtime helps OpenClaw preserve the current user request, separate evidence from assumptions, keep memory candidates scoped, and carry session continuity without dumping old conversations.
 
@@ -10,7 +10,7 @@ It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
 
 This section applies to the source development workspace only.
 
-The v0.6.19 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
+The v0.6.20 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
 
 ```bash
 npm install
@@ -89,6 +89,7 @@ Restart the gateway after changing plugin config.
 - Adds v0.6.12 Operating Contract Closure so read-only status/list checks do not become mutation work, explicit "do not create skill/agent/automation" wording suppresses candidate routing, retry/watchdog/destructive/core/memory requests get approval boundaries, and Notion/Telegram read-write behavior is separated.
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
 - Adds v0.6.17 Telegram Speed Reliability so Telegram-driven execution opens a quick first-status contract, records runtime phase timing, and keeps the v0.6.16 delivery/progress closure rules.
+- Adds v0.6.20 Friction-Aware Gate so BEAI preserves fast user flow for drafts, thinking, read-only work, and candidates, performs quiet checks without needless interruption, raises approval only at real risk transitions, and requires post-action verification before completion claims.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Translates OpenClaw capabilities into plain user language.
 - Prioritizes recovery/diagnosis when capability words appear inside failure reports.
@@ -169,7 +170,7 @@ Current package audit baseline from 2026-07-02:
 - organic flow audit: pass
 - package verify: pass after representative package verify command and developer-owned fixtures were added
 
-For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.19 public staging runtime candidate package is generated separately under `packages/`.
+For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.20 public staging runtime candidate package is generated separately under `packages/`.
 
 Final local-live verification ledger for the previous v0.6.13 candidate:
 
@@ -177,7 +178,7 @@ Final local-live verification ledger for the previous v0.6.13 candidate:
 docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md
 ```
 
-v0.6.19 is an action-semantics and recovery-claim hardening patch on top of v0.6.18. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, and human companion quality checks. It adds action semantics so diagnose, report, mitigate, repair, verify, and prevent remain separate states, and recovery wording requires failure-path evidence before completion claims. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
+v0.6.20 is a friction-aware approval and verification patch on top of v0.6.19. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, human companion quality checks, and action-semantics hardening. It adds a Friction-Aware Gate so BEAI does not turn every request into a procedural approval flow: low-risk drafts and read-only work stay fast, quiet checks avoid user interruption, real risk transitions require approval, and post-action work needs evidence before completion claims. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
 
 Session handoff and workspace hygiene notes:
 

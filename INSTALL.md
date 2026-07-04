@@ -14,7 +14,7 @@ openclaw plugins enable beai-runtime
 Use the ZIP when you received a release candidate file:
 
 ```bash
-unzip beai-package-for-openclaw-v0.2.3-runtime-v0.6.19-*.zip
+unzip beai-package-for-openclaw-v0.2.4-runtime-v0.6.20-*.zip
 cd beai-package-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime
@@ -46,7 +46,7 @@ If Telegram delivery quality is being claimed, also verify a real Telegram round
 ```text
 id: beai-runtime
 name: BEAI Runtime
-version: 0.6.19
+version: 0.6.20
 package: @nbeai/beai-runtime
 ```
 
@@ -68,7 +68,7 @@ Existing OpenClaw:
 
 Previous BEAI Layer user:
 
-- Confirm the installed runtime version is `0.6.19`.
+- Confirm the installed runtime version is `0.6.20`.
 - Confirm local state files are BEAI-owned under `state/beai/`.
 - Treat memory candidates, workflow cards, and automation registry entries as separate states.
 

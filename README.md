@@ -20,6 +20,7 @@ It helps OpenClaw users separate:
 - Telegram visible delivery
 - operational notification action clarity
 - runtime operations health
+- control-center visibility for source/live/package/release/workflow state
 - package verification and release boundaries
 
 This repository is an alpha public staging release-candidate repository. It is not an OpenClaw core fork, and it does not claim stable production support status until the public ClawHub/release path is completed and clean-environment evidence is attached.
@@ -81,6 +82,8 @@ Included:
 - Connector Onboarding checklist
 - Telegram delivery contract
 - Korean Natural AI Writing Standard v1.0
+- Friction-Aware Gate contract
+- BEAI Control Center read-only status command
 - public documentation and examples
 
 Excluded:
@@ -117,7 +120,7 @@ The runtime plugin lives in:
 plugin/beai-runtime
 ```
 
-Its current public staging version is `0.6.19`.
+Its current public staging version is `0.6.20`.
 
 ClawHub package name:
 
@@ -134,7 +137,7 @@ openclaw plugins enable beai-runtime
 
 The GitHub ZIP release remains the full BEAI Package distribution candidate. The ClawHub package is the OpenClaw runtime plugin install surface.
 
-The v0.6.19 runtime includes Telegram reliability, organic-flow, and action-semantics rules:
+The v0.6.20 runtime includes Telegram reliability, organic-flow, action-semantics, and friction-aware approval rules:
 
 - quick first-status contract before deep work
 - phase timing telemetry
@@ -145,6 +148,18 @@ The v0.6.19 runtime includes Telegram reliability, organic-flow, and action-sema
 - organic flow and human companion quality checks so current intent, context, and evidence boundaries stay aligned
 - action semantics gating so diagnosis, report, mitigation, repair, verification, and prevention are not described as the same state
 - recovery claim evidence rules so "fixed/recovered/resolved" wording requires failure-path observation, cause, path change, and same-condition re-verification
+- friction-aware gating so drafts, thinking, read-only checks, and candidate work stay fast by default, quiet checks avoid interrupting the user, approvals appear only at real risk transitions, and post-action verification prevents completion overclaim
+
+## BEAI Control Center
+
+BEAI Control Center v0.1 is a read-only status surface for the package. It gathers source version, live runtime version, latest package archive, workflow/promotion/automation/memory ledgers, verification reports, approval boundaries, and the next safe action in one report.
+
+```bash
+cd capability-pack
+node tools/beai-control-center.mjs --root . --format md --stdout
+```
+
+This command does not create release zips, publish, install, restart Gateway, send messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
 
 ## ClawHub Positioning
 

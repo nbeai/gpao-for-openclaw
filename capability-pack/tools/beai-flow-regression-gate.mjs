@@ -131,6 +131,26 @@ const CHECKS = [
     failEvidence: "Action semantics builder is missing."
   },
   {
+    id: "self-check-friction-aware-gate-type-present",
+    lane: "self-check",
+    regression: "approval_friction_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /export type FrictionGateLane/,
+    description: "Runtime has a Friction-Aware Gate lane model.",
+    passEvidence: "FrictionGateLane is present.",
+    failEvidence: "FrictionGateLane is missing."
+  },
+  {
+    id: "self-check-friction-aware-gate-builder-present",
+    lane: "self-check",
+    regression: "approval_friction_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /function buildFrictionAwareGateProfile/,
+    description: "Runtime builds friction-aware approval and verification guidance from the current turn.",
+    passEvidence: "buildFrictionAwareGateProfile is present.",
+    failEvidence: "Friction-Aware Gate builder is missing."
+  },
+  {
     id: "self-check-evidence-language-present",
     lane: "self-check",
     regression: "completion_overclaim",
@@ -443,6 +463,46 @@ const CHECKS = [
     failEvidence: "Action semantics is not rendered into prompt context."
   },
   {
+    id: "friction-aware-gate-overlay-rendered",
+    lane: "perceived-quality",
+    regression: "approval_friction_regression",
+    file: "../plugin/beai-runtime/src/runtime-core.ts",
+    pattern: /friction_aware_gate:/,
+    description: "Prompt context renders the Friction-Aware Gate.",
+    passEvidence: "friction_aware_gate is rendered into prompt context.",
+    failEvidence: "Friction-Aware Gate is not rendered into prompt context."
+  },
+  {
+    id: "friction-aware-gate-contract-linked",
+    lane: "release-checklist",
+    regression: "approval_friction_regression",
+    file: "capability-pack.json",
+    pattern: /frictionAwareGatePolicy/,
+    description: "Capability manifest links the Friction-Aware Gate policy.",
+    passEvidence: "frictionAwareGatePolicy is present.",
+    failEvidence: "Friction-Aware Gate policy is not linked in the manifest."
+  },
+  {
+    id: "friction-aware-gate-contract-doc-present",
+    lane: "release-checklist",
+    regression: "approval_friction_regression",
+    file: "docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md",
+    pattern: /BEAI Friction-Aware Gate Contract/,
+    description: "Friction-Aware Gate contract document exists.",
+    passEvidence: "Friction-Aware Gate contract document is present.",
+    failEvidence: "Friction-Aware Gate contract document is missing."
+  },
+  {
+    id: "friction-aware-gate-config-present",
+    lane: "release-checklist",
+    regression: "approval_friction_regression",
+    file: "config/beai-friction-aware-gate-contract.json",
+    pattern: /"default_to_fast_lane_for_drafts_and_thinking":\s*true/,
+    description: "Friction-Aware Gate config preserves speed for low-risk drafts and thinking.",
+    passEvidence: "Friction-Aware Gate config preserves the fast lane.",
+    failEvidence: "Friction-Aware Gate config is missing the fast lane rule."
+  },
+  {
     id: "human-companion-contract-present",
     lane: "release-checklist",
     regression: "human_companion_quality_regression",
@@ -641,6 +701,36 @@ const CHECKS = [
     description: "Package verify runs the operational notification gate.",
     passEvidence: "Operational notification gate is included in package verify.",
     failEvidence: "Package verify does not run operational notification gate."
+  },
+  {
+    id: "control-center-contract-present",
+    lane: "release-checklist",
+    regression: "control_center_state_confusion",
+    file: "config/beai-control-center-contract.json",
+    pattern: /"source_live_package_release_states_must_be_separated":\s*true/,
+    description: "Control Center contract requires source/live/package/release separation.",
+    passEvidence: "Control Center contract separates source, live, package, and release states.",
+    failEvidence: "Control Center state separation contract is missing."
+  },
+  {
+    id: "control-center-tool-readonly",
+    lane: "release-checklist",
+    regression: "control_center_mutation_risk",
+    file: "tools/beai-control-center.mjs",
+    pattern: /no release archive creation[\s\S]*no Gateway restart[\s\S]*no Telegram send[\s\S]*no cron, hook, or agent mutation[\s\S]*no durable memory write/,
+    description: "Control Center reports explicit read-only non-actions.",
+    passEvidence: "Control Center tool declares non-actions for release, Gateway, Telegram, automation, and memory.",
+    failEvidence: "Control Center tool does not clearly declare read-only non-actions."
+  },
+  {
+    id: "control-center-package-verify-linked",
+    lane: "release-checklist",
+    regression: "control_center_unverified",
+    file: "tools/beai-package-verify.mjs",
+    pattern: /beai-control-center\.mjs/,
+    description: "Package verify runs the Control Center read-only status command.",
+    passEvidence: "Control Center is included in package verify.",
+    failEvidence: "Package verify does not run Control Center."
   }
 ];
 

@@ -33,7 +33,7 @@ If the ClawHub package is not visible yet, use the manual ZIP path.
 Unzip the package and install the runtime plugin from the local folder:
 
 ```bash
-unzip beai-package-for-openclaw-v0.2.3-runtime-v0.6.19-*.zip
+unzip beai-package-for-openclaw-v0.2.4-runtime-v0.6.20-*.zip
 cd beai-package-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime
@@ -97,6 +97,7 @@ node tools/beai-doctor-package-check.mjs
 node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
 node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
 node tools/beai-organic-flow-audit.mjs --root . --format md --output docs/03-verification/generated/beai-organic-flow-audit.md --stdout
+node tools/beai-control-center.mjs --root . --format md --output docs/03-verification/generated/beai-control-center.md --stdout
 ```
 
 ## Rollback

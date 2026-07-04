@@ -1,6 +1,6 @@
 {
   "name": "@nbeai/beai-runtime",
-  "version": "0.6.19",
+  "version": "0.6.20",
   "type": "module",
   "description": "BEAI Layer runtime plugin for OpenClaw: evidence-aware replies, Knowledge Loop review-first capture, Telegram delivery contracts, and flow-state judgment.",
   "scripts": {
@@ -15,7 +15,7 @@
     "openclaw.plugin.json",
     "README.md",
     "README.dist.md",
-    "RELEASE-NOTES-v0.6.19-ko.md"
+    "RELEASE-NOTES-v0.6.20-ko.md"
   ],
   "dependencies": {
     "openclaw": "2026.6.10"

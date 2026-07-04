@@ -1,0 +1,36 @@
+{
+  "id": "beai-control-center-contract",
+  "version": "0.1.0",
+  "status": "package-regression-gate",
+  "purpose": "Expose BEAI Package operating state as one read-only control surface without mutating OpenClaw, sending messages, activating automation, or claiming live/release completion without evidence.",
+  "rules": {
+    "control_center_is_read_only_by_default": true,
+    "source_live_package_release_states_must_be_separated": true,
+    "verification_reports_are_evidence_not_completion_by_themselves": true,
+    "workflow_candidates_must_not_be_reported_as_active_automation": true,
+    "missing_or_stale_ledgers_must_be_visible": true,
+    "next_safe_action_must_preserve_approval_boundaries": true,
+    "live_runtime_reinstall_requires_separate_approval": true,
+    "release_zip_creation_requires_separate_approval": true,
+    "cron_agent_memory_external_send_mutation_requires_separate_approval": true
+  },
+  "required_tool": "tools/beai-control-center.mjs",
+  "required_doc": "docs/BEAI-CONTROL-CENTER-v0.1-ko.md",
+  "required_outputs": [
+    "package capability version",
+    "runtime source version",
+    "runtime live version",
+    "latest release archive",
+    "state ledgers",
+    "verification reports",
+    "approval boundaries",
+    "next safe action"
+  ],
+  "doctor_issue_codes": [
+    "beai-control-center-contract-missing",
+    "beai-control-center-tool-missing",
+    "beai-control-center-doc-missing",
+    "beai-control-center-overclaims-live-state",
+    "beai-control-center-automation-candidate-overclaimed"
+  ]
+}

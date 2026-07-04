@@ -1,0 +1,88 @@
+{
+  "schema": "beai.friction_aware_gate_contract.v0.1",
+  "status": "required",
+  "scope": "BEAI Package for OpenClaw approval, verification, automation, memory, delivery, and release boundaries",
+  "principle": "BEAI should preserve user speed and comfort by default, then increase friction only at responsibility, exposure, persistence, or verification boundaries.",
+  "rules": {
+    "default_to_fast_lane_for_drafts_and_thinking": true,
+    "quiet_checks_should_not_interrupt_user_flow": true,
+    "approval_required_only_at_risk_transition": true,
+    "post_action_verification_prevents_completion_overclaim": true,
+    "do_not_automate_high_liability_actions": true,
+    "same_purpose_steps_should_be_bundled": true,
+    "approval_prompt_must_be_compact": true
+  },
+  "lanes": {
+    "fast_lane": {
+      "use_when": [
+        "idea generation",
+        "drafting",
+        "summarizing",
+        "internal review",
+        "read-only analysis",
+        "candidate creation"
+      ],
+      "user_visible_behavior": "answer directly without an approval prompt",
+      "claim_boundary": "state assumptions briefly when useful"
+    },
+    "quiet_check": {
+      "use_when": [
+        "research summary",
+        "status check",
+        "dry-run",
+        "package or manifest inspection",
+        "private quality review"
+      ],
+      "user_visible_behavior": "check quietly and report only confirmed, unverified, and useful next boundaries",
+      "claim_boundary": "do not claim completion beyond evidence"
+    },
+    "approval_gate": {
+      "use_when": [
+        "external send",
+        "public publish",
+        "delete or overwrite",
+        "permission or credential change",
+        "durable memory promotion",
+        "cron registration",
+        "agent promotion",
+        "version or live runtime mutation"
+      ],
+      "user_visible_behavior": "pause at the risk transition with one compact approval question",
+      "claim_boundary": "show action, impact, excluded scope, rollback path, and decision"
+    },
+    "post_action_verify": {
+      "use_when": [
+        "code change",
+        "testable local mutation",
+        "package creation",
+        "release candidate inspection",
+        "Telegram delivery",
+        "build or manifest consistency"
+      ],
+      "user_visible_behavior": "preserve execution momentum, then verify before completion claims",
+      "claim_boundary": "changed, sent, generated, packaged, tested, delivered, verified, approved, and published remain separate states"
+    },
+    "do_not_automate": {
+      "use_when": [
+        "payment",
+        "browser submit",
+        "legal, medical, tax, or investment conclusion",
+        "sensitive personal data exposure",
+        "irreversible high-blast-radius action"
+      ],
+      "user_visible_behavior": "offer draft, analysis, checklist, or approval-ready candidate only",
+      "claim_boundary": "human decision ownership remains explicit"
+    }
+  },
+  "doctor_issue_codes": [
+    "beai-friction-fast-lane-overblocked",
+    "beai-friction-quiet-check-overprompted",
+    "beai-friction-risk-transition-underblocked",
+    "beai-friction-completion-overclaimed",
+    "beai-friction-high-liability-automation"
+  ],
+  "ownership": {
+    "primary": "beai",
+    "rule": "If BEAI repeatedly asks approval for low-risk drafts, candidates, read-only checks, or quiet verification, classify it as a BEAI package UX regression. If BEAI skips approval at external, irreversible, persistent, or high-liability boundaries, classify it as a BEAI package safety regression."
+  }
+}

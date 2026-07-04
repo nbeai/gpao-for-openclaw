@@ -1,4 +1,4 @@
-# BEAI Capability Pack v0.2.3
+# BEAI Capability Pack v0.2.4
 
 BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
 
@@ -31,6 +31,8 @@ This package contains planning-ready definitions for:
 - BEAI Human Companion Quality Contract (current-request anchoring, cognitive load reduction, user agency, long-context stability, and trust recovery)
 - BEAI Organic Flow Audit (runtime, hooks, skills, tools, evidence, Korean wording, and release-boundary cohesion)
 - BEAI Action Semantics and Recovery Claim Contract (diagnose/report/mitigate/repair/verify/prevent separation and recovery claim evidence gate)
+- BEAI Friction-Aware Gate Contract (fast by default, quiet checks where possible, approval only at risk transitions, and verification before completion claims)
+- BEAI Control Center Contract (read-only source/live/package/release/workflow/automation/memory/verification status surface)
 - Capability routing rules
 
 ## BEAI Korean Natural Writing Direction
@@ -273,6 +275,7 @@ Current Flow verification command:
 node tools/beai-flow-regression-gate.mjs --root . --format md --output docs/03-verification/generated/beai-flow-regression-gate.md --stdout
 node tools/beai-user-scenario-audit.mjs --root . --format md --output docs/03-verification/generated/beai-user-scenario-audit.md --stdout
 node tools/beai-operational-notification-gate.mjs --root . --format md --output docs/03-verification/generated/beai-operational-notification-gate.md --stdout
+node tools/beai-control-center.mjs --root . --format md --output docs/03-verification/generated/beai-control-center.md --stdout
 ```
 
 Expected:
@@ -293,6 +296,18 @@ Expected before user-experience or release-readiness claims:
 - watchdog, heartbeat, cron dry-run, and Knowledge Loop candidate notices are checked so raw internal candidates do not become confusing user messages
 - pass, partial, and fail states are preserved instead of collapsed into a single ready claim
 - no live Telegram roundtrip, Gateway restart, cron mutation, external send, or release packaging occurs during this read-only check
+
+Current Control Center command:
+
+```bash
+node tools/beai-control-center.mjs --root . --format md --stdout
+```
+
+Expected:
+
+- source, live, package, release, workflow, automation, memory, and verification states are visible in one read-only report
+- workflow candidates are not reported as active automations
+- release zip, live runtime reinstall, Gateway restart, cron/agent activation, memory promotion, external send, and public publishing remain separate approval boundaries
 
 ## Not Included
 
@@ -373,6 +388,7 @@ BEAI Doctor Runtime Trust Upgrade also does not create live Gateway changes, liv
 - `tools/beai-knowledge-loop-memory-append.mjs`
 - `tools/beai-doctor-package-check.mjs`
 - `tools/beai-operational-notification-gate.mjs`
+- `tools/beai-control-center.mjs`
 - `config/beai-knowledge-loop-external-sources.json`
 - `config/beai-trust-gate-statuses.json`
 - `config/beai-connector-onboarding-checklist.json`
