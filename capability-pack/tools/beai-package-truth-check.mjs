@@ -147,7 +147,7 @@ async function buildReport(root, runtimeRel) {
 
 function renderMarkdown(report) {
   const lines = [];
-  lines.push("# BEAI Package Truth Check");
+  lines.push("# GPAO for OpenClaw Package Truth Check");
   lines.push("");
   lines.push(`Generated at: ${report.generated_at}`);
   lines.push(`Status: ${report.status}`);

@@ -1,95 +1,61 @@
-# Install BEAI Package for OpenClaw
+# Install GPAO for OpenClaw
 
-This guide is for OpenClaw users installing or reviewing BEAI Package for OpenClaw.
+> Product identity: GPAO for OpenClaw.
+>
+> This file is part of GPAO for OpenClaw. BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence are internal components of the GPAO for OpenClaw operating package.
+
+Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
+
+This guide is for OpenClaw users installing or reviewing GPAO for OpenClaw.
 
 ## Choose Your Path
 
-Use ClawHub when available:
+Use ClawHub when available for the runtime-only plugin surface:
 
 ```bash
 openclaw plugins install clawhub:@nbeai/beai-runtime
 openclaw plugins enable beai-runtime
 ```
 
-Use the ZIP when you received a release candidate file:
+Use the GPAO ZIP when you received the integrated package file:
 
 ```bash
-unzip beai-package-for-openclaw-v0.2.6-runtime-v0.6.20-*.zip
-cd beai-package-for-openclaw
+unzip gpao-for-openclaw-v0.1.0-runtime-v0.6.22-*.zip
+cd gpao-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime
 ```
 
-Use source review when you want to inspect or test the package before installing:
+## Clean Install From GPAO ZIP
+
+For existing BEAI Package users, prefer the clean installer. It backs up known legacy BEAI package paths before installing GPAO for OpenClaw.
+
+Dry-run first:
 
 ```bash
-npm run verify
-cd plugin/beai-runtime
-npm install
-npm run build
-npm test
+node installer/install-gpao-for-openclaw.mjs --openclaw-home "$HOME/.openclaw"
 ```
 
-## Post-Install Checks
-
-Always run:
+Apply:
 
 ```bash
-openclaw plugins doctor
-openclaw hooks check
+node installer/install-gpao-for-openclaw.mjs --openclaw-home "$HOME/.openclaw" --apply
 ```
 
-If Telegram delivery quality is being claimed, also verify a real Telegram roundtrip and confirm an actual `messageId`. Internal final text, generated reply text, and `reply_payload_sending` are not delivery proof.
+The installer moves legacy paths such as `plugins/beai-runtime`, `plugins/@nbeai/beai-runtime`, `.beai-package`, and `.beai-layer` into `backups/gpao-migration-<timestamp>/`, then installs the GPAO runtime component and capability pack. It writes `.gpao-for-openclaw/install-receipt.json`.
 
 ## Expected Installed Plugin
 
 ```text
 id: beai-runtime
-name: BEAI Runtime
-version: 0.6.20
+name: GPAO Runtime (BEAI Runtime Component)
+version: 0.6.22
 package: @nbeai/beai-runtime
+product: GPAO for OpenClaw
 ```
-
-## Common Outcomes
-
-Fresh OpenClaw:
-
-- Install the runtime plugin.
-- Enable it.
-- Add conversation-access hook permission if needed.
-- Run doctor and hooks checks.
-
-Existing OpenClaw:
-
-- Check current plugin state first with `openclaw plugins list`.
-- Install or update BEAI Runtime.
-- Re-run doctor and hooks checks.
-- Do not change Gateway, cron, Telegram, or account settings unless that is the explicit operating task.
-
-Previous BEAI Layer user:
-
-- Confirm the installed runtime version is `0.6.20`.
-- Confirm local state files are BEAI-owned under `state/beai/`.
-- Treat memory candidates, workflow cards, and automation registry entries as separate states.
-
-## Rollback
-
-```bash
-openclaw plugins disable beai-runtime
-openclaw plugins doctor
-openclaw hooks check
-```
-
-If you need full removal:
-
-```bash
-openclaw plugins uninstall beai-runtime
-```
-
-Review any manually changed OpenClaw config before deleting or replacing it.
 
 ## Support Boundary
 
-This package improves runtime judgment, evidence boundaries, Knowledge Loop review-first capture, Telegram delivery trust, and package verification discipline.
+GPAO for OpenClaw improves runtime judgment, evidence boundaries, Context Mesh continuity, Knowledge Loop review-first capture, Telegram delivery trust, and package verification discipline.
 
 It does not turn unverified output into a completed send, completed deployment, approved memory, active cron job, or public release claim.

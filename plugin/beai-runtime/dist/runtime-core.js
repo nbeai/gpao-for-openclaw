@@ -139,8 +139,23 @@ function detectFollowUpScope(input) {
     }
     return "full";
 }
+function currentUserRequestForClassification(input) {
+    const match = String(input || "").match(/Current user request:\s*([\s\S]*)$/i);
+    return match?.[1]?.trim() || input;
+}
+function isAmbiguousPermissionContinuationRequest(input) {
+    const text = currentUserRequestForClassification(String(input || "")).replace(/\s+/g, " ").trim();
+    if (!text)
+        return false;
+    const hasOmittedTarget = /(그거|그것|그걸|이거|이것|이걸|저거|저것|그\s*작업|그\s*파일|그\s*패키지|it|that|this)/i.test(text);
+    const asksPermissionOrContinuation = /(만들어도\s*돼|만들어도\s*되|해도\s*돼|해도\s*되|진행해도\s*돼|진행해도\s*되|이제\s*(?:만들|진행|해)|go ahead|can\s+i|can\s+we|should\s+i|should\s+we)/i.test(text);
+    const hasBoundarySignal = /(새\s*세션|이전|직전|아까|방금|세션|compaction|handoff|이어)/i.test(text);
+    return hasOmittedTarget && asksPermissionOrContinuation && (hasBoundarySignal || text.length <= 80);
+}
 function detectRequestedOutputShape(input) {
-    const normalized = input.toLowerCase();
+    if (isAmbiguousPermissionContinuationRequest(input))
+        return "question";
+    const normalized = currentUserRequestForClassification(input).toLowerCase();
     const checks = [
         ["summary", /요약|summari[sz]e|summary/],
         ["comparison", /비교|compare|차이|versus|\bvs\b/],
@@ -196,7 +211,7 @@ function detectExplicitConstraints(input) {
 }
 function detectMissingCriticalInputs(input, requestedOutputShape, followUpScope) {
     const missing = [];
-    const normalized = input.trim();
+    const normalized = currentUserRequestForClassification(input).trim();
     if (!normalized) {
         missing.push("current user input");
         return missing;
@@ -221,7 +236,9 @@ function isCompactApprovalContinuationInput(input) {
     return /^(진행해|진행하자|진행|승인|계속|좋아\.?\s*진행해|go ahead|proceed|continue)$/i.test(normalized);
 }
 export function classifyExecutionMode(input) {
-    const normalized = String(input || "").replace(/\s+/g, " ").trim();
+    if (isAmbiguousPermissionContinuationRequest(input))
+        return "planning";
+    const normalized = currentUserRequestForClassification(String(input || "")).replace(/\s+/g, " ").trim();
     if (!normalized)
         return "conversation";
     if (/(만들어|작성해|구현해|패치|수정해|고쳐줘|설치해줘|배포파일.*만들|zip.*만들|implement|create|build|patch|fix|install)/i.test(normalized)) {
@@ -3892,6 +3909,27 @@ export function renderPromptContext(plan, companionProfile) {
     lines.push(`- opening_style: ${plan.continuityJudgment.openingStyle}`);
     lines.push(`- carry_forward: ${plan.continuityJudgment.carryForward.slice(0, 3).join(" | ") || "none"}`);
     lines.push(`- do_not_carry: ${plan.continuityJudgment.doNotCarry.slice(0, 3).join(" | ") || "none"}`);
+    if (plan.handoffState) {
+        lines.push("handoff_state:");
+        lines.push("- mode: session_context_candidate");
+        lines.push("- authority: current user request wins; prior context is comparison material, not a forced answer");
+        lines.push("- ambiguous_action_guard: when the current request uses an omitted object or asks for permission to proceed, do not answer with a bare yes/no; name the recovered candidate, separate verified readiness from unknowns, and ask for confirmation at authority or release boundaries");
+        lines.push("- current_override_guard: if the user explicitly says the current turn is about a different subject, follow that correction even when prior context matches strongly");
+        if (plan.handoffState.current_track)
+            lines.push(`- current_track: ${sanitizeContinuityStateText(plan.handoffState.current_track)}`);
+        if (plan.handoffState.next_action || plan.handoffState.next_work) {
+            lines.push(`- pending_next_action: ${sanitizeContinuityStateText(plan.handoffState.next_action || plan.handoffState.next_work)}`);
+        }
+        if (plan.handoffState.user_continuity_message) {
+            lines.push(`- user_continuity_message: ${sanitizeContinuityStateText(plan.handoffState.user_continuity_message)}`);
+        }
+        const mustCarry = compactBullets(plan.handoffState.carry_priority?.must_carry, 4);
+        const discard = compactBullets([...(plan.handoffState.do_not_carry || []), ...(plan.handoffState.carry_priority?.discard || [])], 4);
+        if (mustCarry.length > 0)
+            lines.push(`- must_compare_before_answer: ${mustCarry.join(" | ")}`);
+        if (discard.length > 0)
+            lines.push(`- must_not_carry: ${discard.join(" | ")}`);
+    }
     lines.push("judgment_flow:");
     lines.push("- mode: guide_only");
     lines.push("- rewrite_output: false");
@@ -4756,8 +4794,30 @@ export function checkSurfaceLanguage(text, plan) {
 export function applySurfaceLanguageGuard(text, plan) {
     const stripped = stripInternalSurfaceLabels(text);
     const limited = limitSurfaceQuestions(stripped);
-    const grounded = softenChoiceDominationLanguage(softenUnverifiedActionAndHighStakesClaims(softenInterpersonalSycophancyLanguage(softenOverclaimingLanguage(limited, plan)), plan), plan);
+    const guarded = guardAmbiguousPermissionOverapproval(limited, plan);
+    const grounded = softenChoiceDominationLanguage(softenUnverifiedActionAndHighStakesClaims(softenInterpersonalSycophancyLanguage(softenOverclaimingLanguage(guarded, plan)), plan), plan);
     return appendLastHandle(grounded, plan);
+}
+function guardAmbiguousPermissionOverapproval(text, plan) {
+    if (!plan || !isAmbiguousPermissionContinuationRequest(plan.currentTurn.cleanInput))
+        return text;
+    const normalized = text.replace(/\s+/g, " ").trim();
+    const overApproval = /^(네|예|응|맞습니다)[,.\s]*(?:윤[,.]?\s*)?.{0,32}(만들어도\s*됩니다|진행해도\s*됩니다|해도\s*됩니다|만들\s*수\s*있는\s*상태|진행\s*가능)/i.test(normalized);
+    if (!overApproval)
+        return text;
+    const candidate = plan.handoffState?.next_action ||
+        plan.handoffState?.current_track ||
+        plan.continuityPatch.current_focus ||
+        "이전 맥락에서 회수된 후보";
+    const remainder = text
+        .replace(/^(네|예|응|맞습니다)[,.\s]*(?:윤[,.]?\s*)?.{0,80}?(만들어도\s*됩니다|진행해도\s*됩니다|해도\s*됩니다|만들\s*수\s*있는\s*상태(?:였고)?|진행\s*가능(?:합니다)?)[.!\s]*/i, "")
+        .trim();
+    const prefix = [
+        "바로 승인으로 닫으면 안 됩니다.",
+        `제가 회수한 대상 후보는 ${candidate}입니다.`,
+        "현재 문장만으로는 실행 허가가 아니라 대상 확인과 검증 경계 분리가 먼저입니다."
+    ].join("\n");
+    return remainder ? `${prefix}\n\n${remainder}` : prefix;
 }
 export function sanitizeUserFacingReply(text, plan) {
     const trimmed = text.trim();

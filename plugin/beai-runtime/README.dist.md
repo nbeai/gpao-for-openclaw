@@ -1,12 +1,18 @@
-# BEAI Runtime v0.6.20
+# BEAI Runtime v0.6.22
 
-Dist-only runtime package for the BEAI Package for OpenClaw v0.2.4 public staging release candidate.
+> Product identity: GPAO for OpenClaw.
+>
+> This file is part of GPAO for OpenClaw. BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence are internal components of the GPAO for OpenClaw operating package.
+
+Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
+
+Runtime component package for the GPAO for OpenClaw v0.1.0 internal install candidate.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
 It is not a source development package.
 
-Do not run build or test commands inside this local live candidate package. Source build and tests were performed in the development workspace before this folder was refreshed.
+For the source review package, build and test commands are expected. For a future dist-only public package, use the generated verification ledger instead.
 
 ## Runtime Entry
 
@@ -33,10 +39,10 @@ openclaw.plugin.json
 ## Included Guide
 
 ```text
-RELEASE-NOTES-v0.6.20-ko.md
+RELEASE-NOTES-v0.6.22-ko.md
 ```
 
-This candidate includes only the runtime files needed by OpenClaw and the v0.6.20 release note.
+This candidate includes the runtime files needed by OpenClaw plus source-review files, tests, and the v0.6.22 release note.
 
 The final verification ledger remains in the development workspace:
 
@@ -101,6 +107,8 @@ openclaw hooks
 - Adds v0.6.17 Telegram Delivery Ledger so generated Telegram replies, send attempts, delivery confirmations, messageId absence, restart pending-scan requirements, and resend idempotency are tracked separately from internal final-answer generation.
 - Adds v0.6.19 action-semantics hardening so diagnosis, report, mitigation, repair, verification, and prevention stay separated from user-visible completion claims.
 - Adds v0.6.20 Friction-Aware Gate so drafts, thinking, read-only checks, and candidate work stay fast by default; quiet checks avoid interrupting the user; real risk transitions require approval; and post-action verification prevents completion overclaim.
+- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against the persisted `new-session-context-pack.json` before answering.
+- Adds runtime regression coverage for GPAO package intent recovery, ambiguous follow-up recovery, and current-request override boundaries in the source workspace.
 - Requires recovery claims to carry failure-path observation, cause, changed path, and same-condition re-verification evidence.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Separates memory candidates, agreement assets, project state, and discarded context.
@@ -153,11 +161,11 @@ Memory candidates are not accepted memories. Agreement assets are not promoted a
 ## Package Status
 
 ```text
-BEAI Runtime v0.6.20
-Public Staging Release Candidate
+BEAI Runtime v0.6.22
+GPAO for OpenClaw Internal Install Candidate
 ```
 
-This is a runtime release candidate for OpenClaw users who understand plugin installation, verification, and rollback.
+This is an internal install candidate for OpenClaw users who understand plugin installation, verification, and rollback.
 
 It is not a stable production support promise or a fully deterministic one-click installer until the ClawHub/public release path and clean-environment verification are complete.
 
@@ -167,7 +175,7 @@ The source workspace was checked before packaging:
 
 ```text
 npm run build: pass
-npm test: pass
+npm test: pass, including new-session continuity regression tests
 node --check dist/index.js: pass
 node --check dist/runtime-core.js: pass
 node --check runtime/beai-runtime-lib.cjs: pass
@@ -178,10 +186,10 @@ beai-flow-regression-gate: 27/27 pass
 beai-doctor-package-check: package_status ready
 beai-user-scenario-audit: pass after package hardening
 beai-organic-flow-audit: pass
-OpenClaw live plugin: verify after live sync
-Gateway evidence: verify after live sync
-Telegram evidence: verify after live sync
-Telegram live roundtrip: verify after live sync
+OpenClaw live plugin: pass, loaded v0.6.22 after live sync
+Gateway evidence: pass, loopback gateway reachable after restart
+Telegram evidence: pass, Telegram channel reachable
+Telegram live roundtrip: pass, messageId 6144 for new-session GPAO package test
 ```
 
 ## Package Integrity Evidence
@@ -217,5 +225,5 @@ Dependency audit note:
 
 ```text
 npm audit --omit=dev: 0 vulnerabilities after the development workspace moved to openclaw@2026.6.10.
-The remaining npm audit finding is dev-only esbuild via Vitest/Vite and is not included in this dist-only package.
+The remaining npm audit finding, if present in a source workspace, is dev-only esbuild via Vitest/Vite and is not part of the production runtime dependency surface.
 ```

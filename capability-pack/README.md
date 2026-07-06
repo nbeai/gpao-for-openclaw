@@ -1,8 +1,15 @@
 # BEAI Capability Pack v0.2.6
 
-BEAI Capability Pack is a separate planning package for BEAI-style skills and agents.
+> Product identity: GPAO for OpenClaw.
+>
+> This file is part of GPAO for OpenClaw. BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence are internal components of the GPAO for OpenClaw operating package.
 
-It is not BEAI Layer.
+Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
+
+
+BEAI Capability Pack is the skill, doctor, Knowledge Loop, Control Center, verification, and documentation component inside GPAO for OpenClaw.
+
+It is not the whole GPAO product by itself; it is the capability component that sits beside the BEAI Runtime component.
 
 BEAI Layer keeps the runtime judgment order: current request, evidence, verification, memory candidates, session continuity, and user-facing surface.
 

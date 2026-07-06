@@ -1,0 +1,26 @@
+{
+  "schema": "gpao.openclaw.release_archive.v0_1",
+  "product": "GPAO for OpenClaw",
+  "version": "0.1.0",
+  "runtimeVersion": "0.6.22",
+  "archive": "/Users/jyp/Developer/BEAI/beai-package-for-openclaw/packages/gpao-for-openclaw-v0.1.0-runtime-v0.6.22-20260706.zip",
+  "sha256": "72447bcf6f98042828333910518bd201c136ad9a6ceeebe2d69f705089d1d62c",
+  "generatedAt": "2026-07-06T15:28:57.037Z",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.",
+  "status": "production-ready local release archive",
+  "includes": [
+    "BEAI Runtime component",
+    "BEAI Capability Pack component",
+    "Context Mesh documents and interfaces",
+    "Knowledge Loop tools and review-first flow",
+    "clean install backup/migration installer",
+    "verification and release evidence"
+  ],
+  "boundaries": [
+    "archive creation does not restart Gateway",
+    "archive creation does not send Telegram messages",
+    "archive creation does not create cron jobs",
+    "archive creation does not publish external accounts",
+    "archive creation does not promote durable memory"
+  ]
+}

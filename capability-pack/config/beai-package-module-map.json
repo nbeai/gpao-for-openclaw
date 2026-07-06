@@ -1,7 +1,7 @@
 {
   "schema": "beai.package_module_map.v0_1",
-  "package": "BEAI Package for OpenClaw",
-  "purpose": "Give BEAI Package a concrete module map for explanation, inspection, dependency reasoning, verification coverage, and future improvement planning.",
+  "package": "GPAO for OpenClaw",
+  "purpose": "Give GPAO for OpenClaw a concrete component map for explanation, inspection, dependency reasoning, verification coverage, and future improvement planning.",
   "version_basis": {
     "capability_pack": "0.2.6",
     "runtime": "0.6.20"
@@ -964,5 +964,7 @@
         }
       ]
     }
-  ]
+  ],
+  "legacyPackageName": "BEAI Package for OpenClaw",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved."
 }

@@ -28,7 +28,7 @@ function usage() {
   return `Usage:
   node capability-pack/tools/beai-package-verify.mjs [--root <package-root>] [--output-dir <dir>] [--format json|md] [--output <path>] [--stdout]
 
-Runs package-owned verification only. It does not create release zips, publish, install, restart Gateway, send Telegram messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
+Runs GPAO for OpenClaw package-owned verification only. It does not create release zips, publish, install, restart Gateway, send Telegram messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
 `;
 }
 
@@ -195,7 +195,7 @@ for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
 
 function renderMarkdown(report) {
   const lines = [];
-  lines.push("# BEAI Package Verify");
+  lines.push("# GPAO for OpenClaw Package Verify");
   lines.push("");
   lines.push(`Generated at: ${report.generated_at}`);
   lines.push(`Status: ${report.status}`);

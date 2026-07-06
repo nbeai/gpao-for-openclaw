@@ -1,12 +1,12 @@
 {
   "name": "@nbeai/beai-runtime",
-  "version": "0.6.20",
+  "version": "0.6.22",
   "type": "module",
-  "description": "BEAI Layer runtime plugin for OpenClaw: evidence-aware replies, Knowledge Loop review-first capture, Telegram delivery contracts, and flow-state judgment.",
+  "description": "BEAI Runtime v0.6.22 plugin component inside GPAO for OpenClaw: evidence-aware replies, Context Mesh continuity, Knowledge Loop review-first capture, Telegram delivery contracts, and flow-state judgment.",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "plugin:build": "npm run build",
-    "test": "node --check dist/index.js && node --check dist/runtime-core.js"
+    "test": "node --check dist/index.js && node --check dist/runtime-core.js && node src/context-mesh-enforcement.test.mjs"
   },
   "files": [
     "dist/index.js",
@@ -15,7 +15,7 @@
     "openclaw.plugin.json",
     "README.md",
     "README.dist.md",
-    "RELEASE-NOTES-v0.6.20-ko.md"
+    "RELEASE-NOTES-v0.6.22-ko.md"
   ],
   "dependencies": {
     "openclaw": "2026.6.10"
@@ -44,5 +44,8 @@
       "minHostVersion": ">=2026.6.10",
       "defaultChoice": "clawhub"
     }
-  }
+  },
+  "product": "GPAO for OpenClaw",
+  "componentOf": "GPAO for OpenClaw",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved."
 }

@@ -1,8 +1,19 @@
 {
-  "name": "beai-package-for-openclaw",
+  "name": "gpao-for-openclaw",
   "private": true,
   "scripts": {
-    "test": "node capability-pack/tools/beai-control-center.test.mjs && node capability-pack/tools/beai-control-center-guided-first-workflow.test.mjs && node capability-pack/tools/beai-workbench-skill-audit.test.mjs && node capability-pack/tools/beai-external-reach-doctor.test.mjs",
-    "verify": "node capability-pack/tools/beai-package-verify.mjs --root ."
-  }
+    "test": "node capability-pack/tools/beai-control-center.test.mjs && node capability-pack/tools/beai-control-center-guided-first-workflow.test.mjs && node capability-pack/tools/beai-workbench-skill-audit.test.mjs && node capability-pack/tools/beai-external-reach-doctor.test.mjs && node installer/install-gpao-for-openclaw.test.mjs",
+    "verify": "node capability-pack/tools/beai-package-verify.mjs --root .",
+    "archive": "node scripts/build-gpao-release-archive.mjs"
+  },
+  "description": "GPAO for OpenClaw integrated operating package with BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, and verification gates.",
+  "product": "GPAO for OpenClaw",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.",
+  "components": [
+    "BEAI Runtime",
+    "BEAI Capability Pack",
+    "Context Mesh",
+    "Knowledge Loop",
+    "Verification and Release Evidence"
+  ]
 }

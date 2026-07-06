@@ -1,7 +1,7 @@
 {
   "id": "beai-capability-pack",
   "version": "0.2.6",
-  "status": "internal-team-release-candidate",
+  "status": "production-ready-local-release",
   "createdFrom": "live-openclaw-workspace-20260621",
   "upgradesFrom": [
     "0.1.0",
@@ -16,7 +16,7 @@
     "doctorPolicy": "Use beai-doctor as the package runtime diagnosis surface for BEAI-owned OpenClaw reliability, package consistency, Trust Gate status, Knowledge Loop operations, and connector onboarding risk.",
     "telegramDeliveryPolicy": "For Telegram direct conversations, internal final_answer/private final text is not delivery. reply_payload_sending is only a delivery candidate. Completion requires source-channel message_sent success and Telegram messageId evidence before user-visible closeout claims. Long-running Telegram-driven work also requires periodic visible progress or a recorded progress-gap issue. Non-install BEAI before_agent_reply surfaces must remain observer-only in Telegram direct so they do not replace the user's real answer.",
     "trustGatePolicy": "Report ready, partial, unverified, blocked, needs_approval, hold, or unsafe before making completion or production-readiness claims.",
-    "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the top-level BEAI Package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
+    "developmentPrinciples": "Use docs/BEAI-PACKAGE-DEVELOPMENT-PRINCIPLES-v0.1-ko.md as the GPAO for OpenClaw package development goal and judgment reference. Safety, approval, verification, and recovery must protect the user without creating avoidable friction, delay, repeated questions, or procedural theater.",
     "flowEnginePolicy": "Use docs/BEAI-5-FLOW-ENGINE-DEVELOPMENT-PLAN-v0.1-ko.md as the implementation plan for turning BEAI 5 from prompt philosophy into a Flow State spine. The first implementation target is the OpenClaw BEAI Runtime Layer and Package; BEAI Harness for Codex is a later alignment/reference target, not the first sprint mutation target.",
     "humanCompanionQualityPolicy": "Use docs/BEAI-HUMAN-COMPANION-QUALITY-CONTRACT-v0.1-ko.md and config/beai-human-companion-quality-contract.json to translate BEAI 5's perceived intelligence into product behavior: current-request anchoring, cognitive load reduction, user agency preservation, long-context stability, trust repair, and usable next movement. This is a runtime quality contract, not a fixed warmth or empathy style.",
     "goalFitAuditPolicy": "Use docs/BEAI-PACKAGE-GOAL-FIT-AUDIT-20260705-ko.md to judge whether BEAI Package structure, runtime behavior, scenario evidence, Control Center, Module Map, Workbench, External Reach, release boundaries, and live evidence are aligned with the top user goal: AI that understands intent, preserves flow, carries session continuity, and reduces correction burden without adding needless friction.",
@@ -25,11 +25,12 @@
     "koreanNaturalWritingPolicy": "Use docs/BEAI-KOREAN-NATURAL-AI-WRITING-STANDARD-v1.0-ko.md and skills/beai-korean-natural-writing-skill.md for Korean user-facing output, status wording, public copy, release wording, Telegram visible-delivery wording, Knowledge Loop/Doctor explanation clarity, app copy, error messages, and presentation scripts. Preserve meaning first; then improve Korean order, medium fit, uncertainty boundaries, and action clarity.",
     "operationalNotificationPolicy": "Use docs/BEAI-OPERATIONAL-NOTIFICATION-CONTRACT-v0.1-ko.md and config/beai-operational-notification-contract.json so watchdog, heartbeat, cron dry-run, and Knowledge Loop review-candidate signals do not reach users as raw internal candidates. Non-actionable dry-runs default to notify=false. If an operational notice is user-visible, it must state user action or no-user-action, assistant action, and not-yet/approval boundaries.",
     "frictionAwareGatePolicy": "Use docs/BEAI-FRICTION-AWARE-GATE-CONTRACT-v0.1-ko.md and config/beai-friction-aware-gate-contract.json so BEAI preserves speed and comfort by default, performs quiet checks without interrupting the user, asks approval only at real risk transitions, verifies after action before completion claims, and refuses high-liability automation.",
-    "controlCenterPolicy": "Use docs/BEAI-CONTROL-CENTER-v0.1-ko.md, config/beai-control-center-contract.json, and tools/beai-control-center.mjs to expose BEAI Package source, live, package, release, workflow, automation, memory, delivery, and verification state as one read-only status surface without mutating OpenClaw or overclaiming completion.",
-    "packageModuleMapPolicy": "Use docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md, config/beai-package-module-map.json, and tools/beai-package-map-check.mjs as the concrete BEAI Package component map for explanation, separate module inspection, cross-module dependency reasoning, and improvement planning. The map is read-only evidence and does not install, publish, restart, send, write memory, or activate automation.",
+    "controlCenterPolicy": "Use docs/BEAI-CONTROL-CENTER-v0.1-ko.md, config/beai-control-center-contract.json, and tools/beai-control-center.mjs to expose GPAO for OpenClaw source, live, package, release, workflow, automation, memory, delivery, and verification state as one read-only status surface without mutating OpenClaw or overclaiming completion.",
+    "packageModuleMapPolicy": "Use docs/BEAI-PACKAGE-MODULE-MAP-v0.1-ko.md, config/beai-package-module-map.json, and tools/beai-package-map-check.mjs as the concrete GPAO for OpenClaw component map for explanation, separate module inspection, cross-module dependency reasoning, and improvement planning. The map is read-only evidence and does not install, publish, restart, send, write memory, or activate automation.",
     "organicFlowAuditPolicy": "Use docs/BEAI-PACKAGE-ORGANIC-FLOW-AUDIT-v0.1-ko.md and tools/beai-organic-flow-audit.mjs to verify that runtime judgment, hooks, skills, tools, evidence, user-facing language, and release boundaries work as one package operating flow instead of isolated checks.",
     "workbenchEssentialSkillsPolicy": "Use docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-RESEARCH-DOSSIER-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-DEVELOPMENT-PLAN-v0.1-ko.md, docs/BEAI-WORKBENCH-ESSENTIAL-SKILLS-CONTRACT-v0.1-ko.md, config/beai-workbench-essential-skills-contract.json, and tools/beai-workbench-skill-audit.mjs to define BEAI Workbench Essential Skills as human-centered, artifact-native source-candidate studios with pattern libraries, quality gates, and approval boundaries. These skills are not cron, agent, live, or release states by default.",
-    "externalReachPolicy": "Use docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md, config/beai-external-reach-contract.json, and tools/beai-external-reach-doctor.mjs to define BEAI External Reach Layer as a read-only, evidence-aware connector contract for public web, GitHub, YouTube, RSS, and approval-gated social channels. Public network checks are optional evidence; account, cookie, login, paid API, external send, cron/agent activation, durable memory, and public release actions remain separate approval boundaries."
+    "externalReachPolicy": "Use docs/BEAI-EXTERNAL-REACH-LAYER-v0.1-ko.md, config/beai-external-reach-contract.json, and tools/beai-external-reach-doctor.mjs to define BEAI External Reach Layer as a read-only, evidence-aware connector contract for public web, GitHub, YouTube, RSS, and approval-gated social channels. Public network checks are optional evidence; account, cookie, login, paid API, external send, cron/agent activation, durable memory, and public release actions remain separate approval boundaries.",
+    "productIdentity": "GPAO for OpenClaw is the integrated product/package identity. BEAI Capability Pack is the skills, tools, docs, Knowledge Loop, Control Center, and verification component inside GPAO for OpenClaw."
   },
   "skills": [
     {
@@ -883,5 +884,8 @@
       "social_meta"
     ],
     "defaultBoundary": "source-candidate only; read-only by default; account, cookie, login, paid API, external send, automation, memory, release, and live apply require separate approval"
-  }
+  },
+  "product": "GPAO for OpenClaw",
+  "componentOf": "GPAO for OpenClaw",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved."
 }

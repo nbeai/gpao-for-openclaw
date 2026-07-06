@@ -1,6 +1,12 @@
 # BEAI Runtime
 
-OpenClaw runtime plugin for BEAI Layer v0.6.20.
+> Product identity: GPAO for OpenClaw.
+>
+> This file is part of GPAO for OpenClaw. BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence are internal components of the GPAO for OpenClaw operating package.
+
+Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
+
+OpenClaw runtime plugin component for GPAO for OpenClaw, BEAI Layer v0.6.22.
 
 BEAI Runtime helps OpenClaw preserve the current user request, separate evidence from assumptions, keep memory candidates scoped, and carry session continuity without dumping old conversations.
 
@@ -10,7 +16,7 @@ It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
 
 This section applies to the source development workspace only.
 
-The v0.6.20 public staging runtime candidate folder is a dist-only runtime package. It does not include `src/`, tests, or `tsconfig.json`, so do not run `npm run build` or `npm test` inside that candidate folder.
+The v0.6.22 source review package includes source, dist, tests, and `tsconfig.json`. Run `npm run build` and `npm test` in source review workspaces before install-candidate packaging.
 
 ```bash
 npm install
@@ -34,7 +40,7 @@ openclaw plugins install clawhub:@nbeai/beai-runtime
 openclaw plugins enable beai-runtime
 ```
 
-The package name is `@nbeai/beai-runtime`. This is the BEAI Runtime plugin install surface, not the full capability-pack ZIP distribution.
+The package name is `@nbeai/beai-runtime`. This is the BEAI Runtime plugin install surface, not the full GPAO for OpenClaw integrated ZIP distribution.
 
 The live OpenClaw config must allow BEAI Runtime to use conversation-access hooks:
 
@@ -90,6 +96,8 @@ Restart the gateway after changing plugin config.
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
 - Adds v0.6.17 Telegram Speed Reliability so Telegram-driven execution opens a quick first-status contract, records runtime phase timing, and keeps the v0.6.16 delivery/progress closure rules.
 - Adds v0.6.20 Friction-Aware Gate so BEAI preserves fast user flow for drafts, thinking, read-only work, and candidates, performs quiet checks without needless interruption, raises approval only at real risk transitions, and requires post-action verification before completion claims.
+- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against the persisted `new-session-context-pack.json` before answering.
+- Adds runtime regression tests for GPAO package intent recovery, ambiguous follow-up recovery, and current-request override boundaries.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Translates OpenClaw capabilities into plain user language.
 - Prioritizes recovery/diagnosis when capability words appear inside failure reports.
@@ -150,7 +158,7 @@ openclaw status --deep
 Current pre-package baseline:
 
 - Build: pass
-- Runtime syntax test: pass
+- Runtime syntax and continuity regression tests: pass
 - Audit: 0 vulnerabilities with `npm audit --omit=dev`
 - OpenClaw plugin doctor: pass
 - OpenClaw hooks: 6/6 ready
@@ -170,7 +178,7 @@ Current package audit baseline from 2026-07-02:
 - organic flow audit: pass
 - package verify: pass after representative package verify command and developer-owned fixtures were added
 
-For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, and `openclaw hooks` reports the expected hooks as ready. The v0.6.20 public staging runtime candidate package is generated separately under `packages/`.
+For the local live candidate folder, verification means OpenClaw loads `dist/index.js`, the hook permission is present, `openclaw plugins doctor` passes, `openclaw hooks` reports the expected hooks as ready, and the Telegram new-session roundtrip can recover the GPAO package target before answering.
 
 Final local-live verification ledger for the previous v0.6.13 candidate:
 
@@ -178,7 +186,7 @@ Final local-live verification ledger for the previous v0.6.13 candidate:
 docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md
 ```
 
-v0.6.20 is a friction-aware approval and verification patch on top of v0.6.19. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, human companion quality checks, and action-semantics hardening. It adds a Friction-Aware Gate so BEAI does not turn every request into a procedural approval flow: low-risk drafts and read-only work stay fast, quiet checks avoid user interruption, real risk transitions require approval, and post-action work needs evidence before completion claims. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
+v0.6.22 is a Context Mesh turn-start enforcement and new-session meaning recovery patch on top of the v0.6.20 friction-aware baseline. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, human companion quality checks, and action-semantics hardening. It adds must-read Context Mesh body loading, current-input cleanup, GPAO package-intent recovery, ambiguous-follow-up recovery, and hard-gate regression coverage while preserving the v0.6.20 friction-aware approval boundaries. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
 
 Session handoff and workspace hygiene notes:
 

@@ -25,7 +25,7 @@ function usage() {
   return `Usage:
   node tools/beai-package-map-check.mjs [--root <repo-root|capability-pack-root>] [--format json|md] [--output <path>] [--stdout]
 
-Checks the BEAI Package module map. It reads files only and does not install, publish, restart Gateway, send messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
+Checks the GPAO for OpenClaw component map. It reads files only and does not install, publish, restart Gateway, send messages, mutate cron/agents/hooks, write memory, or change OpenClaw core.
 `;
 }
 
@@ -194,7 +194,7 @@ function buildReport(options) {
 
 function renderMarkdown(report) {
   const lines = [];
-  lines.push("# BEAI Package Map Check");
+  lines.push("# GPAO for OpenClaw Package Map Check");
   lines.push("");
   lines.push(`Generated at: ${report.generated_at}`);
   lines.push(`Status: ${report.status}`);

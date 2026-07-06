@@ -1,8 +1,8 @@
 {
   "name": "@nbeai/beai-runtime",
-  "version": "0.6.20",
+  "version": "0.6.22",
   "type": "module",
-  "description": "BEAI Layer v0.6.20 runtime plugin for OpenClaw. Dist-only clean public release candidate package.",
+  "description": "BEAI Runtime v0.6.22 plugin component inside GPAO for OpenClaw: evidence-aware replies, Context Mesh continuity, Knowledge Loop review-first capture, Telegram delivery contracts, and flow-state judgment.",
   "files": [
     "dist/index.js",
     "dist/runtime-core.js",
@@ -10,7 +10,7 @@
     "openclaw.plugin.json",
     "README.md",
     "README.dist.md",
-    "RELEASE-NOTES-v0.6.20-ko.md"
+    "RELEASE-NOTES-v0.6.22-ko.md"
   ],
   "openclaw": {
     "extensions": [
@@ -31,5 +31,8 @@
       "minHostVersion": ">=2026.6.10",
       "defaultChoice": "clawhub"
     }
-  }
+  },
+  "product": "GPAO for OpenClaw",
+  "componentOf": "GPAO for OpenClaw",
+  "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved."
 }

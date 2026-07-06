@@ -1,16 +1,11 @@
 # Security
 
-BEAI Package for OpenClaw is currently an alpha public staging package.
+> Product identity: GPAO for OpenClaw.
+>
+> This file is part of GPAO for OpenClaw. BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence are internal components of the GPAO for OpenClaw operating package.
 
-Do not publish private runtime state, personal memory files, local cron stores, Telegram identifiers, API keys, or Gateway secrets in issues or pull requests.
+Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
-Before reporting a runtime issue, remove:
+GPAO for OpenClaw is currently an internal install-candidate package.
 
-- local filesystem paths
-- Telegram chat IDs
-- message IDs tied to private conversations
-- tokens and secrets
-- private memory excerpts
-- private workspace state files
-
-Security-sensitive reports should be shared privately with the repository owner until a public disclosure policy is finalized.
+Do not publish private runtime state, personal memory files, local cron stores, Telegram identifiers, API keys, Gateway secrets, Context Mesh private hits, Knowledge Loop private review cards, or user-owned working files in issues or pull requests.
