@@ -419,6 +419,7 @@ async function commandChecks() {
   checks.pluginInspectBeai = await run("openclaw", ["plugins", "inspect", "beai-runtime"], { timeout: 30000 });
   checks.pluginsDoctor = await run("openclaw", ["plugins", "doctor"]);
   checks.hooks = await run("openclaw", ["hooks"]);
+  checks.beaiProgressAckHookInfo = await run("openclaw", ["hooks", "info", "beai-runtime-progress-ack", "--json"], { timeout: 30000 });
   checks.tasks = deep ? await run("openclaw", ["tasks"]) : skipped("tasks");
   checks.skillsList = await run("openclaw", ["skills", "list"], { timeout: 30000 });
   checks.gatewayStatus = await run("openclaw", ["gateway", "status"], { timeout: 30000 });
@@ -440,6 +441,57 @@ function stripSecretish(text) {
 
 function includesAny(text, patterns) {
   return patterns.some((pattern) => pattern.test(text));
+}
+
+function currentOperatorWriteAllowed(deviceText, gatewayText) {
+  const currentText = `${deviceText || ""}\n${gatewayText || ""}`;
+  if (!/operator\.write/i.test(currentText)) return false;
+  if (/operator\.write[^\n]{0,120}(?:missing|denied|not\s+allowed|pending|requested|필요|없음|부족)/i.test(currentText)) return false;
+  return /operator|admin_capable|operator\.admin/i.test(currentText);
+}
+
+function currentBeaiHookRegistryReady(hookText, hookInfoText = "") {
+  const text = `${hookText || ""}\n${hookInfoText || ""}`;
+  if (!text.trim()) return false;
+  if (/notEligible|not eligible|missing requirements|failed|error/i.test(text)) return false;
+  try {
+    const parsed = JSON.parse(String(hookInfoText || "{}"));
+    if (
+      parsed &&
+      parsed.name === "beai-runtime-progress-ack" &&
+      parsed.eligible === true &&
+      parsed.loadable === true &&
+      parsed.managedByPlugin === true
+    ) {
+      return true;
+    }
+  } catch {
+    // Fall through to text parsing for older OpenClaw versions.
+  }
+  const readySignal = /ready|eligible/i.test(text);
+  const beaiProgressAckSignal =
+    /beai-runtime-progress-ack/i.test(text) ||
+    /beai-runtime-\s*progress-ack/i.test(text) ||
+    /plugin:\s*beai-\s*runtime/i.test(text);
+  return readySignal && beaiProgressAckSignal;
+}
+
+function hasCurrentHookRelayMismatchSignal(logText, supplementalText = "") {
+  const currentText = `${logText || ""}\n${supplementalText || ""}`;
+  return includesAny(currentText, [
+    /native hook relay not found/i,
+    /hook registration missing name/i,
+    /hook registration mismatch/i
+  ]);
+}
+
+function hasHistoricalHookRelayMismatchSignal(combinedText) {
+  return includesAny(combinedText, [
+    /native hook relay not found/i,
+    /hook registration missing name/i,
+    /hook registration mismatch/i,
+    /hook.*missing/i
+  ]);
 }
 
 function parseLiveEvidenceEvents(text) {
@@ -530,7 +582,12 @@ function detectVisibleProgressGap(liveEvidenceText, thresholdMs = 2 * 60 * 1000,
     const elapsedMs = timed.now - activityWindowStart;
     if (elapsedMs > thresholdMs) gapItems.push({ time: timed.now, elapsedMs });
   }
-  const split = splitFreshAndHistorical(gapItems, timed.now, windowMs);
+  const visibleClosureTimes = events
+    .filter((event) => event.evidenceLevel === "visible_delivery_verified" || event.action === "telegram visible delivery verified")
+    .map((event) => event.time)
+    .filter((time) => Number.isFinite(time));
+  const openGapItems = gapItems.filter((item) => !visibleClosureTimes.some((time) => time >= item.time));
+  const split = splitFreshAndHistorical(openGapItems, timed.now, windowMs);
   return {
     detected: split.freshMaxMs > thresholdMs,
     historicalDetected: split.historicalMaxMs > thresholdMs,
@@ -624,6 +681,7 @@ function collectDiagnosticText(checks, supplementalText = "") {
     checks.pluginInspectBeai.output || "",
     checks.pluginsDoctor.output || "",
     checks.hooks.output || "",
+    checks.beaiProgressAckHookInfo.output || "",
     supplementalText
   ].join("\n");
 }
@@ -676,6 +734,11 @@ function approvalExplanationFor(code, owner, layer) {
       title: "응답 지연 구간을 나눠 볼 계측 증거가 없습니다",
       plain: "느린 턴을 하나로 보면 OpenClaw, BEAI Runtime, 도구 실행, 모델 호출, Telegram 전송 중 어디가 느린지 구분할 수 없습니다.",
       approvalNeeded: "수리 전에는 먼저 구간별 시간 증거를 남겨야 합니다. 계측 없이 Gateway 재시작이나 설정 변경으로 바로 넘어가면 원인 분리가 어렵습니다."
+    },
+    "beai-hook-registration-issue": {
+      title: "BEAI Runtime hook 등록이 어긋났을 가능성이 있습니다",
+      plain: "hook이 일부만 등록되거나 이름/권한이 맞지 않으면 패키지는 설치된 것처럼 보여도 실제 Telegram 진행 표시, delivery ledger, reply guard가 기대대로 작동하지 않을 수 있습니다.",
+      approvalNeeded: "hook 등록 경로를 고치려면 live runtime 재설치, plugin manifest 교체, Gateway 재시작 같은 실행 상태 변경이 필요할 수 있어 승인형 repair plan으로만 진행합니다."
     },
     "telegram-direct-sessions-current-failed": {
       title: "텔레그램 세션을 current로 찾지 못한 흔적이 있습니다",
@@ -846,6 +909,7 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
   const pluginInspectText = checks.pluginInspectBeai.output || "";
   const openclawDoctorText = checks.openclawDoctor.output || "";
   const hookText = checks.hooks.output || "";
+  const beaiProgressAckHookInfoText = checks.beaiProgressAckHookInfo.output || "";
   const taskText = checks.tasks.output || "";
   const skillsText = checks.skillsList.output || "";
   const gatewayText = `${checks.gatewayStatus.output || ""}\n${checks.gatewayHealth.output || ""}\n${checks.gatewayStability.output || ""}`;
@@ -853,7 +917,22 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
   const deviceText = checks.devicesList.output || "";
   const sessionText = checks.sessionsActive.output || "";
   const logText = checks.recentLogs.output || "";
+  const liveEvidenceText = checks.beaiLiveEvidence.output || "";
   const combinedText = collectDiagnosticText(checks, supplementalText);
+  const operatorWriteAllowedNow = currentOperatorWriteAllowed(deviceText, gatewayText);
+  const beaiHookRegistryReadyNow = currentBeaiHookRegistryReady(hookText, beaiProgressAckHookInfoText);
+  const currentHookRelayMismatchSignal = hasCurrentHookRelayMismatchSignal(logText, supplementalText);
+  const historicalHookRelayMismatchSignal = hasHistoricalHookRelayMismatchSignal(combinedText);
+  const realModelDeliveryEvidence = (
+    includesAny(`${liveEvidenceText}\n${logText}\n${channelText}`, [
+      /visible_delivery_verified[\s\S]{0,220}messageId/i,
+      /deliverySucceeded["']?\s*:\s*true/i,
+      /deliveryStatus["']?[\s\S]{0,240}sent/i,
+      /telegram outbound send ok[\s\S]{0,160}messageId[=:]\d+/i,
+      /finalAssistantVisibleText/i
+    ]) &&
+    !includesAny(liveEvidenceText, [/provider:\s*openclaw/i, /model:\s*gateway-injected/i, /usage:\s*0/i])
+  );
 
   if (!checks.openclawDoctor.skipped && !checks.openclawDoctor.ok) {
     issues.push(issue(
@@ -1191,12 +1270,12 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
     includesAny(combinedText, [/Telegram|telegram|텔레그램/i])
   ) {
     issues.push(issue(
-      "approval_required",
-      "beai-long-running-visible-progress-missing",
-      "Supplemental report text suggests long-running Telegram-driven work had no periodic source-channel visible progress update.",
+      "review",
+      "beai-historical-long-running-visible-progress-gap",
+      "Supplemental report text mentions a long-running Telegram visible-progress gap, but current live evidence does not show an open gap. Treat it as regression evidence, not current failure proof.",
       "beai",
       "visible-progress-contract",
-      "Keep the work state in-progress/unverified until a source-channel progress update or closeout messageId is observed. Design any automatic heartbeat sender as approval-gated external messaging."
+      "Keep this as regression evidence and only escalate if a fresh gap appears in the current evidence window."
     ));
   }
   if (quickFirstStatusGap.detected) {
@@ -1252,14 +1331,38 @@ function classify(checks, helpers, symptomTags, supplementalText = "", openclawC
   if (includesAny(combinedText, [/message tool.*not allowed/i, /tool.*message.*denied/i, /cannot.*send.*message/i])) {
     issues.push(issue("approval_required", "message-tool-send-blocked", "Recent logs suggest outbound message tool permission or delivery failure. Review tool/channel permission before claiming Telegram repair.", "mixed", "message-tool", "Separate OpenClaw channel permission from BEAI response behavior."));
   }
-  if (includesAny(combinedText, [/operator\.write/i, /pending scope upgrade/i, /scope upgrade request/i, /local CLI device/i])) {
+  if (
+    includesAny(combinedText, [/operator\.write/i, /pending scope upgrade/i, /scope upgrade request/i, /local CLI device/i]) &&
+    !operatorWriteAllowedNow
+  ) {
     issues.push(issue("approval_required", "operator-write-scope-missing", "Recent logs or report text suggest the local CLI device lacked operator.write scope for message send verification.", "openclaw", "device-scope", "Add operator.write only through the OpenClaw device approval flow; do not silently expand device scope."));
   }
-  if (includesAny(combinedText, [/hook registration missing name/i, /hook.*missing/i])) {
+  if (currentHookRelayMismatchSignal && !beaiHookRegistryReadyNow) {
     issues.push(issue("approval_required", "beai-hook-registration-issue", "Recent logs suggest BEAI/OpenClaw hook registration mismatch.", "beai", "runtime-hooks", "Patch/reinstall BEAI Runtime only after approval."));
+  } else if (historicalHookRelayMismatchSignal) {
+    issues.push(issue(
+      "review",
+      "beai-historical-hook-registration-signal",
+      beaiHookRegistryReadyNow
+        ? "Historical logs or report text mention a hook registration mismatch, but the current hook registry reports BEAI Runtime progress ack as eligible."
+        : "Historical logs or report text mention a hook registration mismatch, but the current evidence window does not reproduce it. Treat optional native progress ack as non-blocking unless fresh relay errors reappear.",
+      "beai",
+      "runtime-hooks",
+      "Keep as regression evidence and escalate only if the mismatch reappears in fresh logs after the latest Gateway restart."
+    ));
   }
-  if (includesAny(combinedText, [/approval_required/i, /approval required/i, /승인/i]) && includesAny(combinedText, [/반복|same answer|same response|보류|cannot proceed/i])) {
+  if (
+    includesAny(logText, [/approval_required/i, /approval required/i, /승인/i]) &&
+    includesAny(logText, [/반복|same answer|same response|보류|cannot proceed/i]) &&
+    !realModelDeliveryEvidence
+  ) {
     issues.push(issue("approval_required", "approval-or-surface-loop-suspected", "Recent logs may indicate repeated approval/surface-loop behavior. Review session state and BEAI surface guard before restarting services.", "beai", "response-surface", "Inspect BEAI response guard/session state; do not fix by deleting transcripts."));
+  } else if (
+    includesAny(combinedText, [/approval_required/i, /approval required/i, /승인/i]) &&
+    includesAny(combinedText, [/반복|same answer|same response|보류|cannot proceed/i]) &&
+    realModelDeliveryEvidence
+  ) {
+    issues.push(issue("review", "beai-historical-approval-surface-loop-signal", "Historical or diagnostic text mentions approval/surface-loop risk, but current evidence includes real model output and Telegram messageId delivery. Treat it as regression evidence, not current failure proof.", "beai", "response-surface", "Escalate only if gateway-injected, usage=0, canned answer repetition, or payload replacement reappears in fresh logs."));
   }
   if (includesAny(combinedText, [/provider:\s*openclaw/i, /model:\s*gateway-injected/i, /usage:\s*0/i, /gateway-injected/i])) {
     issues.push(issue("approval_required", "beai-gateway-injected-response-loop", "Recent logs or report text suggest final replies may be gateway-injected responses instead of real model outputs.", "beai", "reply-payload-rewrite", "Inspect BEAI reply rewrite hooks and prevent gateway-injected content from replacing real model replies."));
@@ -1987,6 +2090,7 @@ async function buildReport(apply = false) {
       pluginInspectBeai: checks.pluginInspectBeai.ok,
       pluginsDoctor: checks.pluginsDoctor.ok,
       hooks: checks.hooks.ok,
+      beaiProgressAckHookInfo: checks.beaiProgressAckHookInfo.ok,
       tasks: checks.tasks.skipped ? "skipped" : checks.tasks.ok,
       skillsList: checks.skillsList.ok,
       gatewayStatus: checks.gatewayStatus.ok,

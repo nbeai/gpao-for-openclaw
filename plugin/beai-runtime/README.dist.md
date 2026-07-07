@@ -6,13 +6,22 @@
 
 Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
-Runtime component package for the GPAO for OpenClaw v0.1.0 internal install candidate.
+Runtime component package for GPAO for OpenClaw v0.1.1.
+
+GPAO means Growth Personal AI Operating System. This runtime is one internal component of the OpenClaw GPAO package.
+
+Package status: `production-ready local release package` component.
+
+This runtime includes GPAO OpenClaw T-cell Live Reinforcement. During prompt build, the runtime can shape the current user request, recent Telegram assistant replies, active-flow state, Context Mesh hits, and persisted handoff candidates into a bounded T-cell task packet. The packet carries center axis, semantic role, source kind, color state, evidence level, allowed use, conflict state, and answer-anchor priority so new-session follow-ups can recover the live target without falling back to stale package/runtime memory.
 
 This package is meant to be loaded by OpenClaw as a plugin.
 
 It is not a source development package.
 
-For the source review package, build and test commands are expected. For a future dist-only public package, use the generated verification ledger instead.
+For the source review package, build and test commands are expected. For a
+future ClawHub/public package, use the generated verification ledger plus the
+separate public release, clean-environment install, rollback, and Telegram
+visible-progress evidence.
 
 ## Runtime Entry
 
@@ -42,7 +51,7 @@ openclaw.plugin.json
 RELEASE-NOTES-v0.6.22-ko.md
 ```
 
-This candidate includes the runtime files needed by OpenClaw plus source-review files, tests, and the v0.6.22 release note.
+This component includes the runtime files needed by OpenClaw plus source-review files, tests, and the v0.6.22 release note.
 
 The final verification ledger remains in the development workspace:
 
@@ -107,8 +116,11 @@ openclaw hooks
 - Adds v0.6.17 Telegram Delivery Ledger so generated Telegram replies, send attempts, delivery confirmations, messageId absence, restart pending-scan requirements, and resend idempotency are tracked separately from internal final-answer generation.
 - Adds v0.6.19 action-semantics hardening so diagnosis, report, mitigation, repair, verification, and prevention stay separated from user-visible completion claims.
 - Adds v0.6.20 Friction-Aware Gate so drafts, thinking, read-only checks, and candidate work stay fast by default; quiet checks avoid interrupting the user; real risk transitions require approval; and post-action verification prevents completion overclaim.
-- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against the persisted `new-session-context-pack.json` before answering.
-- Adds runtime regression coverage for GPAO package intent recovery, ambiguous follow-up recovery, and current-request override boundaries in the source workspace.
+- Adds Context Mesh turn-start enforcement with `contextMeshTurnStart: "always"` by default, matching GPAO for Codex behavior: every OpenClaw prompt build first resolves local Context Mesh evidence, then injects only admitted must-read/should-read evidence as a bounded comparison block.
+- Keeps Context Mesh turn-start retrieval fast with a short resolve timeout, brief in-process cache, fail-open behavior, and no extra local tool requirement when evidence bodies are already loaded. The goal is Codex-like every-turn context awareness without turning OpenClaw's prompt build into a slow blocking search.
+- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against Context Mesh active-flow evidence and the persisted `new-session-context-pack.json` before answering.
+- Adds an OpenClaw active-flow runtime anchor for omitted-target questions such as "너는 어떤 방식을 추천하는데?". High-signal live workflow state from recent GPAO/OpenClaw runtime memory is injected ahead of broad Context Mesh background, so the model recovers the concrete target before giving generic advice.
+- Adds runtime regression coverage for GPAO package intent recovery, natural new-session omitted-object recommendation recovery, ambiguous follow-up recovery, and current-request override boundaries in the source workspace.
 - Requires recovery claims to carry failure-path observation, cause, changed path, and same-condition re-verification evidence.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Separates memory candidates, agreement assets, project state, and discarded context.
@@ -181,7 +193,7 @@ node --check dist/runtime-core.js: pass
 node --check runtime/beai-runtime-lib.cjs: pass
 npm audit --omit=dev: 0 vulnerabilities
 openclaw plugins doctor: pass
-openclaw hooks: 6/6 ready
+openclaw hooks: required hooks ready. The optional `beai-runtime-progress-ack` native hook is disabled by default so a native hook relay outage cannot block core Gateway, tool, session, or Telegram flows.
 beai-flow-regression-gate: 27/27 pass
 beai-doctor-package-check: package_status ready
 beai-user-scenario-audit: pass after package hardening

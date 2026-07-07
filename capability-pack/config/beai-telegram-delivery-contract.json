@@ -19,6 +19,8 @@
     "quick_first_status_before_deep_check": true,
     "phase_timing_telemetry_required": true,
     "long_running_work_requires_visible_progress": true,
+    "quick_first_status_max_seconds": 30,
+    "long_running_visible_progress_max_seconds": 120,
     "telegram_direct_non_install_surfaces_are_observer_only": true
   },
   "required_evidence": [
@@ -30,8 +32,10 @@
     "Gateway restart recovery scans recent generated/send_attempted responses without messageId",
     "recovery resend uses chat_id + source_message_id + content_hash as an idempotency key",
     "Telegram-driven execution opens a quick first-status contract before deep checks or long tool work",
+    "quick first visible status should appear within 30 seconds when a Telegram direct execution turn may take longer than a brief answer",
     "runtime phase timing evidence separates planning, tool, finalize, and delivery segments",
     "long-running Telegram-driven work has periodic visible progress or a recorded progress-gap issue",
+    "long-running Telegram visible progress should refresh within 120 seconds while work is still active",
     "non-install BEAI before_agent_reply surfaces in Telegram direct are observer-only and defer to the model",
     "final report visible in the source conversation"
   ],

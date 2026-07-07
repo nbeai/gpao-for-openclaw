@@ -8,6 +8,8 @@ Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
 OpenClaw runtime plugin component for GPAO for OpenClaw, BEAI Layer v0.6.22.
 
+GPAO means Growth Personal AI Operating System. BEAI Runtime is the OpenClaw runtime component inside that system, not the full product identity by itself.
+
 BEAI Runtime helps OpenClaw preserve the current user request, separate evidence from assumptions, keep memory candidates scoped, and carry session continuity without dumping old conversations.
 
 It must run as an OpenClaw plugin. It must not modify OpenClaw core files.
@@ -96,8 +98,12 @@ Restart the gateway after changing plugin config.
 - Adds v0.6.13 Reply Hook Boundary Guard so `before_agent_reply` hard rewrites require a run-bound plan and cannot consume pre-model user input observed as `runId:null` or session-sourced hook calls.
 - Adds v0.6.17 Telegram Speed Reliability so Telegram-driven execution opens a quick first-status contract, records runtime phase timing, and keeps the v0.6.16 delivery/progress closure rules.
 - Adds v0.6.20 Friction-Aware Gate so BEAI preserves fast user flow for drafts, thinking, read-only work, and candidates, performs quiet checks without needless interruption, raises approval only at real risk transitions, and requires post-action verification before completion claims.
-- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against the persisted `new-session-context-pack.json` before answering.
-- Adds runtime regression tests for GPAO package intent recovery, ambiguous follow-up recovery, and current-request override boundaries.
+- Adds Context Mesh turn-start enforcement with `contextMeshTurnStart: "always"` by default, matching GPAO for Codex behavior: every OpenClaw prompt build first resolves local Context Mesh evidence, then injects only admitted must-read/should-read evidence as a bounded comparison block.
+- Keeps Context Mesh turn-start retrieval fast with a short resolve timeout, brief in-process cache, fail-open behavior, and no extra local tool requirement when evidence bodies are already loaded. The goal is Codex-like every-turn context awareness without turning OpenClaw's prompt build into a slow blocking search.
+- Adds state-gated new-session meaning recovery so the first turn after a session boundary can compare the current request against Context Mesh active-flow evidence and the persisted `new-session-context-pack.json` before answering.
+- Adds an OpenClaw active-flow runtime anchor for omitted-target questions such as "너는 어떤 방식을 추천하는데?". High-signal live workflow state from recent GPAO/OpenClaw runtime memory is injected ahead of broad Context Mesh background, so the model recovers the concrete target before giving generic advice.
+- Adds GPAO OpenClaw T-cell task packets. The runtime shapes the current user request, recent Telegram assistant replies, active-flow state, Context Mesh hits, and persisted handoff candidates into a small packet with center axis, semantic role, source kind, color state, evidence level, allowed use, conflict state, and answer-anchor priority. Recent Telegram reply cells outrank older package/runtime memories for omitted-target follow-ups.
+- Adds runtime regression tests for GPAO package intent recovery, natural new-session omitted-object recommendation recovery, ambiguous follow-up recovery, and current-request override boundaries.
 - Guards user-facing replies from internal labels and over-strong completion claims.
 - Translates OpenClaw capabilities into plain user language.
 - Prioritizes recovery/diagnosis when capability words appear inside failure reports.
@@ -161,7 +167,7 @@ Current pre-package baseline:
 - Runtime syntax and continuity regression tests: pass
 - Audit: 0 vulnerabilities with `npm audit --omit=dev`
 - OpenClaw plugin doctor: pass
-- OpenClaw hooks: 6/6 ready
+- OpenClaw hooks: required hooks ready. The optional `beai-runtime-progress-ack` native hook is disabled by default so a native hook relay outage cannot block core Gateway, tool, session, or Telegram flows.
 - Gateway evidence: gateway reachable
 - Telegram evidence: configured / gateway-channel reachable
 - Telegram live roundtrip: not verified in the 2026-07-02 package audits
@@ -186,7 +192,7 @@ Final local-live verification ledger for the previous v0.6.13 candidate:
 docs/10-distribution/VERIFICATION-LEDGER-v0.6.13-ko.md
 ```
 
-v0.6.22 is a Context Mesh turn-start enforcement and new-session meaning recovery patch on top of the v0.6.20 friction-aware baseline. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, human companion quality checks, and action-semantics hardening. It adds must-read Context Mesh body loading, current-input cleanup, GPAO package-intent recovery, ambiguous-follow-up recovery, and hard-gate regression coverage while preserving the v0.6.20 friction-aware approval boundaries. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
+v0.6.22 is a Context Mesh turn-start enforcement and new-session meaning recovery patch on top of the v0.6.20 friction-aware baseline. It keeps the Telegram delivery ledger, speed-reliability contract, operational notification gating, organic-flow audit coverage, human companion quality checks, and action-semantics hardening. It adds always-on Context Mesh turn-start resolve for OpenClaw prompt builds, fast-path timeout/cache/fail-open/no-extra-tool protection, must-read Context Mesh body loading, current-input cleanup, GPAO package-intent recovery, natural omitted-object recommendation recovery, active-flow runtime anchoring for ambiguous new-session questions, ambiguous-follow-up recovery, and hard-gate regression coverage while preserving the v0.6.20 friction-aware approval boundaries. It does not create skills, agents, cron jobs, apps, external writes, memory writes, message resends, progress heartbeat sends, or issue-ledger records by itself.
 
 Session handoff and workspace hygiene notes:
 

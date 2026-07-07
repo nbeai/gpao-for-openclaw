@@ -4,19 +4,27 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 
 const PRODUCT = "GPAO for OpenClaw";
 const COPYRIGHT = "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.";
 
 const LEGACY_RELATIVE_PATHS = [
+  "gpao-for-openclaw",
+  ".gpao-for-openclaw",
   "plugins/beai-runtime",
   "plugins/@nbeai/beai-runtime",
+  "plugins/gpao-runtime",
+  "plugins/gpao-for-openclaw",
+  "plugins/@nbeai/gpao-runtime",
+  "plugins/@nbeai/gpao-for-openclaw",
   "plugins/beai-package",
   "plugins/beai-layer",
   "beai-package",
   "beai-layer",
   ".beai-package",
-  ".beai-layer"
+  ".beai-layer",
+  "gpao-for-openclaw/capability-pack"
 ];
 
 function parseArgs(argv) {
@@ -88,6 +96,55 @@ function moveToBackup(source, backupRoot, relativePath) {
   return target;
 }
 
+function normalizeRelativePath(relativePath) {
+  return relativePath.split(/[\\/]+/).filter(Boolean).join(path.sep);
+}
+
+function isDescendantPath(parent, child) {
+  const normalizedParent = normalizeRelativePath(parent);
+  const normalizedChild = normalizeRelativePath(child);
+  return normalizedChild !== normalizedParent && normalizedChild.startsWith(`${normalizedParent}${path.sep}`);
+}
+
+function removeDescendantLegacyPaths(items) {
+  const sorted = [...items].sort((a, b) => {
+    const depthA = normalizeRelativePath(a.relativePath).split(path.sep).length;
+    const depthB = normalizeRelativePath(b.relativePath).split(path.sep).length;
+    return depthA - depthB || a.relativePath.localeCompare(b.relativePath);
+  });
+  const selected = [];
+  for (const item of sorted) {
+    if (selected.some((parent) => isDescendantPath(parent.relativePath, item.relativePath))) continue;
+    selected.push(item);
+  }
+  return selected;
+}
+
+function installRuntimeDependencies(runtimeTarget) {
+  const packageJson = path.join(runtimeTarget, "package.json");
+  const packageLock = path.join(runtimeTarget, "package-lock.json");
+  if (!exists(packageJson)) {
+    return {
+      skipped: true,
+      reason: "runtime package.json missing"
+    };
+  }
+
+  const args = exists(packageLock)
+    ? ["ci", "--omit=dev"]
+    : ["install", "--omit=dev"];
+  execFileSync("npm", args, {
+    cwd: runtimeTarget,
+    stdio: "pipe",
+    timeout: 180000
+  });
+  return {
+    skipped: false,
+    command: `npm ${args.join(" ")}`,
+    cwd: runtimeTarget
+  };
+}
+
 function buildPlan(options) {
   const packageRoot = path.resolve(options.packageRoot);
   const openclawHome = path.resolve(options.openclawHome);
@@ -99,13 +156,13 @@ function buildPlan(options) {
 
   const requiredSources = [runtimeSource, capabilitySource];
   const missingSources = requiredSources.filter((source) => !exists(source));
-  const legacyPaths = LEGACY_RELATIVE_PATHS
+  const legacyPaths = removeDescendantLegacyPaths(LEGACY_RELATIVE_PATHS
     .map((relativePath) => ({
       relativePath,
       absolutePath: path.join(openclawHome, relativePath),
       exists: exists(path.join(openclawHome, relativePath))
     }))
-    .filter((item) => item.exists);
+    .filter((item) => item.exists));
 
   return {
     schema: "gpao.openclaw.clean_install.v0_1",
@@ -148,12 +205,14 @@ function applyPlan(plan) {
 
   copyDir(path.join(plan.packageRoot, "plugin", "beai-runtime"), plan.installTargets.runtime);
   copyDir(path.join(plan.packageRoot, "capability-pack"), plan.installTargets.capabilityPack);
+  const runtimeDependencyInstall = installRuntimeDependencies(plan.installTargets.runtime);
 
   fs.mkdirSync(plan.installTargets.stateRoot, { recursive: true });
   const receipt = {
     ...plan,
     appliedAt: new Date().toISOString(),
     backups,
+    runtimeDependencyInstall,
     installed: [
       plan.installTargets.runtime,
       plan.installTargets.capabilityPack

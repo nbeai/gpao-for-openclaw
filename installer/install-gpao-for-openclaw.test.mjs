@@ -14,6 +14,10 @@ fs.mkdirSync(path.join(openclawHome, "plugins", "beai-runtime"), { recursive: tr
 fs.writeFileSync(path.join(openclawHome, "plugins", "beai-runtime", "legacy.txt"), "legacy runtime\n");
 fs.mkdirSync(path.join(openclawHome, ".beai-package"), { recursive: true });
 fs.writeFileSync(path.join(openclawHome, ".beai-package", "legacy.txt"), "legacy package\n");
+fs.mkdirSync(path.join(openclawHome, "gpao-for-openclaw", "capability-pack"), { recursive: true });
+fs.writeFileSync(path.join(openclawHome, "gpao-for-openclaw", "capability-pack", "legacy.txt"), "legacy gpao capability\n");
+fs.mkdirSync(path.join(openclawHome, ".gpao-for-openclaw"), { recursive: true });
+fs.writeFileSync(path.join(openclawHome, ".gpao-for-openclaw", "install-receipt.json"), "{\"legacy\":true}\n");
 
 const dryRun = JSON.parse(execFileSync("node", [
   path.join(packageRoot, "installer", "install-gpao-for-openclaw.mjs"),
@@ -23,7 +27,13 @@ const dryRun = JSON.parse(execFileSync("node", [
 ], { encoding: "utf8" }));
 
 assert.equal(dryRun.mode, "dry-run");
-assert.equal(dryRun.legacyPaths.length, 2);
+assert.equal(dryRun.legacyPaths.length, 4);
+assert.deepEqual(dryRun.legacyPaths.map((item) => item.relativePath).sort(), [
+  ".beai-package",
+  ".gpao-for-openclaw",
+  "gpao-for-openclaw",
+  "plugins/beai-runtime"
+]);
 assert.equal(fs.existsSync(path.join(openclawHome, "plugins", "beai-runtime", "legacy.txt")), true);
 
 const applied = JSON.parse(execFileSync("node", [
@@ -35,11 +45,17 @@ const applied = JSON.parse(execFileSync("node", [
 ], { encoding: "utf8" }));
 
 assert.equal(applied.mode, "apply");
-assert.equal(applied.backups.length, 2);
+assert.equal(applied.backups.length, 4);
 assert.equal(fs.existsSync(path.join(openclawHome, "plugins", "beai-runtime", "legacy.txt")), false);
+assert.equal(fs.existsSync(path.join(openclawHome, "gpao-for-openclaw", "capability-pack", "legacy.txt")), false);
+assert.equal(fs.existsSync(path.join(openclawHome, ".beai-package", "legacy.txt")), false);
 assert.equal(fs.existsSync(path.join(openclawHome, "plugins", "beai-runtime", "package.json")), true);
+assert.equal(applied.runtimeDependencyInstall.skipped, false);
+assert.match(applied.runtimeDependencyInstall.command, /^npm (ci|install) --omit=dev$/);
+assert.equal(fs.existsSync(path.join(openclawHome, "plugins", "beai-runtime", "node_modules", "openclaw", "package.json")), true);
 assert.equal(fs.existsSync(path.join(openclawHome, "gpao-for-openclaw", "capability-pack", "README.md")), true);
 assert.equal(fs.existsSync(applied.receiptPath), true);
+assert.equal(JSON.parse(fs.readFileSync(applied.receiptPath, "utf8")).product, "GPAO for OpenClaw");
 
 for (const backup of applied.backups) {
   assert.equal(fs.existsSync(backup.to), true);

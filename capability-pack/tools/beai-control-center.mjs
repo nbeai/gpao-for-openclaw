@@ -343,6 +343,7 @@ function compareVersions(sourceRuntime, liveRuntime) {
 function buildReport(options) {
   const capabilityRoot = resolveCapabilityRoot(options.root);
   const repoRoot = resolveRepoRoot(capabilityRoot);
+  const packageJson = readJson(path.join(repoRoot, "package.json"));
   const manifest = readJson(path.join(capabilityRoot, "capability-pack.json"));
   const sourceRuntime = readJson(path.join(repoRoot, "plugin/beai-runtime/package.json"));
   const sourceOpenclawPlugin = readJson(path.join(repoRoot, "plugin/beai-runtime/openclaw.plugin.json"));
@@ -370,11 +371,12 @@ function buildReport(options) {
   const failedVerification = verificationValues.filter((item) => item.exists && !["pass", "ready"].includes(item.status));
   const missingVerification = verificationValues.filter((item) => !item.exists).map((item) => item.path);
   const latestArchive = archives[0] ?? null;
-  const sourceVersion = manifest?.version ?? "unknown";
+  const productVersion = packageJson?.version ?? "unknown";
+  const capabilityPackVersion = manifest?.version ?? "unknown";
   const runtimeVersion = sourceRuntime?.version ?? "unknown";
   const liveVersion = liveRuntime?.version ?? liveOpenclawPlugin?.version ?? "unknown";
   const latestArchiveName = latestArchive?.name ?? "none";
-  const releaseBoundary = latestArchiveName.includes(`v${sourceVersion}`) && latestArchiveName.includes(`v${runtimeVersion}`)
+  const releaseBoundary = latestArchiveName.includes(`v${productVersion}`) && latestArchiveName.includes(`v${runtimeVersion}`)
     ? "zip_candidate_present"
     : "zip_not_current_for_source_candidate";
   const liveBoundary = compareVersions(sourceRuntime, liveRuntime);
@@ -392,7 +394,8 @@ function buildReport(options) {
       stateRoot: state.stateRoot
     },
     package: {
-      capabilityPackVersion: sourceVersion,
+      productVersion,
+      capabilityPackVersion,
       capabilityPackStatus: manifest?.status ?? "unknown",
       runtimeSourceVersion: runtimeVersion,
       runtimeSourcePluginVersion: sourceOpenclawPlugin?.version ?? "unknown",

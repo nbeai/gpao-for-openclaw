@@ -1,7 +1,7 @@
 {
   "id": "beai-runtime",
   "name": "GPAO Runtime (BEAI Runtime Component)",
-  "description": "BEAI Runtime component of GPAO for OpenClaw for current-turn judgment, Context Mesh continuity, evidence-aware replies, memory candidates, session continuity, and workflow state ledgers.",
+  "description": "BEAI Runtime component of GPAO for OpenClaw, where GPAO means Growth Personal AI Operating System. Provides current-turn judgment, Context Mesh continuity, evidence-aware replies, memory candidates, session continuity, and workflow state ledgers.",
   "version": "0.6.22",
   "configSchema": {
     "type": "object",
@@ -18,6 +18,17 @@
       "toolRiskObserver": {
         "type": "boolean",
         "default": false
+      },
+      "progressAckHook": {
+        "type": "boolean",
+        "default": false,
+        "description": "Optional native OpenClaw progress-ack hook. Disabled by default so a native hook relay outage cannot block core Gateway, tool, session, or Telegram flows."
+      },
+      "contextMeshTurnStart": {
+        "type": "string",
+        "enum": ["always", "smart", "off"],
+        "default": "always",
+        "description": "Controls GPAO Context Mesh turn-start retrieval. 'always' matches GPAO for Codex behavior by resolving local Context Mesh evidence before every prompt build; admission gates still decide what is injected."
       }
     }
   },

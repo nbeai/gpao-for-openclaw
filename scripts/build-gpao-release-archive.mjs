@@ -7,12 +7,28 @@ import os from "node:os";
 import path from "node:path";
 
 const PRODUCT = "GPAO for OpenClaw";
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 const RUNTIME_VERSION = "0.6.22";
 const COPYRIGHT = "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.";
 
+function usage() {
+  return `Usage:
+  node scripts/build-gpao-release-archive.mjs
+
+Builds the GPAO for OpenClaw local release archive under packages/.
+This command writes the zip, checksum, and release manifest. It does not install, restart Gateway, send Telegram messages, create cron jobs, publish, or promote durable memory.
+`;
+}
+
 function dateStamp() {
-  return new Date().toISOString().slice(0, 10).replaceAll("-", "");
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${byType.year}${byType.month}${byType.day}`;
 }
 
 function sha256(filePath) {
@@ -30,6 +46,7 @@ function shouldCopy(relativePath) {
     "patches",
     "proposals",
     "reports",
+    "tmp",
     ".DS_Store"
   ]);
   const first = relativePath.split(path.sep)[0];
@@ -58,6 +75,11 @@ function copyTree(source, target, base = source) {
 }
 
 function main() {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    process.stdout.write(usage());
+    return;
+  }
+
   const root = path.resolve(new URL("..", import.meta.url).pathname);
   const packageName = `gpao-for-openclaw-v${VERSION}-runtime-v${RUNTIME_VERSION}-${dateStamp()}`;
   const packageDir = path.join(root, "packages");

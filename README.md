@@ -6,7 +6,9 @@
 
 Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
-GPAO for OpenClaw is the integrated personal AI operating package for OpenClaw. It packages BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence as one GPAO operating layer.
+GPAO stands for Growth Personal AI Operating System.
+
+GPAO for OpenClaw is the OpenClaw surface of that Growth Personal AI Operating System. It packages BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, verification tools, and release evidence as one GPAO operating layer.
 
 If you received the ZIP and want to install or review it, start here:
 
@@ -21,13 +23,14 @@ If OpenClaw is the workspace where AI agents can use tools, skills, memory, plug
 
 The legacy phrase "BEAI Package for OpenClaw" refers to the technical substrate that has now been integrated into GPAO for OpenClaw. BEAI Runtime and BEAI Capability Pack remain component names inside the GPAO package; they are not separate product identities in this distribution.
 
-GPAO for OpenClaw is built as a personal AI operating package, not a loose tool bundle. It combines runtime judgment, context continuity, Knowledge Loop review, skill and OS-upgrade candidate flow, clean installation, rollback evidence, and package verification into one operating boundary.
+GPAO for OpenClaw is built as a Growth Personal AI Operating System package, not a loose tool bundle. It combines runtime judgment, context continuity, Knowledge Loop review, skill and OS-upgrade candidate flow, clean installation, rollback evidence, and package verification into one operating boundary.
 
 ## Package Shape
 
 ```text
 OpenClaw Runtime
 -> GPAO for OpenClaw Product Boundary
+-> GPAO = Growth Personal AI Operating System
 -> BEAI Runtime Component
 -> Context Mesh Evidence / Retrieval Layer
 -> Knowledge Loop Review / Learning Layer
@@ -91,6 +94,23 @@ From the unzipped repository root:
 npm run verify
 ```
 
+`npm run verify` prepares the runtime component dependencies before running the
+package gates, so a fresh unzip should not require a separate manual `npm
+install` just to start verification.
+
+The package gate includes GPAO-owned control-plane evidence:
+
+The package also includes a Codex-parity reinforcement gate so OpenClaw does not remain weaker on self-growth, new-session continuity, Context Mesh hard-gating, or lightweight live-operation boundaries.
+
+T-cell Live Reinforcement is now part of the OpenClaw package contract. Each prompt build can shape the current user request, recent Telegram assistant reply, active-flow runtime state, Context Mesh evidence, and persisted handoff pack into a small T-cell task packet. This packet keeps the current request first, treats the latest Telegram topic as the strongest omitted-target anchor, uses Context Mesh as bounded evidence, and demotes stale package/runtime memory when it conflicts with the active flow.
+
+- `gpao-openclaw-proof-ladder`: separates package-built, archive-verified, installer-ready, Gateway boundary, Telegram progress contract, and behavior-contract evidence.
+- `gpao-openclaw-felt-replay`: checks whether the package would feel coherent to a user across new-session recovery, visible progress, delivery truth, repair planning, and first-install expectations.
+- `gpao-openclaw-adapter-matrix`: scores package source, runtime plugin, Gateway/live boundary, Telegram Direct, context broker, Knowledge Loop, and release-channel surfaces separately.
+
+These tools are read-only. They do not install, restart Gateway, send Telegram
+messages, publish, register automation, or promote durable memory.
+
 For runtime source checks:
 
 ```bash
@@ -106,3 +126,11 @@ npm audit --omit=dev
 Current status: `production-ready local release package`.
 
 This package is suitable for public source review and controlled installation when its verification report, archive checksum, and install receipt are present. Real external publication, Gateway restart, Telegram roundtrip, cron activation, or durable memory promotion remain separate authority events with their own evidence.
+
+This status does not mean ClawHub/public release is complete, live OpenClaw has
+been replaced, or Telegram long-work visible progress has been proven in every
+live conversation. Do not describe it as a stable one-command public installer
+until clean OpenClaw environment install, rollback, ClawHub validation, and
+source-channel visible progress evidence are closed.
+
+User-facing status words must stay separated: ready, partial, unverified, blocked, needs approval, on hold, or unsafe.

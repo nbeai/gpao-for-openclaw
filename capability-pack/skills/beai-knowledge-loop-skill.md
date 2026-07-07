@@ -7,9 +7,9 @@ description: "Use when work/session records should be manually distilled into so
 
 ## Identity
 
-BEAI Knowledge Loop is a review-first knowledge production loop for BEAI Package.
+BEAI Knowledge Loop is the review-first learning layer inside GPAO, the Growth Personal AI Operating System.
 
-It turns work records into reusable, source-grounded knowledge while keeping automatic hooks, cron, and durable memory promotion out of scope until manual runs are stable.
+It turns work records into reusable, source-grounded knowledge for GPAO for OpenClaw while keeping automatic hooks, cron, and durable memory promotion behind explicit operating boundaries until those live paths are verified and approved.
 
 ## Core Definition
 
@@ -30,7 +30,7 @@ Use this skill when:
 - a BEAI/OpenClaw/Codex work session needs to become reusable project knowledge
 - the user asks to extract decisions, patterns, traps, package candidates, or development candidates from work records
 - a session summary might otherwise be wrongly promoted to durable memory
-- BEAI Package docs or planning need evidence-grounded recall from prior work
+- GPAO for OpenClaw docs or planning need evidence-grounded recall from prior work
 - a manual knowledge-loop dry run is needed before any automation is proposed
 
 ## Do Not Use For

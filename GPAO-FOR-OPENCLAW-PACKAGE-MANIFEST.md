@@ -8,16 +8,22 @@ Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
 ## Product Definition
 
-GPAO for OpenClaw is the integrated personal AI operating package for OpenClaw. It combines the GPAO product concept, BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, Skill/GPAO upgrade candidates, verification tools, and release evidence into one operating package.
+GPAO means Growth Personal AI Operating System.
+
+GPAO for OpenClaw is the OpenClaw adapter and distribution surface of that Growth Personal AI Operating System. It combines the GPAO product concept, BEAI Runtime, BEAI Capability Pack, Context Mesh, Knowledge Loop, Skill/GPAO upgrade candidates, verification tools, and release evidence into one operating package.
 
 This package should be understood as:
 
+- `GPAO`: Growth Personal AI Operating System, the product category and operating philosophy.
 - `GPAO for OpenClaw`: the product and distribution identity.
 - `BEAI Runtime`: the OpenClaw plugin/runtime component inside GPAO for OpenClaw.
 - `BEAI Capability Pack`: the skill, doctor, Knowledge Loop, Control Center, verification, and documentation component inside GPAO for OpenClaw.
-- `Context Mesh`: the context evidence and retrieval layer that lets GPAO for OpenClaw preserve and resolve user/workflow continuity.
+- `Context Mesh`: the context evidence and retrieval layer that lets GPAO for OpenClaw preserve and resolve user/workflow continuity. OpenClaw prompt builds run Context Mesh turn-start resolve by default and inject only admitted must-read/should-read evidence as bounded comparison context. The turn-start path is a fast preflight, not a heavy blocking search: it uses a short timeout, brief in-process cache, fail-open behavior, and no extra local tool requirement when evidence bodies are already loaded, so every-turn continuity does not become a response-speed bottleneck. When a new-session user utterance omits the target, GPAO Runtime also injects high-signal OpenClaw active-flow state so broad background hits cannot override the concrete live workflow target.
+- `T-cell Live Reinforcement`: the runtime decision layer that shapes the current user request, recent Telegram assistant replies, active-flow state, Context Mesh evidence, and persisted handoff candidates into a small T-cell task packet. The packet records center axis, semantic role, source kind, color state, evidence level, allowed use, conflict state, and answer-anchor priority. This makes OpenClaw GPAO treat recent Telegram context as the strongest omitted-target anchor after the current user request, while keeping broad Context Mesh and stale package/runtime memories as bounded support.
 - `Knowledge Loop`: the review-first knowledge production loop that turns work records, external signals, and usage evidence into upgrade candidates.
 - `Verification and Release Evidence`: the gates that separate source, live, package, archive, install, Telegram delivery, automation, memory, and public release states.
+- `Codex Parity Reinforcement`: the self-growth, new-session continuity, Context Mesh hard gate, and lightweight OpenClaw operation gate that keeps OpenClaw GPAO closer to GPAO for Codex.
+- `OpenClaw T-cell Reinforcement Gate`: the package-owned verification gate that checks T-cell packet structure, Task Markov Blanket, recent Telegram priority, Context Mesh v0.3 bridge fields, and domain-agnostic follow-up replay.
 
 ## Distribution Boundary
 

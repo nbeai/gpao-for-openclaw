@@ -213,14 +213,14 @@ function buildReport(root) {
   const scenarios = [
     buildScenario({
       id: "S01-install-first-run-expectation",
-      title: "첫 설치 사용자가 stable one-command install로 오해하지 않는가",
-      userRisk: "사용자가 alpha package를 production-ready installer로 오해하면 설치 실패, rollback 부재, 지원 기대치 mismatch가 생긴다.",
+      title: "첫 설치 사용자가 local release와 public one-command install을 구분할 수 있는가",
+      userRisk: "사용자가 local release package를 ClawHub/public stable installer로 오해하면 설치 실패, rollback 부재, 지원 기대치 mismatch가 생긴다.",
       checks: [
-        makeCheck("root-readme-alpha-staging", "Root README keeps alpha/public staging wording.", fileContains(files, root, rootReadme, /alpha public staging/i), "README contains alpha public staging wording.", "P0"),
-        makeCheck("root-readme-not-production", "Root README rejects production-ready installer wording.", fileContains(files, root, rootReadme, /not yet be described as a stable one-command installer/i), "README warns against stable one-command installer claims.", "P0"),
+        makeCheck("root-readme-local-release-status", "Root README declares production-ready local release package status.", fileContains(files, root, rootReadme, /production-ready local release package/i), "README contains local release package wording.", "P0"),
+        makeCheck("root-readme-not-public-one-command", "Root README rejects stable one-command public installer wording.", fileContains(files, root, rootReadme, /stable one-command public installer/i), "README warns against stable public installer claims.", "P0"),
         makeCheck("runtime-install-surface-present", "Runtime package declares OpenClaw install surface.", Boolean(packageJson?.openclaw?.install?.clawhubSpec), "package.json has openclaw.install.clawhubSpec.", "P1")
       ],
-      recommendation: "Keep alpha wording visible until clean-environment install, rollback, and ClawHub validation are verified."
+      recommendation: "Keep local release wording tied to clean-environment install, rollback, ClawHub validation, and Telegram visible-progress evidence."
     }),
     buildScenario({
       id: "S02-telegram-normal-reply-not-replaced",
@@ -272,7 +272,9 @@ function buildReport(root) {
       userRisk: "작업은 진행 중이어도 Telegram 사용자는 멈춤, 먹통, 무시로 느낀다.",
       checks: [
         makeCheck("quick-first-status-contract", "Delivery contract requires quick first status.", rules.quick_first_status_before_deep_check === true, "Contract rule is true.", "P1"),
+        makeCheck("quick-first-status-30s", "Delivery contract sets quick first status to 30 seconds.", rules.quick_first_status_max_seconds === 30, "Contract numeric threshold is 30 seconds.", "P1"),
         makeCheck("long-running-progress-contract", "Delivery contract requires visible progress for long-running work.", rules.long_running_work_requires_visible_progress === true, "Contract rule is true.", "P1"),
+        makeCheck("long-running-progress-120s", "Delivery contract sets long-running visible progress to 120 seconds.", rules.long_running_visible_progress_max_seconds === 120, "Contract numeric threshold is 120 seconds.", "P1"),
         makeCheck("doctor-detects-progress-gap", "Doctor issue code detects long-running visible progress gap.", issueCodes.includes("beai-long-running-visible-progress-missing"), "Doctor issue code is present.", "P1")
       ],
       recommendation: "The contract exists; later live verification should prove progress actually reaches the source conversation."

@@ -1,0 +1,135 @@
+{
+  "schema": "beai.korea_business_mcp_registry.v0_1",
+  "status": "source-candidate",
+  "purpose": "Track Korea-focused MCP connectors that let AI verify official or source-grounded data directly instead of answering from memory.",
+  "defaultPolicy": {
+    "connectReadOnlyFirst": true,
+    "doNotStoreApiKeysInPackage": true,
+    "useOpenClawSecretsForKeys": true,
+    "probeBeforeClaimingConnected": true,
+    "separateConfiguredFromUsable": true,
+    "separateRemotePublicFromLocalKeyed": true
+  },
+  "openclawLiveConnections": [
+    {
+      "id": "korean-stats",
+      "url": "https://mcp.gomdori.app/stats",
+      "transport": "streamable-http",
+      "status": "connected-and-probed",
+      "toolsObserved": 14,
+      "risk": "low",
+      "notes": "Remote public KOSIS connector. Use for official statistics with source table IDs."
+    },
+    {
+      "id": "archhub",
+      "url": "https://mcp.gomdori.app/archhub",
+      "transport": "streamable-http",
+      "status": "connected-and-probed",
+      "toolsObserved": 12,
+      "risk": "low",
+      "notes": "Remote public architecture/building data connector. Use for building ledgers, permits, prices, and district building checks."
+    },
+    {
+      "id": "korean-patent",
+      "url": "https://mcp.gomdori.app/patent",
+      "transport": "streamable-http",
+      "status": "connected-and-probed",
+      "toolsObserved": 7,
+      "risk": "medium",
+      "notes": "Remote patent/trademark/design connector with public fallback. For heavier or private use, configure a user-owned KIPRIS key through OpenClaw secrets."
+    }
+  ],
+  "candidates": [
+    {
+      "id": "korean-law",
+      "repo": "https://github.com/chrisryugj/korean-law-mcp",
+      "primaryUse": "Law, precedent, ordinance, treaty, citation verification, and legal hallucination checks.",
+      "recommendedMode": "keyed-remote-or-local",
+      "auth": {
+        "required": true,
+        "secretNames": ["LAW_OC"]
+      },
+      "status": "candidate-needs-key",
+      "openclawRecommendation": "Add after a user-owned law.go.kr OC key is available; keep as read-only."
+    },
+    {
+      "id": "kordoc",
+      "repo": "https://github.com/chrisryugj/kordoc",
+      "primaryUse": "Parse HWP, HWPX, PDF, XLS, XLSX, DOCX and Korean public-office documents into markdown.",
+      "recommendedMode": "local-stdio",
+      "auth": {
+        "required": false,
+        "secretNames": []
+      },
+      "status": "candidate-local-install-test-first",
+      "openclawRecommendation": "Use local sandbox/fresh install first because it processes local documents and can touch sensitive files."
+    },
+    {
+      "id": "korean-dart",
+      "repo": "https://github.com/chrisryugj/korean-dart-mcp",
+      "primaryUse": "OpenDART disclosures, filings, financial statements, XBRL, attachments, holdings, insider and accounting-risk checks.",
+      "recommendedMode": "local-keyed-or-keyed-remote",
+      "auth": {
+        "required": true,
+        "secretNames": ["DART_API_KEY", "OPENDART_API_KEY"]
+      },
+      "status": "candidate-needs-key",
+      "openclawRecommendation": "Add after a user-owned OpenDART API key is available; start with read-only filings and finance checks."
+    },
+    {
+      "id": "schoolinfo",
+      "repo": "https://github.com/chrisryugj/schoolinfo-mcp",
+      "primaryUse": "SchoolInfo and NEIS data such as meals, student counts, schedules, and assessment plans.",
+      "recommendedMode": "remote-or-local",
+      "auth": {
+        "required": "depends-on-mode",
+        "secretNames": []
+      },
+      "status": "candidate-lower-business-priority",
+      "openclawRecommendation": "Keep available as a domain connector, but do not prioritize for owner/business workflows unless the task involves education."
+    },
+    {
+      "id": "korean-stats",
+      "repo": "https://github.com/chrisryugj/korean-stats-mcp",
+      "primaryUse": "KOSIS official statistics, regional comparisons, policy indicators, trends, and source-cited numeric checks.",
+      "recommendedMode": "remote-public-first",
+      "auth": {
+        "required": false,
+        "secretNames": ["KOSIS_API_KEY"]
+      },
+      "status": "connected-and-probed",
+      "openclawRecommendation": "Use as default source-backed statistics connector."
+    },
+    {
+      "id": "archhub",
+      "repo": "https://github.com/chrisryugj/archhub-mcp",
+      "primaryUse": "Building ledgers, permits, demolition history, old buildings, public price history, district building analysis.",
+      "recommendedMode": "remote-public-first",
+      "auth": {
+        "required": false,
+        "secretNames": ["ARCHHUB_SERVICE_KEY"]
+      },
+      "status": "connected-and-probed",
+      "openclawRecommendation": "Use for real-estate, store-location, construction, and facility diligence tasks."
+    },
+    {
+      "id": "korean-patent",
+      "repo": "https://github.com/chrisryugj/korean-patent-mcp",
+      "primaryUse": "KIPRIS patent, utility model, trademark, and design search.",
+      "recommendedMode": "remote-public-first-then-user-key",
+      "auth": {
+        "required": false,
+        "secretNames": ["KIPRIS_API_KEY"]
+      },
+      "status": "connected-and-probed",
+      "openclawRecommendation": "Use for early trademark, product-name, and invention checks; add a user-owned KIPRIS key for reliable/private-heavy use."
+    }
+  ],
+  "lastVerification": {
+    "checkedAtKst": "2026-07-07T23:54:05+09:00",
+    "openclawMcpDoctor": "pass",
+    "probedServers": ["korean-stats", "archhub", "korean-patent"],
+    "notYetConnected": ["korean-law", "kordoc", "korean-dart", "schoolinfo"],
+    "reasonNotYetConnected": "These require API keys, local document/file access, or lower-priority domain routing before safe default activation."
+  }
+}

@@ -8,6 +8,8 @@ Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.
 
 Use this file first when you receive the GPAO for OpenClaw ZIP.
 
+GPAO means Growth Personal AI Operating System. GPAO for OpenClaw is the OpenClaw distribution surface of that system: a runtime, context, knowledge, verification, and upgrade-loop package that helps OpenClaw operate as a growth-oriented personal AI OS.
+
 This package has two install surfaces:
 
 - `plugin/beai-runtime/`: the OpenClaw runtime plugin component inside GPAO for OpenClaw.
@@ -16,7 +18,7 @@ This package has two install surfaces:
 ## Manual ZIP Path
 
 ```bash
-unzip gpao-for-openclaw-v0.1.0-runtime-v0.6.22-*.zip
+unzip gpao-for-openclaw-v0.1.1-runtime-v0.6.22-*.zip
 cd gpao-for-openclaw
 openclaw plugins install --link "$PWD/plugin/beai-runtime"
 openclaw plugins enable beai-runtime
@@ -39,12 +41,27 @@ The dry-run shows what will be backed up. The apply run moves old BEAI traces in
 
 ```bash
 npm run verify
+```
+
+`npm run verify` prepares runtime dependencies and then runs the full package
+verification gate. To inspect the runtime component manually, use:
+
+```bash
 cd plugin/beai-runtime
 npm install
 npm run build
 npm test
 npm audit --omit=dev
 ```
+
+The full gate also writes GPAO control-plane evidence for the OpenClaw package:
+
+- proof ladder
+- felt replay
+- adapter matrix
+
+These reports keep local package readiness separate from live OpenClaw
+replacement, Gateway restart, Telegram messageId proof, and public release.
 
 ## What This Package Does Not Do Automatically
 
@@ -59,3 +76,8 @@ npm audit --omit=dev
 ## Status
 
 Current distribution status: `production-ready local release package`.
+
+This is not a ClawHub/public release claim, live OpenClaw replacement claim, or
+stable one-command public installer claim. Those remain separate gates until
+clean OpenClaw environment install, rollback, ClawHub validation, and Telegram
+visible progress evidence are verified.

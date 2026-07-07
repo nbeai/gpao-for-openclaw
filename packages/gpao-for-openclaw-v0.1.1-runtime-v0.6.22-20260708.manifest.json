@@ -1,11 +1,11 @@
 {
   "schema": "gpao.openclaw.release_archive.v0_1",
   "product": "GPAO for OpenClaw",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "runtimeVersion": "0.6.22",
-  "archive": "/Users/jyp/Developer/BEAI/beai-package-for-openclaw/packages/gpao-for-openclaw-v0.1.0-runtime-v0.6.22-20260706.zip",
-  "sha256": "e1464df7f4891b7458e815d11a47ff05229c3d90d4e3a4406f6096a5bfcee00e",
-  "generatedAt": "2026-07-06T20:51:12.009Z",
+  "archive": "/Users/jyp/Developer/BEAI/beai-package-for-openclaw/packages/gpao-for-openclaw-v0.1.1-runtime-v0.6.22-20260708.zip",
+  "sha256": "bbdd6e0c41633c862f7026a970ae4b4a5ebe3f06877a4909ecf5f183023b66b6",
+  "generatedAt": "2026-07-07T18:00:41.398Z",
   "copyright": "Copyright (c) 2026 Park Jongyoon / 윤 (@aigis0927). All rights reserved.",
   "status": "production-ready local release archive",
   "includes": [

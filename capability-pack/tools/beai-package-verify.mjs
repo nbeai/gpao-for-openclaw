@@ -45,7 +45,7 @@ function run(command, args, options = {}) {
       timeout: options.timeout || 120000,
       maxBuffer: 1024 * 1024 * 8
     }, (error, stdout, stderr) => {
-      resolve({
+      const result = {
         id: options.id,
         command: [command, ...args].join(" "),
         cwd: options.cwd,
@@ -55,7 +55,17 @@ function run(command, args, options = {}) {
         stdout: String(stdout || "").slice(-12000),
         stderr: String(stderr || "").slice(-12000),
         error: error ? error.message : ""
-      });
+      };
+      if (options.generatedOutput) {
+        result.generatedOutput = options.generatedOutput;
+        const generatedStatus = readGeneratedStatus(options.generatedOutput);
+        result.generatedStatus = generatedStatus;
+        if (generatedStatus && !["pass", "ready", "review", "attention"].includes(generatedStatus.status)) {
+          result.ok = false;
+          result.error = result.error || `Generated output status was ${generatedStatus.status}`;
+        }
+      }
+      resolve(result);
     });
   });
 }
@@ -66,6 +76,25 @@ function readText(filePath) {
   } catch {
     return "";
   }
+}
+
+function readGeneratedStatus(filePath) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const status = parsed.status || parsed.package_status || parsed.gate_status || parsed.result;
+    if (typeof status !== "string") return { status: "unknown" };
+    return {
+      status,
+      failed: parsed.failed || parsed.failures || parsed.blockers || []
+    };
+  } catch {
+    return null;
+  }
+}
+
+function runtimeDependenciesReady(runtimeRoot) {
+  return fs.existsSync(path.join(runtimeRoot, "node_modules/.bin/tsc")) &&
+    fs.existsSync(path.join(runtimeRoot, "node_modules/openclaw/package.json"));
 }
 
 function scanStaleClaims(root) {
@@ -117,28 +146,51 @@ const commands = [
   ["capability-pack/tools/beai-package-map-check.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-conversation-flow-review-check.mjs", "--root", ".", "--format", "json", "--stdout"],
   ["capability-pack/tools/beai-workbench-skill-audit.mjs", "--root", ".", "--format", "json", "--stdout"],
-  ["capability-pack/tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--stdout"]
+  ["capability-pack/tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/gpao-openclaw-proof-ladder.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/gpao-openclaw-felt-replay.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/gpao-openclaw-adapter-matrix.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/gpao-openclaw-codex-parity.mjs", "--root", ".", "--format", "json", "--stdout"],
+  ["capability-pack/tools/gpao-openclaw-tcell-live-reinforcement.mjs", "--root", ".", "--format", "json", "--stdout"]
 ];
 for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
 `;
   const commands = [
     () => run("npm", ["test"], { id: "package-control-center-test", cwd: root, timeout: 60000 }),
+    () => runtimeDependenciesReady(runtimeRoot)
+      ? Promise.resolve({
+        id: "runtime-dependency-install",
+        command: "npm install",
+        cwd: runtimeRoot,
+        ok: true,
+        exitCode: 0,
+        durationMs: 0,
+        stdout: "runtime dependencies already present",
+        stderr: "",
+        error: ""
+      })
+      : run("npm", ["install"], { id: "runtime-dependency-install", cwd: runtimeRoot, timeout: 180000 }),
     () => run("npm", ["run", "build"], { id: "runtime-build", cwd: runtimeRoot, timeout: 120000 }),
     () => run("npm", ["test"], { id: "runtime-syntax-test", cwd: runtimeRoot, timeout: 120000 }),
     () => run("npm", ["audit", "--omit=dev"], { id: "runtime-prod-audit", cwd: runtimeRoot, timeout: 120000 }),
     () => run("node", ["capability-pack/tools/beai-doctor.js", "--help"], { id: "doctor-help-usage-only", cwd: root, timeout: 30000 }),
-    () => run("node", ["tools/beai-doctor-package-check.mjs", "--root", ".", "--json-output", path.join(generatedDir, "beai-doctor-package-check-verify.json"), "--markdown-output", path.join(generatedDir, "beai-doctor-package-check-verify.md")], { id: "doctor-package-check", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-flow-regression-gate.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-flow-regression-gate-verify.json")], { id: "flow-regression-gate", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-user-scenario-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-user-scenario-audit-verify.json")], { id: "user-scenario-audit", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-operational-notification-gate.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-operational-notification-gate-verify.json")], { id: "operational-notification-gate", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-organic-flow-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-organic-flow-audit-verify.json")], { id: "organic-flow-audit", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-control-center.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-control-center-verify.json")], { id: "control-center-readonly-status", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-package-map-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-package-map-check-verify.json")], { id: "package-map-check", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-conversation-flow-review-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-conversation-flow-review-check-verify.json")], { id: "conversation-flow-review-check", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-workbench-skill-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-workbench-skill-audit-verify.json")], { id: "workbench-skill-audit", cwd: capabilityRoot, timeout: 60000 }),
-    () => run("node", ["tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-external-reach-doctor-verify.json")], { id: "external-reach-doctor", cwd: capabilityRoot, timeout: 60000 }),
+    () => run("node", ["tools/beai-doctor-package-check.mjs", "--root", ".", "--json-output", path.join(generatedDir, "beai-doctor-package-check-verify.json"), "--markdown-output", path.join(generatedDir, "beai-doctor-package-check-verify.md")], { id: "doctor-package-check", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-doctor-package-check-verify.json") }),
+    () => run("node", ["tools/beai-flow-regression-gate.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-flow-regression-gate-verify.json")], { id: "flow-regression-gate", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-flow-regression-gate-verify.json") }),
+    () => run("node", ["tools/beai-user-scenario-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-user-scenario-audit-verify.json")], { id: "user-scenario-audit", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-user-scenario-audit-verify.json") }),
+    () => run("node", ["tools/beai-operational-notification-gate.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-operational-notification-gate-verify.json")], { id: "operational-notification-gate", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-operational-notification-gate-verify.json") }),
+    () => run("node", ["tools/beai-organic-flow-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-organic-flow-audit-verify.json")], { id: "organic-flow-audit", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-organic-flow-audit-verify.json") }),
+    () => run("node", ["tools/beai-control-center.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-control-center-verify.json")], { id: "control-center-readonly-status", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-control-center-verify.json") }),
+    () => run("node", ["tools/beai-package-map-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-package-map-check-verify.json")], { id: "package-map-check", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-package-map-check-verify.json") }),
+    () => run("node", ["tools/beai-conversation-flow-review-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-conversation-flow-review-check-verify.json")], { id: "conversation-flow-review-check", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-conversation-flow-review-check-verify.json") }),
+    () => run("node", ["tools/beai-workbench-skill-audit.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-workbench-skill-audit-verify.json")], { id: "workbench-skill-audit", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-workbench-skill-audit-verify.json") }),
+    () => run("node", ["tools/beai-external-reach-doctor.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-external-reach-doctor-verify.json")], { id: "external-reach-doctor", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "beai-external-reach-doctor-verify.json") }),
+    () => run("node", ["tools/gpao-openclaw-proof-ladder.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "gpao-openclaw-proof-ladder-verify.json")], { id: "gpao-openclaw-proof-ladder", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "gpao-openclaw-proof-ladder-verify.json") }),
+    () => run("node", ["tools/gpao-openclaw-felt-replay.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "gpao-openclaw-felt-replay-verify.json")], { id: "gpao-openclaw-felt-replay", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "gpao-openclaw-felt-replay-verify.json") }),
+    () => run("node", ["tools/gpao-openclaw-adapter-matrix.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "gpao-openclaw-adapter-matrix-verify.json")], { id: "gpao-openclaw-adapter-matrix", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "gpao-openclaw-adapter-matrix-verify.json") }),
     () => run("node", ["-e", rootResolutionScript], { id: "capability-tools-root-resolution", cwd: root, timeout: 120000 }),
-    () => run("node", ["capability-pack/tools/beai-package-truth-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-package-truth-check-verify.json")], { id: "package-truth-check", cwd: root, timeout: 120000 })
+    () => run("node", ["tools/gpao-openclaw-codex-parity.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "gpao-openclaw-codex-parity-verify.json")], { id: "gpao-openclaw-codex-parity", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "gpao-openclaw-codex-parity-verify.json") }),
+    () => run("node", ["tools/gpao-openclaw-tcell-live-reinforcement.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "gpao-openclaw-tcell-live-reinforcement-verify.json")], { id: "gpao-openclaw-tcell-live-reinforcement", cwd: capabilityRoot, timeout: 60000, generatedOutput: path.join(generatedDir, "gpao-openclaw-tcell-live-reinforcement-verify.json") }),
+    () => run("node", ["capability-pack/tools/beai-package-truth-check.mjs", "--root", ".", "--format", "json", "--output", path.join(generatedDir, "beai-package-truth-check-verify.json")], { id: "package-truth-check", cwd: root, timeout: 120000, generatedOutput: path.join(generatedDir, "beai-package-truth-check-verify.json") })
   ];
 
   const results = [];
@@ -159,6 +211,7 @@ for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
       cwd: result.cwd,
       durationMs: result.durationMs,
       exitCode: result.exitCode,
+      generatedStatus: result.generatedStatus,
       stdout_tail: result.stdout,
       stderr_tail: result.stderr,
       error: result.error
@@ -176,6 +229,11 @@ for (const args of commands) execFileSync("node", args, { stdio: "pipe" });
       "beai-conversation-flow-review-check-verify.json",
       "beai-workbench-skill-audit-verify.json",
       "beai-external-reach-doctor-verify.json",
+      "gpao-openclaw-proof-ladder-verify.json",
+      "gpao-openclaw-felt-replay-verify.json",
+      "gpao-openclaw-adapter-matrix-verify.json",
+      "gpao-openclaw-codex-parity-verify.json",
+      "gpao-openclaw-tcell-live-reinforcement-verify.json",
       "beai-doctor-package-check-root-resolution.json",
       "beai-doctor-package-check-root-resolution.md",
       "beai-package-truth-check-verify.json"
